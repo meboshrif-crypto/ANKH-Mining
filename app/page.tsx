@@ -3,9 +3,9 @@ import { useState, useEffect } from "react";
 
 export default function Page() {
   // --- حالات البوت الأساسية ---
-  const [tab, setTab] = useState("mining"); // الخانة النشطة حالياً
-  const [balance, setBalance] = useState(0); // رصيد التعدين داخل التطبيق
-  const [walletBalance, setWalletBalance] = useState(0); // رصيد المحفظة على السلسلة (يتحكم في الليفل)
+  const [tab, setTab] = useState("mining"); 
+  const [balance, setBalance] = useState(0); 
+  const [walletBalance, setWalletBalance] = useState(0); 
   const [refCode, setRefCode] = useState("000000");
   const [invitedCount, setInvitedCount] = useState(0);
   
@@ -17,7 +17,7 @@ export default function Page() {
 
   // --- حالات الستيكنج ---
   const [stakeAmount, setStakeAmount] = useState("");
-  const [stakeDuration, setStakeDuration] = useState(1); // 1 أو 3 أو 9 أشهر
+  const [stakeDuration, setStakeDuration] = useState(1); 
   const [activeStakes, setActiveStakes] = useState<any[]>([]);
 
   // --- حالات المهمات والمكافأة اليومية ---
@@ -28,12 +28,10 @@ export default function Page() {
     { id: 2, text: "الاشتراك في قناة الأخبار", reward: 77, done: false, link: "https://t.me" }
   ]);
 
-  // --- 1. حساب مستوى التعدين بناءً على رصيد المحفظة فقط ---
-  // أول مستوى يعطي 0.25 وكل عملة في المحفظة تزيد سرعة التعدين بمقدار ضئيل تصاعدياً حتى لفل 500
+  // --- 1. حساب مستوى التعدين ---
   const currentLevel = Math.min(500, Math.floor(walletBalance / 10) + 1);
   const miningRatePerHour = 0.25 + (currentLevel - 1) * 0.05; 
 
-  // عداد التعدين الحي (يعمل كل جزء من الثانية)
   useEffect(() => {
     const interval = setInterval(() => {
       setBalance((prev) => prev + (miningRatePerHour / 36000));
@@ -41,7 +39,7 @@ export default function Page() {
     return () => clearInterval(interval);
   }, [miningRatePerHour]);
 
-  // --- 2. توليد كود الإحالة للمستخدم ---
+  // --- 2. توليد كود الإحالة ---
   useEffect(() => {
     let code = localStorage.getItem("ankh_uid");
     if (!code) {
@@ -52,10 +50,9 @@ export default function Page() {
     setRefCode(code);
   }, []);
 
-  // --- 3. منطق المطالبة اليومية (Daily Check-in) ---
+  // --- 3. المكافأة اليومية ---
   const handleDailyCheckIn = () => {
     if (claimedToday) return;
-    // الحسبة تبدأ من 7 عملات وتزيد بمقدار 2 عملة عن كل يوم إضافي
     const reward = 7 + (dailyDay - 1) * 2;
     setBalance(b => b + reward);
     setClaimedToday(true);
@@ -63,13 +60,12 @@ export default function Page() {
   };
 
   const simulateMissedDay = () => {
-    // محاكاة إذا المستخدم فاته يوم؛ يتم تصفير العداد ليعود لليوم الأول
     setDailyDay(1);
     setClaimedToday(false);
-    alert("تم إعادة عداد الأيام إلى اليوم الأول لعدم تسجيل الدخول المتتالي!");
+    alert("تم إعادة عداد الأيام إلى اليوم الأول!");
   };
 
-  // --- 4. منطق الستيكنج (Staking) ---
+  // --- 4. الستيكنج ---
   const handleStake = () => {
     const amt = Number(stakeAmount);
     if (amt < 100) {
@@ -77,7 +73,7 @@ export default function Page() {
       return;
     }
     if (balance < amt) {
-      alert("رصيدك الحالي لا يكفي لإتمام هذه العملية!");
+      alert("رصيدك الحالي لا يكفي!");
       return;
     }
 
@@ -88,12 +84,12 @@ export default function Page() {
     const profit = amt * (profitPercent / 100);
     
     setBalance(b => b - amt);
-    setActiveStakes([...activeStakes, { amount: amt, duration: stakeDuration, profit: profit, end: "بعد انتهاء المدة" }]);
+    setActiveStakes([...activeStakes, { amount: amt, duration: stakeDuration, profit: profit }]);
     setStakeAmount("");
-    alert("تم بدء الستيكنج بنجاح وقفل العملات!");
+    alert("تم بدء الستيكنج بنجاح!");
   };
 
-  // --- 5. منطق تنفيذ المهمات ---
+  // --- 5. تنفيذ المهمات ---
   const completeTask = (id: number, reward: number, link: string) => {
     window.open(link, "_blank");
     setTasks(tasks.map(t => t.id === id ? { ...t, done: true } : t));
@@ -106,7 +102,7 @@ export default function Page() {
     <div style={{ minHeight: "100vh", background: "#0a0d0a", color: "#ffffff", display: "flex", justifyContent: "center", fontFamily: "system-ui, sans-serif" }}>
       <div style={{ width: "100%", maxWidth: "420px", background: "#111411", minHeight: "100vh", paddingBottom: "90px", position: "relative", boxSizing: "border-box", display: "flex", flexDirection: "column" }}>
         
-        {/* شريط معلومات المستخدم العلوي المستمر */}
+        {/* شريط معلومات المستخدم العلوي */}
         <div style={{ padding: "16px", background: "#161b16", borderBottom: "2px solid #d4af37", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "#d4af37", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "20px" }}>☥</div>
@@ -129,11 +125,11 @@ export default function Page() {
           {tab === "mining" && (
             <div style={{ textAlign: "center", marginTop: "20px" }}>
               <p style={{ color: "#8a9a8a", fontSize: "14px" }}>إجمالي رصيدك الحالي داخل التطبيق</p>
-              <h1 style={{ fontSize: "42px", color: "#d4af37", margin: "10px 0", letterSpacing: "1px" }}>{balance.toFixed(5)}</h1>
+              <h1 style={{ fontSize: "42px", color: "#d4af37", margin: "10px 0" }}>{balance.toFixed(5)}</h1>
               <p style={{ color: "#8a9a8a", fontSize: "12px" }}>ANKH TOKENS</p>
 
-              <div style={{ margin: "40px auto", width: "160px", height: "160px", borderRadius: "50%", border: "4px dashed #d4af37", display: "flex", alignItems: "center", justifyContent: "center", background: "#161b16", boxShadow: "0 0 20px rgba(212,175,55,0.2)" }}>
-                <span style={{ fontSize: "50px", animation: "pulse 2s infinite" }}>⛏️</span>
+              <div style={{ margin: "40px auto", width: "160px", height: "160px", borderRadius: "50%", border: "4px dashed #d4af37", display: "flex", alignItems: "center", justifyContent: "center", background: "#161b16" }}>
+                <span style={{ fontSize: "50px" }}>⛏️</span>
               </div>
 
               <div style={{ background: "#161b16", borderRadius: "12px", padding: "16px", border: "1px solid #222a22", textAlign: "right" }}>
@@ -147,9 +143,7 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* تحكم تجريبي لاختبار تأثير محفظة الـ On-chain على الليفل وسرعة التعدين */}
               <div style={{ marginTop: "30px", padding: "12px", background: "#222", borderRadius: "8px", fontSize: "12px" }}>
-                <p style={{ margin: "0 0 8px 0" }}>⚙️ لوحة تحكم المطور (لتجربة زيادة رصيد المحفظة وتأثيره على الليفل والسرعة):</p>
                 <button onClick={() => setWalletBalance(b => b + 50)} style={{ background: "#d4af37", border: "none", padding: "6px 12px", borderRadius: "4px", fontWeight: "bold", cursor: "pointer" }}>شحن المحفظة بـ +50 عملة On-chain</button>
               </div>
             </div>
@@ -162,19 +156,15 @@ export default function Page() {
                 <h3>برنامج دعوة الأصدقاء والإحالة</h3>
                 <span style={{ color: "#d4af37", fontWeight: "bold", fontSize: "18px" }}>ANKH</span>
               </div>
-
               <p style={{ fontSize: "14px", color: "#8a9a8a", lineHeight: "1.6" }}>
-                قم بدعوة أصدقائك الجدد للانضمام إلينا. ستحصل فوراً وبشكل دائم على مكافأة تعادل <span style={{ color: "#d4af37", fontWeight: "bold" }}>5% من إجمالي أرباح التعدين</span> التي يحققها الشخص الذي قمت بدعوته مباشرة إلى حسابك الخاص مدى الحياة.
+                تحصل فوراً وبشكل دائم على مكافأة تعادل <span style={{ color: "#d4af37", fontWeight: "bold" }}>5% من إجمالي أرباح التعدين</span> للمستخدمين من خلالك.
               </p>
-
               <div style={{ background: "#161b16", padding: "16px", borderRadius: "12px", border: "1px solid #222a22", margin: "20px 0" }}>
-                <p style={{ margin: "0 0 8px 0", fontSize: "12px", color: "#8a9a8a" }}>رابط الإحالة الفريد والخاص بك:</p>
                 <div style={{ display: "flex", background: "#0a0d0a", padding: "10px", borderRadius: "8px", alignItems: "center", justifyContent: "space-between" }}>
                   <code style={{ fontSize: "12px", color: "#d4af37" }}>{inviteLink}</code>
-                  <button onClick={() => { navigator.clipboard.writeText(inviteLink); alert("تم نسخ رابط الإحالة بنجاح!"); }} style={{ background: "#d4af37", border: "none", padding: "6px 12px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}>نسخ</button>
+                  <button onClick={() => { navigator.clipboard.writeText(inviteLink); alert("تم نسخ الرابط!"); }} style={{ background: "#d4af37", border: "none", padding: "6px 12px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}>نسخ</button>
                 </div>
               </div>
-
               <div style={{ background: "#161b16", padding: "16px", borderRadius: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>عدد الأصدقاء المؤهلين المدعوين:</span>
                 <span style={{ color: "#d4af37", fontSize: "20px", fontWeight: "bold" }}>{invitedCount} صديق</span>
@@ -182,12 +172,12 @@ export default function Page() {
             </div>
           )}
 
-          {/* === 3. واجهة الستيكنج (Staking) === */}
+          {/* === 3. واجهة الستيكنج === */}
           {tab === "staking" && (
             <div>
               <h3>نظام الاستثمار المقيد (Staking)</h3>
-<p style={{ fontSize: "13px", color: "#8a9a8a" }}>قم بقفل عملاتك لفترات محددة لتحصل على عوائد ربحية ضخمة وثابتة. الحد الأدنى للمشاركة هو 100 عملة ANKH.
-<div style={{ background: "#161b16", padding: "16px", borderRadius: "12px", marginTop: "16px", border: "1px solid #222a22" }}>
-المبلغ المراد استثماره:
-<input type="number" placeholder="أدخل الكمية (أقل شيء 100)" value={stakeAmount} onChange={e => setStakeAmount(e.target.value)} style={{ width: "100%", padding: "12px", borderRadius: "8px", background: "#0a0d0a", border: "1px solid #333", color: "#fff", marginBottom: "16px", boxSizing: "border-box" }} />
-ا
+              <div style={{ background: "#161b16", padding: "16px", borderRadius: "12px", marginTop: "16px", border: "1px solid #222a22" }}>
+                <input type="number" placeholder="أدخل الكمية (أقل شيء 100)" value={stakeAmount} onChange={e => setStakeAmount(e.target.value)} style={{ width: "100%", padding: "12px", borderRadius: "8px", background: "#0a0d0a", border: "1px solid #333", color: "#fff", marginBottom: "16px", boxSizing: "border-box" }} />
+                <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+                  <button onClick={() => setStakeDuration(1)} style={{ flex: 1, padding: "10px", borderRadius: "8px", background: stakeDuration === 1 ? "#d4af37" : "#0a0d0a", color: stakeDuration === 1 ? "#000" : "#fff", fontWeight: "bold", border: "1px solid #d4af37", cursor: "pointer" }}>شهر (25%)</button>
+                  <button onClick={() => setStakeDuration(3)} style={{ flex: 1, padding: "10px", borderRadius: "8px", background: stakeDuration === 3 ? "#d4af37" : "#0a0d0a", color: stakeDuration === 3 ? "#000" : "#fff", fontWeight: "bold", border: "1px solid #d4af37", cursor: "pointer" }}>3 أشهر (60%)</button>
