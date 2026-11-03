@@ -1,77 +1,56 @@
 "use client";
-import "./globals.css";
 import { useState } from "react";
 
 export default function Page() {
-  const [balance, setBalance] = useState(0);
-  const [level, setLevel] = useState(1);
-  const [fluts, setFluts] = useState(0);
+  const [balance, setBalance] = useState(1250);
   const [mining, setMining] = useState(false);
-  const [wallet, setWallet] = useState("");
-  const [claimed, setClaimed] = useState<any[]>([]);
-
-  const tasks = [
-    { id: 1, title: "Join Telegram", reward: 100, link: "https://t.me" },
-    { id: 2, title: "Follow on X", reward: 150, link: "https://x.com" },
-  ];
-
-  const handleMine = () => {
-    if (mining) return;
+  
+  const mine = () => {
+    if(mining) return;
     setMining(true);
-    setTimeout(() => {
-      const earn = level * 10;
-      setBalance((b) => b + earn);
-      setFluts((f) => f + 1);
+    setTimeout(()=>{
+      setBalance(b=>b+10);
       setMining(false);
-    }, 2000);
-  };
-
-  const connectWallet = () => {
-    const addr = prompt("حط عنوان محفظة TON:");
-    if (addr) setWallet(addr);
-  };
-
-  const doTask = (t: any) => {
-    window.open(t.link, "_blank");
-    setTimeout(() => {
-      if (!claimed.includes(t.id)) {
-        setBalance((b) => b + t.reward);
-        setClaimed([...claimed, t.id]);
-        alert(`تم! +${t.reward} ANKH`);
-      }
-    }, 3000);
+    }, 1500);
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 flex justify-center">
-      <div className="w-full max-w-md">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-yellow-400">ANKH Mining</h1>
-          <button onClick={connectWallet} className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm">
-            {wallet ? wallet.slice(0,6)+"..." : "Connect Wallet"}
+    <div style={{minHeight:"100vh", background:"radial-gradient(circle at top, #1a1a0a, #000)", color:"white", fontFamily:"sans-serif", display:"flex", justifyContent:"center", padding:"20px"}}>
+      <div style={{width:"100%", maxWidth:"380px", textAlign:"center"}}>
+        
+        <h1 style={{fontSize:"32px", fontWeight:"900", color:"#facc15", marginTop:"20px", letterSpacing:"2px"}}>☥ ANKH</h1>
+        <p style={{color:"#888", fontSize:"12px", marginBottom:"25px"}}>THE ETERNAL MINING</p>
+
+        <div style={{background:"linear-gradient(145deg, #1e1e1e, #111)", border:"1px solid #333", borderRadius:"28px", padding:"28px", boxShadow:"0 0 40px rgba(250,204,21,0.15)"}}>
+          <p style={{color:"#aaa", fontSize:"13px"}}>Your Balance</p>
+          <h2 style={{fontSize:"48px", fontWeight:"800", margin:"8px 0"}}>{balance.toLocaleString()}</h2>
+          <p style={{color:"#facc15", fontWeight:"bold"}}>ANKH</p>
+          
+          <div style={{display:"flex", justifyContent:"center", gap:"10px", margin:"15px 0", fontSize:"12px", color:"#777"}}>
+            <span style={{background:"#222", padding:"6px 12px", borderRadius:"20px"}}>Level 1 👑</span>
+            <span style={{background:"#222", padding:"6px 12px", borderRadius:"20px"}}>Fluts 0 🔷</span>
+          </div>
+
+          <button onClick={mine} style={{width:"100%", background: mining ? "#444" : "#facc15", color: mining ? "#fff" : "#000", border:"none", padding:"18px", borderRadius:"16px", fontSize:"18px", fontWeight:"900", marginTop:"10px", cursor:"pointer", transition:"0.2s"}}>
+            {mining ? "⛏️ Mining..." : "⚡ START MINING"}
           </button>
+          <p style={{fontSize:"11px", color:"#555", marginTop:"12px"}}>+10 ANKH every tap • 2s cooldown</p>
         </div>
 
-        <div className="bg-zinc-900 rounded-2xl p-6 text-center mb-4">
-          <p className="text-zinc-400">Balance</p>
-          <h2 className="text-4xl font-bold my-2">{balance} ANKH</h2>
-          <p className="text-sm">Level {level} | Fluts {fluts}</p>
-          <button onClick={handleMine} disabled={mining} className="mt-6 w-full bg-yellow-400 text-black py-3 rounded-xl font-bold disabled:opacity-50">
-            {mining ? "Mining..." : "Start Mining"}
-          </button>
+        <div style={{background:"#151515", border:"1px solid #222", borderRadius:"20px", padding:"18px", marginTop:"18px", textAlign:"left"}}>
+          <h3 style={{fontWeight:"bold", marginBottom:"12px"}}>🚀 Tasks</h3>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom:"1px solid #222"}}>
+            <span>📢 Join Telegram</span>
+            <span style={{background:"#222", padding:"6px 12px", borderRadius:"20px", fontSize:"12px", color:"#facc15"}}>+100</span>
+          </div>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0"}}>
+            <span>🐦 Follow on X</span>
+            <span style={{background:"#222", padding:"6px 12px", borderRadius:"20px", fontSize:"12px", color:"#facc15"}}>+150</span>
+          </div>
         </div>
 
-        <div className="bg-zinc-900 rounded-2xl p-4">
-          <h3 className="font-bold mb-3">Tasks</h3>
-          {tasks.map(t => (
-            <div key={t.id} className="flex justify-between items-center py-2 border-b border-zinc-800 last:border-0">
-              <span>{t.title}</span>
-              <button onClick={()=>doTask(t)} className="bg-zinc-800 px-3 py-1 rounded-full text-sm">
-                +{t.reward}
-              </button>
-            </div>
-          ))}
-        </div>
+        <button style={{width:"100%", marginTop:"18px", background:"#222", color:"white", border:"1px solid #333", padding:"14px", borderRadius:"14px", fontWeight:"bold"}}>🔗 Connect Wallet</button>
+
       </div>
     </div>
   );
