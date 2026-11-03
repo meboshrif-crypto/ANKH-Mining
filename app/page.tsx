@@ -1,256 +1,186 @@
 "use client";
 import { useState, useEffect } from "react";
 
-const T = {
+const T:any = {
+  en: {
+    mining:"Mining", store:"Store", list:"List", friends:"Friends", wallet:"Wallet",
+    total:"Total Mined Balance", inside:"In-game • Not affect level",
+    active:"Active Mining", working:"Working Now", perHour:"Per Hour", daily:"Daily", boost:"Boost", mult:"Multiplier",
+    lvl:"Level", current:"Your Current Status", lootInWallet:"ANKH in wallet", determines:"Determines your level & earning speed",
+    rules:"Mining Levels Rules", how:"How to increase level & speed?",
+    walletTitle:"TON Wallet", connectDesc:"Blockchain link & Withdrawals", minedBal:"Mined Balance", totalWithdraw:"Total Withdrawn",
+    inWallet:"Balance in Wallet", levelUp:"Level up", connected:"Wallet Connected", change:"Change", disconnect:"Disconnect",
+    verifyTitle:"(0.05 TON) One-time wallet link verification", antiBot:"Anti-bot",
+    reason:"Protects mining pool from bot farms. 0.05 TON confirms wallet belongs to real person.",
+    once:"Paid once only: When linking new wallet address first time.",
+    freeRe:"If you unlink and relink same wallet (0 TON): Free relink!",
+    withdrawRules:"Withdraw Rules:", oncePer24:"Frequency: 1 withdraw per 24h (1-24h processing)", min:"Minimum: 10,000 ANKH", fee:"Fee: 5%", reserve:"Mandatory 25% Reserve: Keep at least 25% in wallet to withdraw",
+    reserve25:"25% On-chain Reserve", ok:"Enough ✓", reserveRule:"Reserve rule: Protect token from dump",
+    yourReserve:"Your Reserve", minForWithdraw:"Min for withdraw", withdrawLimit:"Withdraw Limit",
+    walletOk:"Wallet Verified & Eligible", age:"Wallet Age", ston:"STON.fi Trades", verified:"Verified",
+    openWithdraw:"Withdrawal Opened Forever", tokenStatus:"Your tokens status:", safe:"Tokens stay safe in your personal wallet and increase mining speed.",
+    buyMore:"Buy more ANKH to boost speed", amountToWithdraw:"Amount to withdraw", withdrawBtn:"Withdraw", directLog:"Direct Payments Log", tonViewer:"Verify real payments on Tonviewer",
+    referral:"Referral Program", referralDesc:"Invite friends and earn 5% of their mining forever", reward:"5% Permanent reward - Get 5% from what your friends mine directly to your balance.",
+    copyLink:"Copy Link", shareTG:"Share on Telegram", yourCode:"Your Referral Code", ofTotal:"of total 5%", invited:"Invited Friends", pending:"Pending Earnings", miningNow:"Mining Now", invitedList:"Invited Friends List", all:"All",
+    staking:"ANKH Staking", stakingDesc:"Lock tokens for high APY", available:"Available Balance", allBtn:"All", maxAcc:"Max by your rank", staked:"Staked", available2:"Available", chooseDur:"Choose Duration", day30:"30 Days", day90:"90 Days", day120:"120 Days", usual:"APY", amountToLock:"Amount to lock", min100:"Min: 100 ANKH",
+    level0:"Level 0 - Start", startMining:"Start Mining Free - 0.77/h", lang:"Language"
+  },
   ar: {
     mining:"التعدين", store:"المتجر", list:"القائمة", friends:"الأصدقاء", wallet:"المحفظة",
     total:"إجمالي الرصيد المعدن", inside:"داخل اللعبة • لا يؤثر على المستوى",
-    activeMining:"التعدين النشط", working:"يعمل الآن", perHour:"في الساعة", daily:"يوميا", boost:"تعزيز", mult:"المضاعف",
-    level5:"المستوى 5 برونزي", yourLoot:"LOOT الخاصة بك: ٢٠٥٢ TON في محفظة", speed:"يحدد مستواك وسرعة أرباحك",
-    rules:"قواعد مستويات التعدين", how:"كيف ترتفع المستويات والسرعة؟", note:"تنبيه",
-    walletTitle:"محفظة TON", connectDesc:"الربط بالبلوكشين والسحوبات", minedBal:"الرصيد المعدن", totalWithdraw:"إجمالي المسحوبات",
-    balInWallet:"الرصيد في المحفظة", levelUp:"يرفع المستوى", linked:"المحفظة مربوطة", change:"تغيير", disconnect:"فصل المحفظة",
-    verifyTitle:"(0.05 TON) التحقق لمرة واحدة من ربط المحفظة", antiBot:"مكافحة البوتات",
-    reason:"سبب الحاجة: حماية مجمع التعدين من مزارع البوتات. تؤكد المعاملة الدقيقة بقيمة 0.05 TON أن المحفظة تعود لشخص حقيقي.",
-    once:"تدفع لمرة واحدة فقط: حصريا عند ربط عنوان محفظة جديد لأول مرة.", freeRe:"إذا قمت بإلغاء ربط محفظتك المؤقتة وربطها (0 TON): إعادة الربط مجانا - مجردا أبدأ TON لاحقا، لن تدفع 0.05 مجددا!",
-    withdrawRules:"شروط وقواعد سحب LOOT:", onePer24:"التكرار: سحب واحد كل 24 ساعة (وقت المعالجة: 1-24 ساعة)", min:"الحد الأدنى: 10,000 LOOT", fee:"رسوم الخدمة: 5% (تُخصم تلقائيا من مبلغ السحب)", reserve:"الاحتفاظ الإلزامي 25%: يجب أن تحتفظ المحفظة بما لا يقل عن 25% لسحب 10,000 LOOT بحد أدنى (2,500 من مبلغ السحب LOOT).", premium:"قاعدة الحماية (عمر المحفظة +30 يوما أو صفقة واحدة على STON.fi أو Telegram Premium).",
-    reserve25:"%الاحتفاظ الإلزامي على السلسلة 25", ok:"كاف ✓", reserveRule:"قاعدة نسبة الاحتفاظ: حماية الرمز من البيع المكثف", yourReserve:"رصيدك المحتفظ", minForWithdraw:"الحد الأدنى للسحب", withdrawLimit:"حد السحب", canWithdraw:"يمكنك سحب حتى 1007 LOOT (2051.83 LOOT) مع رصيدك الحالي - إبقي الرموز في محفظتك وتواصل تعزيز سرعة التعدين.",
-    walletOk:"المحفظة مؤكدة ومؤهلة للسحب", age:"عمر المحفظة: 5 (50+ tx)", ston:"صفقات STON.fi: 61 صفقة ✓", verified:"تمت الموافقة على السحب: تم التحقق من", stonAct:"النشاط على STON.fi DEX (61 صفقة) - القيد نهائيا", allDone:"تم التحقق لمرة واحدة: ستتم معالجة جميع طلبات السحب المستقبلية دون فحص إضافي.", openWithdraw:"تم فتح السحب نهائيا وبا رجعة", saveDex:"رفع قيد الـ 30 يوما للأبد - لست TON سجل العقد الذكي صفقاتك على بحاجة للشراء أو الانتظار مجددا!", tokenStatus:"حالة التوكنات الخاصة بك:", safe:"التوكنات المشتراة تظل بأمان في محفظتك الشخصية وتزيد من سرعة التعدين.", future:"جميع عمليات السحب المستقبلية ستتم الموافقة عليها فورا بدون إعادة فحص.",
-    buyMore:"لتعزيز سرعة التعدين شراء المزيد من LOOT", amountToWithdraw:"المبلغ المراد سحبه", withdrawBtn:"سحب الأموال", directLog:"سجل المدفوعات المباشر", tonViewer:"التحقق من المدفوعات الحقيقية في Tonviewer", txLog:"سجل المعاملات", referral:"برنامج الإحالة", referralDesc:"ادع أصدقاءك واحصل على 5% من أرباح تعدينهم مدى الحياة", reward:"مكافأة 5% دائمة تحصل على 5% من كل ما يكون يقوم أصدقاؤك LOOT يتعينه مباشرة في رصيدك.", copyLink:"نسخ الرابط", shareTG:"مشاركة على تليجرام", yourCode:"رمز الإحالة الخاص بك", ofTotal:"من الجمع 5%", invited:"الأصدقاء المدعوون", pending:"الأرباح المعلقة", miningNow:"يعدنون الآن", invitedList:"قائمة الأصدقاء المدعوين", all:"الكل", staking:"تخزين LOOT (Staking)", stakingDesc:"قم بقفل التوكنات لتحقيق عوائد سنوية مرتفعة", available:"الرصيد المتاح", allBtn:"الكل", bronze5:"المستوى 5 برونزي", maxAcc:"الحد الأقصى حسب دورك", staked:"LOOT المخزن", available2:"المتاح LOOT", chooseDur:"اختر المدة", day30:"30 يوما", day90:"90 يوما", day120:"120 يوما", usual:"عائد", amountToLock:"المبلغ المراد قفله", min100:"الحد الأدنى: 100 LOOT",
+    active:"التعدين النشط", working:"يعمل الآن", perHour:"في الساعة", daily:"يوميا", boost:"تعزيز", mult:"المضاعف",
+    lvl:"مستوى", current:"حالتك الحالية", lootInWallet:"ANKH في المحفظة", determines:"يحدد مستواك وسرعة أرباحك",
+    rules:"قواعد مستويات التعدين", how:"كيف ترتفع المستويات؟",
+    walletTitle:"محفظة TON", connectDesc:"الربط والسحوبات", minedBal:"الرصيد المعدن", totalWithdraw:"إجمالي المسحوبات",
+    inWallet:"الرصيد في المحفظة", levelUp:"يرفع المستوى", connected:"المحفظة مربوطة", change:"تغيير", disconnect:"فصل المحفظة",
+    verifyTitle:"(0.05 TON) التحقق لمرة واحدة", antiBot:"مكافحة البوتات",
+    reason:"حماية المجمع من البوتات. 0.05 TON تؤكد ان المحفظة لشخص حقيقي.",
+    once:"تدفع مرة واحدة فقط عند ربط عنوان جديد.",
+    freeRe:"اذا فكيت ورجعت نفس المحفظة مجانا!",
+    withdrawRules:"شروط السحب:", oncePer24:"سحب واحد كل 24 ساعة", min:"الحد الأدنى: 10,000 ANKH", fee:"رسوم: 5%", reserve:"يجب الاحتفاظ 25%",
+    reserve25:"احتفاظ 25%", ok:"كاف ✓", reserveRule:"حماية من البيع", yourReserve:"رصيدك المحتفظ", minForWithdraw:"الحد للسحب", withdrawLimit:"حد السحب",
+    walletOk:"المحفظة مؤكدة", age:"عمر المحفظة", ston:"صفقات STON.fi", verified:"تم التحقق",
+    openWithdraw:"تم فتح السحب للأبد", tokenStatus:"حالة التوكنات:", safe:"التوكنات تظل بأمان في محفظتك وتزيد السرعة.",
+    buyMore:"اشتري المزيد من ANKH", amountToWithdraw:"المبلغ المراد سحبه", withdrawBtn:"سحب الأموال", directLog:"سجل المدفوعات", tonViewer:"تحقق في Tonviewer",
+    referral:"برنامج الإحالة", referralDesc:"ادع اصدقاءك واحصل على 5% مدى الحياة", reward:"مكافأة 5% دائمة من تعدين اصدقائك.",
+    copyLink:"نسخ الرابط", shareTG:"مشاركة على تليجرام", yourCode:"رمز الإحالة", ofTotal:"من الاجمالي 5%", invited:"الأصدقاء المدعوون", pending:"الأرباح المعلقة", miningNow:"يعدنون الآن", invitedList:"قائمة الأصدقاء", all:"الكل",
+    staking:"تخزين ANKH", stakingDesc:"اقفل التوكنات لعوائد عالية", available:"الرصيد المتاح", allBtn:"الكل", maxAcc:"الحد الأقصى حسب رتبتك", staked:"المخزن", available2:"المتاح", chooseDur:"اختر المدة", day30:"30 يوما", day90:"90 يوما", day120:"120 يوما", usual:"عائد", amountToLock:"المبلغ المراد قفله", min100:"الحد الأدنى: 100 ANKH",
+    level0:"مستوى 0 - البداية", startMining:"ابدأ التعدين مجانا - 0.77/ساعة", lang:"اللغة"
+  },
+  ru: {
+    mining:"Майнинг", store:"Магазин", list:"Список", friends:"Друзья", wallet:"Кошелек",
+    total:"Добытый баланс", inside:"В игре • Не влияет на уровень",
+    active:"Активный майнинг", working:"Работает", perHour:"В час", daily:"В день", boost:"Буст", mult:"Множитель",
+    lvl:"Уровень", current:"Ваш статус", lootInWallet:"ANKH в кошельке", determines:"Определяет уровень и скорость",
+    rules:"Правила уровней", how:"Как повысить уровень?",
+    walletTitle:"TON Кошелек", connectDesc:"Привязка и вывод", minedBal:"Добытый баланс", totalWithdraw:"Всего выведено",
+    inWallet:"Баланс в кошельке", levelUp:"Повышает уровень", connected:"Кошелек подключен", change:"Изменить", disconnect:"Отключить",
+    verifyTitle:"(0.05 TON) Проверка кошелька", antiBot:"Анти-бот",
+    reason:"Защита от бот-ферм. 0.05 TON подтверждает что кошелек реального человека.",
+    once:"Платится один раз при привязке нового кошелька.",
+    freeRe:"Если отвязать и привязать тот же кошелек - бесплатно!",
+    withdrawRules:"Правила вывода:", oncePer24:"1 вывод в 24ч", min:"Минимум: 10,000 ANKH", fee:"Комиссия: 5%", reserve:"Резерв 25%",
+    reserve25:"Резерв 25%", ok:"Достаточно ✓", reserveRule:"Защита от дампа", yourReserve:"Ваш резерв", minForWithdraw:"Мин для вывода", withdrawLimit:"Лимит вывода",
+    walletOk:"Кошелек подтвержден", age:"Возраст кошелька", ston:"Сделки STON.fi", verified:"Проверено",
+    openWithdraw:"Вывод открыт навсегда", tokenStatus:"Статус токенов:", safe:"Токены остаются в вашем кошельке и увеличивают скорость.",
+    buyMore:"Купить больше ANKH", amountToWithdraw:"Сумма вывода", withdrawBtn:"Вывести", directLog:"Лог выплат", tonViewer:"Проверка в Tonviewer",
+    referral:"Реферальная программа", referralDesc:"Пригласи друзей и получай 5% от их майнинга навсегда", reward:"5% навсегда от майнинга друзей.",
+    copyLink:"Копировать ссылку", shareTG:"Поделиться в Telegram", yourCode:"Ваш реф код", ofTotal:"от всего 5%", invited:"Приглашенные друзья", pending:"Ожидающие", miningNow:"Майнят сейчас", invitedList:"Список друзей", all:"Все",
+    staking:"Стейкинг ANKH", stakingDesc:"Заблокируй токены для высокого APY", available:"Доступный баланс", allBtn:"Все", maxAcc:"Макс по рангу", staked:"В стейке", available2:"Доступно", chooseDur:"Выбери срок", day30:"30 дней", day90:"90 дней", day120:"120 дней", usual:"APY", amountToLock:"Сумма блокировки", min100:"Мин: 100 ANKH",
+    level0:"Уровень 0 - Старт", startMining:"Начни майнинг бесплатно - 0.77/ч", lang:"Язык"
   }
 };
 
 export default function Page() {
-  const lang = "ar";
-  const L:any = T.ar;
-  const [balance, setBalance] = useState(7309.7884);
-  const [mined, setMined] = useState(24.7361);
-  const [tab, setTab] = useState("wallet");
-  const [withdrawAmount, setWithdrawAmount] = useState(10000);
-  const [stakeAmount, setStakeAmount] = useState(1000);
-  const [connected] = useState(true);
+  const [lang, setLang] = useState("en");
+  const [balance, setBalance] = useState(0);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [tab, setTab] = useState("mining");
+  const [refCode, setRefCode] = useState("0000000000");
+  const L = T[lang];
 
+  // كود إحالة مختلف لكل شخص + يبدأ من لفل 0
   useEffect(()=>{
-    const i=setInterval(()=>{ setBalance(b=>b+0.0007); setMined(m=>m+0.0001); },100);
-    return ()=>clearInterval(i);
+    let code = localStorage.getItem("ankh_ref");
+    if(!code){
+      code = Math.floor(1000000000 + Math.random()*9000000000).toString();
+      localStorage.setItem("ankh_ref", code);
+    }
+    setRefCode(code);
   },[]);
 
+  const allLevels = [
+    {id:0, need:0, hourly:0.77, boost:1, daily:18},
+    {id:1, need:15, hourly:1.54, boost:1.3, daily:36},
+    {id:2, need:30, hourly:2.31, boost:1.7, daily:55},
+    {id:3, need:60, hourly:3.08, boost:2.3, daily:73},
+    {id:4, need:100, hourly:4.5, boost:2.99, daily:108},
+    {id:5, need:200, hourly:12.3, boost:3.5, daily:295},
+  ];
+  for(let i=6;i<=500;i++){
+    const prev = allLevels[i-1];
+    allLevels.push({id:i, need:prev.need+Math.floor(i*15*1.2), hourly:+(prev.hourly*1.08).toFixed(2), boost:+(prev.boost*1.02).toFixed(2), daily:0});
+  }
+  allLevels.forEach(l=>l.daily=Math.floor(l.hourly*24));
+  
+  const currentLevelObj = [...allLevels].reverse().find(l=> walletBalance >= l.need) || allLevels[0];
+  const currentLevel = currentLevelObj.id;
+  const rate = currentLevelObj.hourly;
+
+  useEffect(()=>{
+    const i=setInterval(()=>setBalance(b=>b+rate/36000),100);
+    return ()=>clearInterval(i);
+  },[rate]);
+
   return (
-    <div style={{minHeight:"100vh", background:"#0f1410", color:"white", display:"flex", justifyContent:"center", fontFamily:"Tajawal, sans-serif"}}>
-      <div style={{width:"100%", maxWidth:"400px", background:"#121612", minHeight:"100vh", paddingBottom:"80px", direction:"rtl", position:"relative"}}>
+    <div style={{minHeight:"100vh", background:"#0a0a0a", color:"white", display:"flex", justifyContent:"center", fontFamily:"sans-serif"}}>
+      <div style={{width:"100%", maxWidth:"400px", background:"#0f0f0f", minHeight:"100vh", paddingBottom:"80px", direction: lang==="ar" ? "rtl" : "ltr"}}>
         
-        {/* Header like screenshot */}
-        <div style={{padding:"12px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#1a1f1a", borderBottom:"1px solid #222"}}>
-          <div style={{display:"flex", alignItems:"center", gap:"8px"}}>
-            <div style={{width:"36px", height:"36px", background:"#2a2a1a", borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center"}}>✕</div>
-            <div style={{textAlign:"center", flex:1}}><b>LootVault</b><p style={{fontSize:"10px", color:"#888"}}>mini app</p></div>
-          </div>
-          <div style={{display:"flex", gap:"6px"}}>
-            <span style={{background:"#222", padding:"4px 8px", borderRadius:"8px", fontSize:"11px"}}>📖</span>
-            <span style={{background:"#222", padding:"4px 8px", borderRadius:"8px", fontSize:"11px"}}>🇦🇪 AR</span>
-            <span style={{background:"#222", padding:"4px 8px", borderRadius:"50%"}}>•••</span>
+        <div style={{padding:"10px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#111", borderBottom:"1px solid #222"}}>
+          <b style={{color:"#facc15"}}>ANKH</b>
+          <div style={{display:"flex", gap:"6px", alignItems:"center"}}>
+            <span style={{fontSize:"10px", color:"#888"}}>{L.lang}:</span>
+            <select value={lang} onChange={e=>setLang(e.target.value)} style={{background:"#222", color:"white", border:"1px solid #333", borderRadius:"6px", padding:"4px 8px", fontSize:"11px"}}>
+              <option value="en">🇺🇸 English</option>
+              <option value="ar">🇪🇬 عربي</option>
+              <option value="ru">🇷🇺 Русский</option>
+            </select>
           </div>
         </div>
 
-        <div style={{padding:"12px", display:"flex", gap:"8px", alignItems:"center", background:"#1a1f1a", margin:"8px", borderRadius:"12px", border:"1px solid #facc15"}}>
-          <div style={{width:"40px", height:"40px", background:"#222", borderRadius:"10px", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #facc15"}}>⬡</div>
-          <div><b>LootVault</b><p style={{fontSize:"11px", color:"#888"}}>شبكة TON</p></div>
-          <div style={{marginRight:"auto", display:"flex", gap:"6px"}}>
-            <span style={{background:"#222", padding:"4px 8px", borderRadius:"6px"}}>📖</span>
-            <span style={{background:"#1a2a1a", color:"#facc15", padding:"4px 8px", borderRadius:"6px", fontSize:"11px"}}>🇦🇪 AR</span>
+        <div style={{margin:"8px", background:"#1a1a1a", borderRadius:"14px", padding:"12px", border:"1px solid #facc15"}}>
+          <div style={{display:"flex", alignItems:"center", gap:"8px"}}>
+            <div style={{width:"36px", height:"36px", background:"#222", borderRadius:"8px", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #facc15"}}>☥</div>
+            <div><b>ANKH</b><p style={{fontSize:"10px", color:"#888"}}>TON Network • LVL {currentLevel}/500</p></div>
+            <div style={{marginLeft:"auto"}}><span style={{background:"#222", padding:"4px 8px", borderRadius:"6px", fontSize:"10px", color:"#facc15"}}>{currentLevel===0 ? L.level0 : `LVL ${currentLevel}`}</span></div>
           </div>
         </div>
 
         {tab==="mining" && (
-          <>
-            <div style={{margin:"8px", background:"#1e241e", borderRadius:"16px", padding:"14px", border:"1px solid #222"}}>
-              <div style={{display:"flex", justifyContent:"space-between"}}><p style={{fontSize:"10px", color:"#888"}}>{L.total}</p><span style={{fontSize:"9px", background:"#2a2a2a", padding:"3px 8px", borderRadius:"12px"}}>{L.inside}</span></div>
-              <h1 style={{fontSize:"28px", fontWeight:"800", marginTop:"6px"}}>{balance.toFixed(4)} <span style={{fontSize:"14px", color:"#facc15"}}>ANKH</span></h1>
-              <div style={{background:"#252d25", borderRadius:"12px", padding:"12px", marginTop:"12px"}}>
-                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                  <div style={{display:"flex", alignItems:"center", gap:"8px"}}><div style={{background:"#2a3a1a", padding:"8px", borderRadius:"10px"}}>⛏️</div><div><p style={{fontSize:"12px", fontWeight:"bold"}}>{L.activeMining}</p><p style={{fontSize:"10px", color:"#0f0"}}>● {L.working}</p></div></div>
-                  <span style={{background:"#2a2a2a", padding:"4px 10px", borderRadius:"12px", fontSize:"11px"}}>ⓘ الدوريات</span>
-                </div>
-                <h2 style={{color:"#0f8", fontSize:"26px", marginTop:"10px"}}>+{mined.toFixed(4)} <span style={{fontSize:"12px"}}>ANKH</span></h2>
-                <div style={{display:"flex", justifyContent:"space-between", marginTop:"8px", fontSize:"10px", color:"#888"}}><span>في المحفظة ANKH إلى المستوى 6: 1497+</span><span style={{color:"#facc15"}}>4%</span></div>
-                <div style={{height:"4px", background:"#333", borderRadius:"4px", marginTop:"6px"}}><div style={{width:"4%", height:"100%", background:"#facc15", borderRadius:"4px"}}></div></div>
-              </div>
-              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"8px", marginTop:"10px"}}>
-                <div style={{background:"#1a1f1a", padding:"10px", borderRadius:"10px", textAlign:"center", border:"1px solid #222"}}><p style={{fontSize:"10px", color:"#888"}}>⚡ {L.perHour}</p><b>44.9</b><p style={{fontSize:"10px", color:"#666"}}>ANKH</p></div>
-                <div style={{background:"#1a1f1a", padding:"10px", borderRadius:"10px", textAlign:"center", border:"1px solid #222"}}><p style={{fontSize:"10px", color:"#888"}}>📅 {L.daily}</p><b>~1,077</b><p style={{fontSize:"10px", color:"#666"}}>ANKH</p></div>
-                <div style={{background:"#1a1f1a", padding:"10px", borderRadius:"10px", textAlign:"center", border:"1px solid #222"}}><p style={{fontSize:"10px", color:"#888"}}>📈 {L.boost}</p><b style={{color:"#facc15"}}>×2.99</b><p style={{fontSize:"10px", color:"#666"}}>المضاعف</p></div>
-              </div>
-              <div style={{marginTop:"10px", background:"#1a1f1a", borderRadius:"10px", padding:"10px", display:"flex", justifyContent:"space-between", alignItems:"center", border:"1px solid #333"}}>
-                <div style={{display:"flex", alignItems:"center", gap:"8px"}}><span style={{background:"#3a2a10", color:"#facc15", padding:"6px 10px", borderRadius:"8px", fontWeight:"bold", fontSize:"11px"}}>LVL 5</span><div><p style={{fontSize:"11px", fontWeight:"bold"}}>{L.level5}</p><p style={{fontSize:"10px", color:"#888"}}>{L.yourLoot} - {L.speed}</p></div></div><span style={{fontSize:"18px"}}>›</span>
-              </div>
-              <div style={{marginTop:"10px", background:"#1e2a1e", borderRadius:"10px", padding:"10px", display:"flex", justifyContent:"space-between", border:"1px solid #2a3a2a"}}>
-                <div style={{display:"flex", gap:"8px"}}><span>🛡️</span><div><p style={{fontSize:"11px", fontWeight:"bold"}}>{L.rules}</p><p style={{fontSize:"10px", color:"#888"}}>{L.how}</p></div></div><span style={{background:"#2a2a1a", padding:"4px 10px", borderRadius:"12px", fontSize:"10px"}}>{L.note}</span>
-              </div>
+          <div style={{margin:"8px", background:"#1e241e", borderRadius:"16px", padding:"14px", border:"1px solid #222"}}>
+            <p style={{fontSize:"10px", color:"#888"}}>{L.total}</p>
+            <h1 style={{fontSize:"28px", fontWeight:"800"}}>{balance.toFixed(4)} <span style={{color:"#facc15", fontSize:"14px"}}>ANKH</span></h1>
+            <div style={{background:"#252d25", borderRadius:"12px", padding:"10px", marginTop:"10px"}}>
+              <p style={{fontSize:"11px"}}>{L.active} - {L.working} {rate}/h - {L.lvl} {currentLevel}</p>
+              <p style={{fontSize:"10px", color:"#888", marginTop:"4px"}}>{currentLevel===0 ? L.startMining : `${L.lootInWallet}: ${walletBalance} = ${L.determines}`}</p>
             </div>
-          </>
+            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"6px", marginTop:"10px"}}>
+              <div style={{background:"#1a1f1a", padding:"8px", borderRadius:"8px", textAlign:"center"}}><p style={{fontSize:"9px"}}>{L.perHour}</p><b>{rate}</b></div>
+              <div style={{background:"#1a1f1a", padding:"8px", borderRadius:"8px", textAlign:"center"}}><p style={{fontSize:"9px"}}>{L.daily}</p><b>{currentLevelObj.daily}</b></div>
+              <div style={{background:"#1a1f1a", padding:"8px", borderRadius:"8px", textAlign:"center"}}><p style={{fontSize:"9px"}}>{L.boost}</p><b>x{currentLevelObj.boost}</b></div>
+            </div>
+          </div>
         )}
 
         {tab==="wallet" && (
           <div style={{padding:"8px"}}>
-            <div style={{background:"#1e241e", borderRadius:"16px", padding:"12px", border:"1px solid #333"}}>
-              <div style={{display:"flex", gap:"10px"}}><span style={{background:"#2a2a1a", padding:"8px", borderRadius:"10px"}}>💼</span><div><b>{L.walletTitle}</b><p style={{fontSize:"11px", color:"#888"}}>{L.connectDesc}</p></div></div>
-              <div style={{marginTop:"12px", background:"#252d25", borderRadius:"12px", padding:"10px"}}>
-                <div style={{display:"flex", justifyContent:"space-between", fontSize:"10px", color:"#888"}}><span>{L.minedBal}</span><span style={{background:"#333", padding:"2px 8px", borderRadius:"10px"}}>{L.inside}</span></div>
-                <h2 style={{marginTop:"6px"}}>{balance.toFixed(2)} <span style={{color:"#facc15", fontSize:"12px"}}>ANKH</span></h2>
-                <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px", marginTop:"10px"}}>
-                  <div style={{background:"#1a1f1a", padding:"8px", borderRadius:"8px"}}><p style={{fontSize:"10px", color:"#888"}}>إجمالي المسحوبات</p><b style={{fontSize:"13px"}}>9,670.05 ANKH</b></div>
-                  <div style={{background:"#1a1f1a", padding:"8px", borderRadius:"8px"}}><p style={{fontSize:"10px", color:"#888"}}>{L.balInWallet} <span style={{background:"#1a3a1a", color:"#0f0", padding:"2px 6px", borderRadius:"6px", fontSize:"9px"}}>يرفع المستوى</span></p><b style={{fontSize:"13px", color:"#0f8"}}>2,051.83 ANKH</b></div>
-                </div>
-                <div style={{marginTop:"10px", background:"#1a1f1a", borderRadius:"10px", padding:"10px"}}>
-                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}><span style={{fontSize:"12px"}}>● المحفظة مربوطة</span><div style={{display:"flex", gap:"6px"}}><span style={{background:"#2a1a1a", color:"#ff6666", padding:"4px 8px", borderRadius:"12px", fontSize:"10px"}}>فصل المحفظة</span><span style={{background:"#2a2a1a", color:"#facc15", padding:"4px 8px", borderRadius:"12px", fontSize:"10px"}}>تغيير</span></div></div>
-                  <p style={{fontSize:"11px", color:"#facc15", marginTop:"8px", wordBreak:"break-all"}}>UQAmvSP3x5JMZiw9-p4fTn1cPH_0XkfY9YgMa58enhLtpM3e</p>
-                </div>
+            <div style={{background:"#1e241e", borderRadius:"12px", padding:"12px", border:"1px solid #333"}}>
+              <p style={{fontSize:"12px"}}>💼 {L.walletTitle} - LVL {currentLevel}</p>
+              <p style={{fontSize:"10px", color:"#888"}}>{L.lootInWallet}: {walletBalance} ANKH - {rate}/h</p>
+              <div style={{marginTop:"10px", display:"flex", gap:"6px"}}>
+                <button onClick={()=>setWalletBalance(w=>w+15)} style={{background:"#facc15", color:"black", border:"none", padding:"8px 12px", borderRadius:"8px", fontSize:"11px", fontWeight:"bold"}}>TEST: +15 ANKH (Level up)</button>
+                <button onClick={()=>setWalletBalance(0)} style={{background:"#222", color:"white", border:"1px solid #333", padding:"8px 12px", borderRadius:"8px", fontSize:"11px"}}>Reset to LVL 0</button>
               </div>
-
-              <div style={{marginTop:"10px", background:"#1a241a", borderRadius:"12px", padding:"12px", border:"1px solid #1a3a2a"}}>
-                <div style={{display:"flex", gap:"8px"}}><span style={{background:"#0f2a2a", padding:"6px", borderRadius:"8px"}}>🛡️</span><div><p style={{fontSize:"11px", fontWeight:"bold", color:"#5af"}}>🛡️ {L.verifyTitle}</p><span style={{background:"#1a2a3a", color:"#5af", padding:"2px 8px", borderRadius:"10px", fontSize:"9px"}}>{L.antiBot}</span></div></div>
-                <ul style={{fontSize:"10px", color:"#aaa", marginTop:"8px", paddingRight:"14px", lineHeight:"1.6"}}>
-                  <li>{L.reason}</li>
-                  <li>{L.once}</li>
-                  <li style={{color:"#0f8"}}>{L.freeRe}</li>
-                </ul>
-              </div>
-
-              <div style={{marginTop:"10px", background:"#252d25", borderRadius:"12px", padding:"10px"}}>
-                <p style={{fontSize:"11px", fontWeight:"bold"}}>① {L.withdrawRules}</p>
-                <div style={{fontSize:"10px", color:"#aaa", marginTop:"6px", lineHeight:"1.6"}}>
-                  <p>⏱ {L.onePer24}</p>
-                  <p style={{color:"#facc15"}}>min {L.min}</p>
-                  <p style={{color:"#0f8"}}>% {L.fee}</p>
-                  <p style={{color:"#f88"}}>25% {L.reserve}</p>
-                  <p>🛡️ {L.premium}</p>
-                </div>
-              </div>
-
-              <div style={{marginTop:"10px", background:"#1e2a1e", borderRadius:"12px", padding:"10px", border:"1px solid #2a3a2a"}}>
-                <div style={{display:"flex", justifyContent:"space-between"}}><p style={{fontSize:"11px"}}>25 {L.reserve25}</p><span style={{background:"#1a3a1a", color:"#0f0", padding:"2px 10px", borderRadius:"12px", fontSize:"10px"}}>{L.ok}</span></div>
-                <p style={{fontSize:"9px", color:"#888"}}>{L.reserveRule}</p>
-                <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"6px", marginTop:"8px"}}>
-                  <div style={{background:"#1a1f1a", padding:"8px", borderRadius:"8px", textAlign:"center"}}><p style={{fontSize:"9px", color:"#888"}}>{L.yourReserve}</p><b style={{fontSize:"11px"}}>2,051.83 ANKH</b></div>
-                  <div style={{background:"#1a1f1a", padding:"8px", borderRadius:"8px", textAlign:"center"}}><p style={{fontSize:"9px", color:"#888"}}>{L.minForWithdraw}</p><b style={{fontSize:"11px", color:"#facc15"}}>2 500 ANKH</b></div>
-                  <div style={{background:"#1a1f1a", padding:"8px", borderRadius:"8px", textAlign:"center"}}><p style={{fontSize:"9px", color:"#888"}}>{L.withdrawLimit}</p><b style={{fontSize:"11px", color:"#0f8"}}>1,007 ANKH</b></div>
-                </div>
-                <div style={{background:"#1a2a1a", padding:"8px", borderRadius:"8px", marginTop:"8px", fontSize:"10px", color:"#0f8"}}>✓ {L.canWithdraw}</div>
-              </div>
-
-              <div style={{marginTop:"10px", background:"#1e2a1e", borderRadius:"12px", padding:"12px", border:"1px solid #0f0"}}>
-                <div style={{display:"flex", justifyContent:"space-between"}}><p style={{fontSize:"11px", fontWeight:"bold"}}>✓ {L.walletOk}</p><span style={{background:"#222", padding:"4px 8px", borderRadius:"12px", fontSize:"10px"}}>🔄 تحقق</span></div>
-                <div style={{display:"flex", gap:"6px", marginTop:"8px"}}>
-                  <span style={{background:"#1a1f1a", padding:"4px 10px", borderRadius:"12px", fontSize:"10px"}}>{L.age}</span>
-                  <span style={{background:"#1a1f1a", padding:"4px 10px", borderRadius:"12px", fontSize:"10px"}}>🔥 STON.fi: 61 صفقة</span>
-                </div>
-                <div style={{fontSize:"10px", color:"#aaa", marginTop:"8px", lineHeight:"1.6"}}>
-                  <p>✓ {L.verified} {L.stonAct}</p>
-                  <p>✓ {L.allDone}</p>
-                </div>
-              </div>
-
-              <div style={{marginTop:"10px", background:"#1a2a1a", borderRadius:"12px", padding:"10px", border:"1px solid #facc15"}}>
-                <p style={{fontSize:"11px"}}>🎉 {L.openWithdraw}</p>
-                <p style={{fontSize:"10px", color:"#aaa", marginTop:"4px"}}>{L.saveDex}</p>
-                <div style={{background:"#1a1f1a", borderRadius:"8px", padding:"8px", marginTop:"8px", fontSize:"10px"}}>
-                  <p>💡 {L.tokenStatus}</p>
-                  <p style={{marginTop:"4px"}}>• {L.safe}</p>
-                  <p>• {L.future}</p>
-                </div>
-                <button style={{marginTop:"8px", background:"#2a2a1a", border:"1px solid #333", color:"#facc15", padding:"8px", borderRadius:"8px", width:"100%", fontSize:"11px"}}>{L.buyMore}</button>
-              </div>
-
-              <div style={{marginTop:"10px"}}>
-                <p style={{fontSize:"11px", color:"#888"}}>{L.amountToWithdraw} - حد أدنى 10,000 LOOT</p>
-                <div style={{background:"#1a1f1a", borderRadius:"10px", padding:"12px", marginTop:"6px", display:"flex", justifyContent:"space-between", border:"1px solid #333"}}>
-                  <input value={withdrawAmount} onChange={e=>setWithdrawAmount(Number(e.target.value))} style={{background:"transparent", border:"none", color:"white", fontSize:"18px", width:"100px"}}/>
-                  <span style={{color:"#facc15", fontWeight:"bold"}}>ANKH</span>
-                </div>
-                <div style={{display:"flex", gap:"6px", marginTop:"6px"}}>
-                  {["10k","25k","50k","100k","الكل"].map(k=><span key={k} style={{background:"#1a1f1a", padding:"6px 12px", borderRadius:"20px", fontSize:"10px", border:"1px solid #222"}}>{k}</span>)}
-                </div>
-                <button style={{width:"100%", background:"#333", color:"#888", border:"none", padding:"14px", borderRadius:"12px", marginTop:"10px", fontWeight:"bold"}}>📤 {L.withdrawBtn}</button>
-              </div>
-
-              <div style={{marginTop:"10px", background:"#1a1f1a", borderRadius:"10px", padding:"10px", display:"flex", justifyContent:"space-between", border:"1px solid #222"}}>
-                <div style={{display:"flex", gap:"8px"}}><span style={{background:"#1a2a1a", padding:"6px", borderRadius:"8px"}}>🛡️</span><div><p style={{fontSize:"11px"}}>{L.directLog} <span style={{background:"#1a3a1a", color:"#0f0", padding:"2px 6px", borderRadius:"8px", fontSize:"9px"}}>200+ TON</span></p><p style={{fontSize:"9px", color:"#888"}}>{L.tonViewer}</p></div></div><span>↗️</span>
-              </div>
-
-              <div style={{marginTop:"10px", display:"flex", justifyContent:"space-between", fontSize:"11px"}}>
-                <span>🕒 {L.txLog}</span><span style={{background:"#222", padding:"2px 8px", borderRadius:"10px"}}>(1)</span>
+              <div style={{marginTop:"10px", background:"#1a1f1a", padding:"8px", borderRadius:"8px", fontSize:"10px"}}>
+                <p>Referral Code (Unique): <b style={{color:"#facc15"}}>{refCode}</b> - {L.yourCode}</p>
               </div>
             </div>
           </div>
         )}
 
         {tab==="friends" && (
-          <div style={{padding:"8px"}}>
-            <div style={{background:"#1e241e", borderRadius:"16px", padding:"12px", border:"1px solid #333"}}>
-              <div style={{display:"flex", gap:"8px"}}><span style={{background:"#2a2a1a", padding:"8px", borderRadius:"10px"}}>👥</span><div><b>{L.referral}</b><p style={{fontSize:"10px", color:"#888"}}>{L.referralDesc}</p></div></div>
-              <div style={{background:"#252d25", borderRadius:"10px", padding:"10px", marginTop:"10px", display:"flex", gap:"8px", fontSize:"10px"}}><span>ⓘ</span><span>{L.reward}</span></div>
-              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px", marginTop:"10px"}}>
-                <button style={{background:"#1a1f1a", border:"1px solid #333", color:"white", padding:"10px", borderRadius:"20px", fontSize:"11px"}}>📋 {L.copyLink}</button>
-                <button style={{background:"#facc15", color:"black", border:"none", padding:"10px", borderRadius:"20px", fontWeight:"bold", fontSize:"11px"}}>✈️ {L.shareTG}</button>
-              </div>
-              <div style={{marginTop:"10px", background:"#1a1f1a", borderRadius:"10px", padding:"10px", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                <div><p style={{fontSize:"10px", color:"#888"}}>{L.yourCode}</p><b style={{fontSize:"18px"}}>7956189802</b></div><span style={{background:"#2a2a1a", color:"#facc15", padding:"6px 10px", borderRadius:"12px", fontSize:"10px", border:"1px solid #facc15"}}>{L.ofTotal}</span>
-              </div>
-              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px", marginTop:"10px"}}>
-                <div style={{background:"#1a1f1a", padding:"12px", borderRadius:"12px", textAlign:"center", border:"1px solid #222"}}><p style={{fontSize:"10px", color:"#888"}}>👥 {L.invited}</p><b style={{fontSize:"20px"}}>0</b><p style={{fontSize:"10px", color:"#0f0"}}>● 0 {L.miningNow}</p></div>
-                <div style={{background:"#1a1f1a", padding:"12px", borderRadius:"12px", textAlign:"center", border:"1px solid #222"}}><p style={{fontSize:"10px", color:"#888"}}>💰 {L.pending}</p><b style={{fontSize:"20px", color:"#facc15"}}>+0.00</b><p style={{fontSize:"10px", color:"#888"}}>إجمالي الأرباح</p></div>
-              </div>
-              <div style={{marginTop:"10px", display:"flex", justifyContent:"space-between", fontSize:"11px"}}><span>👥 {L.invitedList} (0)</span><span>الكل ›</span></div>
-              <div style={{marginTop:"20px", display:"flex", justifyContent:"center"}}><div style={{width:"50px", height:"50px", background:"#222", borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center"}}>👤+</div></div>
-            </div>
+          <div style={{padding:"12px", textAlign:"center"}}>
+            <h3>{L.referral}</h3><p style={{fontSize:"11px", color:"#888"}}>{L.referralDesc}</p>
+            <div style={{background:"#1a1a1a", padding:"12px", borderRadius:"10px", marginTop:"10px"}}><p style={{fontSize:"11px"}}>{L.yourCode}</p><b style={{fontSize:"22px", color:"#facc15"}}>{refCode}</b><p style={{fontSize:"9px", color:"#888", marginTop:"4px"}}>Unique for each user</p></div>
+            <button style={{width:"100%", background:"#facc15", color:"black", border:"none", padding:"12px", borderRadius:"10px", fontWeight:"bold", marginTop:"10px"}}>{L.shareTG}</button>
           </div>
         )}
 
-        {tab==="list" && (
-          <div style={{padding:"8px"}}>
-            <div style={{background:"#1e241e", borderRadius:"16px", padding:"12px", border:"1px solid #333"}}>
-              <div style={{display:"flex", gap:"8px"}}><span style={{background:"#2a2a1a", padding:"8px", borderRadius:"10px"}}>📚</span><div><b>{L.staking}</b><p style={{fontSize:"10px", color:"#888"}}>{L.stakingDesc}</p></div></div>
-              <div style={{marginTop:"12px", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                <div><p style={{fontSize:"10px", color:"#888"}}>{L.available}</p><h2>7,309 <span style={{color:"#facc15", fontSize:"12px"}}>ANKH</span></h2></div>
-                <span style={{background:"#1a1f1a", padding:"6px 16px", borderRadius:"20px", border:"1px solid #facc15", color:"#facc15", fontSize:"11px"}}>{L.allBtn}</span>
-              </div>
-              <div style={{marginTop:"10px", background:"#252d25", borderRadius:"10px", padding:"10px", display:"flex", justifyContent:"space-between", alignItems:"center", border:"1px solid #2a3a1a"}}>
-                <div style={{display:"flex", gap:"8px"}}><span style={{background:"#1a2a1a", padding:"6px", borderRadius:"8px"}}>🛡️</span><div><p style={{fontSize:"11px"}}><span style={{background:"#3a2a10", padding:"2px 6px", borderRadius:"6px", fontSize:"9px"}}>المستوى 5 برونزي</span></p><p style={{fontSize:"10px", color:"#888"}}>{L.maxAcc}</p></div></div><span style={{background:"#2a2a1a", padding:"4px 10px", borderRadius:"12px", fontSize:"10px"}}>عرض الحدود</span>
-              </div>
-              <div style={{display:"flex", justifyContent:"space-between", marginTop:"8px", fontSize:"10px", color:"#888"}}><span>LOOT {L.staked} 0.000 / 100</span><span>LOOT {L.available2} 49,900</span></div>
-              <div style={{marginTop:"14px"}}><p style={{fontSize:"11px"}}>{L.chooseDur}</p>
-                <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"8px", marginTop:"8px"}}>
-                  <div style={{background:"#2a2210", border:"1px solid #facc15", padding:"12px", borderRadius:"12px", textAlign:"center"}}><b style={{fontSize:"13px"}}>{L.day30}</b><p style={{color:"#facc15", fontWeight:"bold", marginTop:"4px"}}>+35%</p><p style={{fontSize:"10px", color:"#888"}}>{L.usual}</p></div>
-                  <div style={{background:"#1a1f1a", border:"1px solid #222", padding:"12px", borderRadius:"12px", textAlign:"center"}}><b style={{fontSize:"13px"}}>{L.day90}</b><p style={{color:"#facc15", fontWeight:"bold", marginTop:"4px"}}>+110%</p><p style={{fontSize:"10px", color:"#888"}}>{L.usual}</p></div>
-                  <div style={{background:"#1a1f1a", border:"1px solid #222", padding:"12px", borderRadius:"12px", textAlign:"center"}}><b style={{fontSize:"13px"}}>{L.day120}</b><p style={{color:"#facc15", fontWeight:"bold", marginTop:"4px"}}>+150%</p><p style={{fontSize:"10px", color:"#888"}}>{L.usual}</p></div>
-                </div>
-              </div>
-              <div style={{marginTop:"14px"}}>
-                <div style={{display:"flex", justifyContent:"space-between"}}><p style={{fontSize:"11px"}}>{L.amountToLock}</p><p style={{fontSize:"10px", color:"#888"}}>LOOT {L.min100} 49,900 •</p></div>
-                <div style={{background:"#1a1f1a", borderRadius:"10px", padding:"12px", marginTop:"6px", display:"flex", justifyContent:"space-between", border:"1px solid #333"}}>
-                  <input value={stakeAmount} onChange={e=>setStakeAmount(Number(e.target.value))} style={{background:"transparent", border:"none", color:"white", fontSize:"18px", width:"100px"}}/>
-                  <span style={{color:"#facc15", fontWeight:"bold"}}>ANKH</span>
-                </div>
-                <div style={{display:"flex", gap:"6px", marginTop:"6px"}}>
-                  {["+500","+1k","+5k","+10k"].map(k=><span key={k} style={{background:"#1a1f1a", padding:"6px 14px", borderRadius:"20px", fontSize:"11px", border:"1px solid #222"}}>{k}</span>)}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div style={{position:"fixed", bottom:0, width:"100%", maxWidth:"400px", background:"#0f1410", borderTop:"1px solid #222", display:"flex", justifyContent:"space-around", padding:"8px 0", zIndex:20}}>
-          {[
-            {id:"mining", icon:"⛏️", name:L.mining},
-            {id:"store", icon:"🛒", name:L.store},
-            {id:"list", icon:"⊞", name:L.list},
-            {id:"friends", icon:"👥", name:L.friends},
-            {id:"wallet", icon:"💼", name:L.wallet},
-          ].map(t=>(
-            <button key={t.id} onClick={()=>setTab(t.id==="store" ? "mining" : t.id)} style={{background:"none", border:"none", color: tab===t.id || (t.id==="store" && tab==="mining") ? "#facc15" : "#666", fontSize:"10px", display:"flex", flexDirection:"column", alignItems:"center", gap:"2px"}}>
-              <span style={{fontSize:"18px", background: tab===t.id ? "#2a2210" : "transparent", padding:"4px 12px", borderRadius:"12px"}}>{t.icon}</span>{t.name}
-            </button>
-          ))}
+        <div style={{position:"fixed", bottom:0, width:"100%", maxWidth:"400px", background:"#111", borderTop:"1px solid #222", display:"flex", justifyContent:"space-around", padding:"8px 0"}}>
+          <button onClick={()=>setTab("mining")} style={{background:"none", border:"none", color:tab==="mining"?"#facc15":"#666", fontSize:"10px"}}>⛏️<br/>{L.mining}</button>
+          <button onClick={()=>setTab("list")} style={{background:"none", border:"none", color:tab==="list"?"#facc15":"#666", fontSize:"10px"}}>📋<br/>{L.list}</button>
+          <button onClick={()=>setTab("friends")} style={{background:"none", border:"none", color:tab==="friends"?"#facc15":"#666", fontSize:"10px"}}>👥<br/>{L.friends}</button>
+          <button onClick={()=>setTab("wallet")} style={{background:"none", border:"none", color:tab==="wallet"?"#facc15":"#666", fontSize:"10px"}}>💼<br/>{L.wallet}</button>
         </div>
 
       </div>
