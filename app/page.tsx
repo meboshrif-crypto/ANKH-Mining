@@ -94,4 +94,49 @@ export default function Page() {
           <div style={{padding:"15px"}}>
             <h2 style={{fontWeight:"bold"}}>📅 السلسلة اليومية</h2>
             <div style={{display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:"6px", margin:"12px 0"}}>
-              {[8,12,20,32,48,68,80,95,132,180].map((v,i)=><div key={i} style={{background:i<3?"#facc15":"#1a1a1a", color:i<3?"black":"white", padding
+              {[8,12,20,32,48,68,80,95,132,180].map((v,i)=><div key={i} style={{background:i<3?"#facc15":"#1a1a1a", color:i<3?"black":"white", padding:"8px 2px", borderRadius:"8px", textAlign:"center", fontSize:"11px"}}>{v}<br/>{i+1}يوم</div>)}
+            </div>
+            <div style={{background:"#1a1a1a", borderRadius:"12px", padding:"12px", marginTop:"10px"}}>
+              <p style={{fontSize:"13px"}}>دعوة 3 أصدقاء نشطين <span style={{float:"left", color:"#facc15"}}>+50</span></p>
+            </div>
+          </div>
+        )}
+
+        {tab==="friends" && (
+          <div style={{padding:"15px", textAlign:"center"}}>
+            <h2>برنامج الإحالة</h2>
+            <p style={{fontSize:"12px", color:"#888", margin:"8px 0"}}>اربح 5% من تعدين أصدقائك</p>
+            <div style={{background:"#1a1a1a", padding:"12px", borderRadius:"12px", marginTop:"10px"}}><p style={{fontSize:"12px"}}>رمز الإحالة الخاص بك</p><b style={{fontSize:"20px", letterSpacing:"2px"}}>7956189802</b></div>
+            <button style={{width:"100%", background:"#facc15", color:"black", border:"none", padding:"14px", borderRadius:"12px", fontWeight:"bold", marginTop:"15px"}}>مشاركة على تليجرام</button>
+          </div>
+        )}
+
+        {tab==="wallet" && (
+          <div style={{padding:"15px"}}>
+            <h2>💰 محفظة TON</h2>
+            <div style={{background:"#1a1a1a", padding:"14px", borderRadius:"12px", marginTop:"10px"}}>
+              <p>الرصيد المعدن</p><h2>{balance.toFixed(2)} ANKH</h2>
+            </div>
+            <button style={{width:"100%", background:"#222", color:"white", border:"1px solid #333", padding:"12px", borderRadius:"12px", marginTop:"10px"}}>ربط محفظة TON</button>
+          </div>
+        )}
+
+        {/* Bottom Nav */}
+        <div style={{position:"fixed", bottom:0, width:"100%", maxWidth:"400px", background:"#111", borderTop:"1px solid #222", display:"flex", justifyContent:"space-around", padding:"8px 0"}}>
+          {[
+            {id:"mining", icon:"⛏️", name:"التعدين"},
+            {id:"store", icon:"🛒", name:"المتجر"},
+            {id:"tasks", icon:"📋", name:"المهام"},
+            {id:"friends", icon:"👥", name:"الاصدقاء"},
+            {id:"wallet", icon:"💼", name:"المحفظة"},
+          ].map(t=>(
+            <button key={t.id} onClick={()=>setTab(t.id)} style={{background:"none", border:"none", color: tab===t.id ? "#facc15" : "#666", fontSize:"11px", display:"flex", flexDirection:"column", alignItems:"center"}}>
+              <span style={{fontSize:"18px"}}>{t.icon}</span>{t.name}
+            </button>
+          ))}
+        </div>
+
+      </div>
+    </div>
+  );
+}
