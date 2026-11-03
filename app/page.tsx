@@ -1,139 +1,95 @@
 "use client";
 import { useState, useEffect } from "react";
 
+const T = {
+  ar: { mining:"التعدين", staking:"الاستيكينج", tasks:"المهام", friends:"الأصدقاء", wallet:"المحفظة", bal:"إجمالي الرصيد المُعدّن", active:"التعدين النشط", working:"يعمل مجانا", onWallet:"السرعة على المحفظة", perH:"في الساعة", daily:"يومي", rate:"معدل", fee:"رسوم السحب 2% - كل 24 ساعة", level:"المستوى", need:"محتاج", current:"نشط ✅", buy:"شراء", connect:"ربط (0.05 TON)", connected:"متصل", withdraw:"سحب", wait:"بعد 24 ساعة", dailyTitle:"السلسلة اليومية 30 يوم", checkin:"تسجيل اليوم", tasksTitle:"المهام", stakeTitle:"Staking", days:"يوم", share:"مشاركة" },
+  en: { mining:"Mining", staking:"Staking", tasks:"Tasks", friends:"Friends", wallet:"Wallet", bal:"Total Mined", active:"Active Mining", working:"Free Mining", onWallet:"Speed by Wallet", perH:"/Hour", daily:"Daily", rate:"Rate", fee:"Fee 2% - 24h", level:"Level", need:"Need", current:"Active ✅", buy:"Buy", connect:"Connect (0.05 TON)", connected:"Connected", withdraw:"Withdraw", wait:"After 24h", dailyTitle:"30 Day Streak", checkin:"Check-in", tasksTitle:"Tasks", stakeTitle:"Staking", days:"days", share:"Share" },
+  ru: { mining:"Майнинг", staking:"Стейкинг", tasks:"Задания", friends:"Друзья", wallet:"Кошелек", bal:"Баланс", active:"Майнинг", working:"Бесплатно", onWallet:"Скорость по кошельку", perH:"/час", daily:"В день", rate:"Ставка", fee:"Комиссия 2% - 24ч", level:"Уровень", need:"Нужно", current:"Активен ✅", buy:"Купить", connect:"Подкл (0.05 TON)", connected:"Подкл", withdraw:"Вывод", wait:"Через 24ч", dailyTitle:"30 дней", checkin:"Вход", tasksTitle:"Задания", stakeTitle:"Стейкинг", days:"дней", share:"Поделиться" },
+};
+
 export default function Page() {
-  const [balance, setBalance] = useState(7309.7884);
-  const [mined, setMined] = useState(0.7532);
-  const [level, setLevel] = useState(5);
+  const [lang, setLang] = useState("ar");
+  const [balance, setBalance] = useState(0);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [connected, setConnected] = useState(false);
+  const [lastW, setLastW] = useState(0);
+  const [showAll, setShowAll] = useState(false);
   const [tab, setTab] = useState("mining");
+  const L:any = T[lang as keyof typeof T];
 
-  // تعدين لحظي زي الفيديو
+  const getRate = () => {
+    const lvl = Math.floor(walletBalance / 15) + 1;
+    return lvl * 0.77;
+  };
+  const rate = getRate();
+  const currentLevel = Math.floor(walletBalance / 15) + 1;
+
   useEffect(()=>{
-    const i = setInterval(()=>{
-      setMined(m=>m+0.0007);
-      setBalance(b=>b+0.0007);
-    }, 100);
+    const i=setInterval(()=>setBalance(b=>b+rate/36000),100);
     return ()=>clearInterval(i);
-  },[]);
+  },[rate]);
 
-  const levels = [
-    {id:1, price:15, rate:"0.77"},
-    {id:2, price:30, rate:"1.54"},
-    {id:3, price:45, rate:"2.31"},
-    {id:4, price:60, rate:"3.08"},
-    {id:5, price:90, rate:"4.62"},
-    {id:6, price:120, rate:"6.16"},
-    {id:7, price:150, rate:"7.70"},
-  ];
+  const connect = () => {
+    window.open("https://app.tonkeeper.com/transfer/UQANKH123456?amount=50000000&text=ANKH-verify", "_blank");
+    setTimeout(()=>{setConnected(true); setWalletBalance(25);},1500);
+  };
+
+  // 500 مستوى زي الفيديو بالظبط
+  const allLevels = Array.from({length:500}, (_,i)=>{
+    const id=i+1;
+    return {id, need:id*15, rate:(id*0.77).toFixed(2), price:id*15};
+  });
+
+  const displayLevels = showAll ? allLevels : allLevels.slice(0,20);
 
   return (
-    <div style={{minHeight:"100vh", background:"#0a0a0a", color:"white", fontFamily:"sans-serif", display:"flex", justifyContent:"center"}}>
-      <div style={{width:"100%", maxWidth:"400px", background:"#0f0f0f", minHeight:"100vh", position:"relative", paddingBottom:"80px"}}>
+    <div style={{minHeight:"100vh", background:"#0a0a0a", color:"white", display:"flex", justifyContent:"center", fontFamily:"sans-serif"}}>
+      <div style={{width:"100%", maxWidth:"400px", background:"#0f0f0f", minHeight:"100vh", paddingBottom:"80px", direction: lang==="ar" ? "rtl" : "ltr"}}>
         
-        {/* Header */}
-        <div style={{padding:"15px", display:"flex", justifyContent:"space-between", alignItems:"center", borderBottom:"1px solid #222"}}>
-          <span style={{fontWeight:"bold", color:"#facc15"}}>☥ ANKH Vault</span>
-          <span style={{fontSize:"12px", background:"#1a1a1a", padding:"4px 8px", borderRadius:"8px"}}>TON</span>
+        <div style={{padding:"12px", display:"flex", justifyContent:"space-between", borderBottom:"1px solid #222"}}>
+          <b style={{color:"#facc15"}}>ANKH 500LVL</b>
+          <div style={{display:"flex", gap:"6px"}}>
+            <select value={lang} onChange={e=>setLang(e.target.value)} style={{background:"#222", color:"white", border:"1px solid #333", borderRadius:"6px", padding:"4px", fontSize:"11px"}}>
+              <option value="ar">🇪🇬 عربي</option><option value="en">🇺🇸 EN</option><option value="ru">🇷🇺 RU</option>
+            </select>
+            {!connected ? <button onClick={connect} style={{background:"#facc15", color:"black", border:"none", padding:"6px 10px", borderRadius:"20px", fontWeight:"bold", fontSize:"10px"}}>{L.connect}</button> : <span style={{fontSize:"10px", background:"#122a12", color:"#0f0", padding:"5px 8px", borderRadius:"20px"}}>● LVL {currentLevel}</span>}
+          </div>
         </div>
 
-        {tab==="mining" && (
-          <>
-            <div style={{margin:"15px", background:"#1a1a1a", borderRadius:"16px", padding:"16px", border:"1px solid #222"}}>
-              <p style={{fontSize:"11px", color:"#888"}}>إجمالي الرصيد المُعدّن</p>
-              <h1 style={{fontSize:"26px", fontWeight:"800"}}>{balance.toFixed(4)} <span style={{fontSize:"14px", color:"#facc15"}}>ANKH</span></h1>
-              
-              <div style={{marginTop:"14px", background:"#222", borderRadius:"12px", padding:"12px", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                <div>
-                  <p style={{fontSize:"12px", color:"#aaa"}}>التعدين النشط</p>
-                  <p style={{fontSize:"11px", color:"#666"}}>يعمل الآن</p>
-                </div>
-                <div style={{textAlign:"left"}}>
-                  <p style={{color:"#facc15", fontWeight:"bold"}}>+{mined.toFixed(4)} ANKH</p>
-                  <p style={{fontSize:"10px", color:"#666"}}>4%</p>
-                </div>
-              </div>
+        <div style={{margin:"12px", background:"#1a1a1a", borderRadius:"16px", padding:"14px", border:"1px solid #222"}}>
+          <p style={{fontSize:"10px", color:"#888"}}>{L.bal}</p>
+          <h1 style={{fontSize:"26px"}}>{balance.toFixed(4)} ANKH</h1>
+          <p style={{fontSize:"11px", color:"#0f0"}}>{L.onWallet}: {rate.toFixed(2)}/h - LVL {currentLevel} / 500</p>
+          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"6px", marginTop:"10px"}}>
+            <div style={{background:"#151515", padding:"8px", borderRadius:"8px", textAlign:"center"}}><p style={{fontSize:"9px", color:"#888"}}>{L.perH}</p><b>{rate.toFixed(2)}</b></div>
+            <div style={{background:"#151515", padding:"8px", borderRadius:"8px", textAlign:"center"}}><p style={{fontSize:"9px", color:"#888"}}>{L.daily}</p><b>{(rate*24).toFixed(0)}</b></div>
+            <div style={{background:"#151515", padding:"8px", borderRadius:"8px", textAlign:"center"}}><p style={{fontSize:"9px", color:"#888"}}>{L.rate}</p><b style={{color:"#0f0"}}>+2.99</b></div>
+          </div>
+        </div>
 
-              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"8px", marginTop:"12px"}}>
-                <div style={{background:"#151515", padding:"10px", borderRadius:"10px", textAlign:"center"}}><p style={{fontSize:"11px", color:"#888"}}>في الساعة</p><b style={{fontSize:"13px"}}>44.9</b></div>
-                <div style={{background:"#151515", padding:"10px", borderRadius:"10px", textAlign:"center"}}><p style={{fontSize:"11px", color:"#888"}}>يومي</p><b style={{fontSize:"13px"}}>~1.07k</b></div>
-                <div style={{background:"#151515", padding:"10px", borderRadius:"10px", textAlign:"center"}}><p style={{fontSize:"11px", color:"#888"}}>معدل</p><b style={{color:"#0f0"}}>+2.99</b></div>
-              </div>
-            </div>
-
-            <div style={{margin:"15px", background:"linear-gradient(90deg,#2a2210,#1a1a1a)", border:"1px solid #facc15", borderRadius:"12px", padding:"12px", display:"flex", justifyContent:"space-between"}}>
-              <span style={{fontSize:"13px"}}>⭐ المستوى {level}</span>
-              <span style={{fontSize:"11px", color:"#aaa"}}>100 ANKH لـ 2025 TON</span>
-            </div>
-
-            <div style={{margin:"15px"}}>
-              <div style={{display:"flex", justifyContent:"space-between", marginBottom:"8px"}}><h3 style={{fontSize:"14px"}}>نظام 500 مستوى</h3><button onClick={()=>setTab("store")} style={{fontSize:"11px", background:"#facc15", color:"black", border:"none", padding:"4px 10px", borderRadius:"12px", fontWeight:"bold"}}>المتجر</button></div>
-              <div style={{background:"#1a1a1a", borderRadius:"12px", padding:"10px"}}>
-                {levels.slice(0,4).map(l=>(
-                  <div key={l.id} style={{display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:"1px solid #222", fontSize:"13px"}}>
-                    <span>مستوى {l.id}</span><span style={{color:"#facc15"}}>{l.price} ANKH</span><span style={{fontSize:"11px", color:"#888"}}>{l.rate}/ساعة</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-
-        {tab==="store" && (
-          <div style={{padding:"15px"}}>
-            <h2 style={{fontWeight:"bold", marginBottom:"12px"}}>🏪 متجر المستويات</h2>
-            {levels.map(l=>(
-              <div key={l.id} style={{background:"#1a1a1a", border:"1px solid #222", borderRadius:"12px", padding:"12px", marginBottom:"8px", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                <div><p style={{fontWeight:"bold"}}>مستوى {l.id}</p><p style={{fontSize:"11px", color:"#888"}}>سعر: {l.price} ANKH</p></div>
-                <button style={{background:"#facc15", color:"black", border:"none", padding:"8px 14px", borderRadius:"10px", fontWeight:"bold", fontSize:"12px"}}>شراء</button>
+        <div style={{margin:"12px"}}>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"8px"}}>
+            <h3 style={{fontSize:"13px"}}>نظام 500 مستوى - {L.level} {currentLevel}/500</h3>
+            <button onClick={()=>setShowAll(!showAll)} style={{fontSize:"10px", background:"#222", color:"#facc15", border:"1px solid #333", padding:"4px 10px", borderRadius:"12px"}}>{showAll ? "عرض 20 فقط" : "عرض كل 500"}</button>
+          </div>
+          <div style={{background:"#1a1a1a", borderRadius:"12px", padding:"8px", maxHeight: showAll ? "600px" : "400px", overflowY:"auto"}}>
+            {displayLevels.map(l=>(
+              <div key={l.id} style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"7px", borderBottom:"1px solid #1f1f1f", fontSize:"11px", background: currentLevel===l.id ? "#2a2210" : currentLevel>l.id ? "#1a221a" : "transparent", borderRadius:"6px"}}>
+                <span style={{width:"50px"}}>{L.level} {l.id}</span>
+                <span style={{color:"#facc15"}}>{l.price} ANKH</span>
+                <span style={{fontSize:"10px", color:"#888"}}>{l.rate}/h</span>
+                <span style={{color: currentLevel>=l.id ? "#0f0" : "#666", fontSize:"10px", fontWeight:"bold"}}>{currentLevel>l.id ? "✔️" : currentLevel===l.id ? L.current : L.buy}</span>
               </div>
             ))}
           </div>
-        )}
+          <p style={{fontSize:"10px", color:"#666", textAlign:"center", marginTop:"6px"}}>كل مستوى = 15 ANKH في المحفظة = +0.77/ساعة - زي الفيديو بالظبط</p>
+        </div>
 
-        {tab==="tasks" && (
-          <div style={{padding:"15px"}}>
-            <h2 style={{fontWeight:"bold"}}>📅 السلسلة اليومية</h2>
-            <div style={{display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:"6px", margin:"12px 0"}}>
-              {[8,12,20,32,48,68,80,95,132,180].map((v,i)=><div key={i} style={{background:i<3?"#facc15":"#1a1a1a", color:i<3?"black":"white", padding:"8px 2px", borderRadius:"8px", textAlign:"center", fontSize:"11px"}}>{v}<br/>{i+1}يوم</div>)}
-            </div>
-            <div style={{background:"#1a1a1a", borderRadius:"12px", padding:"12px", marginTop:"10px"}}>
-              <p style={{fontSize:"13px"}}>دعوة 3 أصدقاء نشطين <span style={{float:"left", color:"#facc15"}}>+50</span></p>
-            </div>
-          </div>
-        )}
-
-        {tab==="friends" && (
-          <div style={{padding:"15px", textAlign:"center"}}>
-            <h2>برنامج الإحالة</h2>
-            <p style={{fontSize:"12px", color:"#888", margin:"8px 0"}}>اربح 5% من تعدين أصدقائك</p>
-            <div style={{background:"#1a1a1a", padding:"12px", borderRadius:"12px", marginTop:"10px"}}><p style={{fontSize:"12px"}}>رمز الإحالة الخاص بك</p><b style={{fontSize:"20px", letterSpacing:"2px"}}>7956189802</b></div>
-            <button style={{width:"100%", background:"#facc15", color:"black", border:"none", padding:"14px", borderRadius:"12px", fontWeight:"bold", marginTop:"15px"}}>مشاركة على تليجرام</button>
-          </div>
-        )}
-
-        {tab==="wallet" && (
-          <div style={{padding:"15px"}}>
-            <h2>💰 محفظة TON</h2>
-            <div style={{background:"#1a1a1a", padding:"14px", borderRadius:"12px", marginTop:"10px"}}>
-              <p>الرصيد المعدن</p><h2>{balance.toFixed(2)} ANKH</h2>
-            </div>
-            <button style={{width:"100%", background:"#222", color:"white", border:"1px solid #333", padding:"12px", borderRadius:"12px", marginTop:"10px"}}>ربط محفظة TON</button>
-          </div>
-        )}
-
-        {/* Bottom Nav */}
         <div style={{position:"fixed", bottom:0, width:"100%", maxWidth:"400px", background:"#111", borderTop:"1px solid #222", display:"flex", justifyContent:"space-around", padding:"8px 0"}}>
-          {[
-            {id:"mining", icon:"⛏️", name:"التعدين"},
-            {id:"store", icon:"🛒", name:"المتجر"},
-            {id:"tasks", icon:"📋", name:"المهام"},
-            {id:"friends", icon:"👥", name:"الاصدقاء"},
-            {id:"wallet", icon:"💼", name:"المحفظة"},
-          ].map(t=>(
-            <button key={t.id} onClick={()=>setTab(t.id)} style={{background:"none", border:"none", color: tab===t.id ? "#facc15" : "#666", fontSize:"11px", display:"flex", flexDirection:"column", alignItems:"center"}}>
-              <span style={{fontSize:"18px"}}>{t.icon}</span>{t.name}
-            </button>
-          ))}
+          <button onClick={()=>setTab("mining")} style={{background:"none", border:"none", color:tab==="mining"?"#facc15":"#666", fontSize:"10px"}}>⛏️ {L.mining}</button>
+          <button onClick={()=>setTab("staking")} style={{background:"none", border:"none", color:"#666", fontSize:"10px"}}>🔒 {L.staking}</button>
+          <button onClick={()=>setTab("tasks")} style={{background:"none", border:"none", color:"#666", fontSize:"10px"}}>📋 {L.tasks}</button>
+          <button onClick={()=>setTab("wallet")} style={{background:"none", border:"none", color:"#666", fontSize:"10px"}}>💼 {L.wallet}</button>
         </div>
 
       </div>
