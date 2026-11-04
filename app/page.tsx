@@ -13,7 +13,8 @@ const TRANSLATIONS: any = {
     levelHeader: "المستوى", required: "المطلوب", speed: "السرعة",
     storeTitle: "🛒 المتجر - شراء بـ GRAM", chooseGram: "اختر كمية GRAM (اقل شراء 1 جرام)",
     live: "LIVE", fallback: "FALLBACK", priceFromLiquidity: "السعر يحسب من السيولة", youGet: "هتستلم",
-    paymentAddress: "عنوان الدفع (StonFi / TonKeeper)", confirmBuy: "تأكيد شراء",
+    paymentAddress: "عنوان الدفع (StonFi / TonKeeper)", confirmBuy: "تأكيد شراء", customAmount: "او اكتب كمية مخصصة",
+    notConnectedStore: "لازم تربط المحفظة الاول من خانة المحفظة علشان تشتري", connectedWith: "مربوط بـ",
     dailyLogin: "📅 تسجيل دخول يومي - 30 يوم", ifMiss: "لو فوت يوم ترجع من الاول!", registerToday: "تسجيل اليوم",
     day: "يوم", tasks: "📋 المهام", newsChannel: "قناة الاخبار", withdrawChannel: "قناة السحب",
     subscribe: "اشتراك", verify: "تحقق", go: "اذهب", claimTask: "استلام", storyTask: "نزل ستوري كل 24 ساعة", storyReward: "50 ANKH كل 24 ساعة",
@@ -43,7 +44,8 @@ const TRANSLATIONS: any = {
     levelHeader: "LEVEL", required: "Required", speed: "Speed",
     storeTitle: "🛒 Store - Buy with GRAM", chooseGram: "Choose GRAM amount (min 1 gram)",
     live: "LIVE", fallback: "FALLBACK", priceFromLiquidity: "Price from liquidity", youGet: "You get",
-    paymentAddress: "Payment address (StonFi / TonKeeper)", confirmBuy: "Confirm buy",
+    paymentAddress: "Payment address (StonFi / TonKeeper)", confirmBuy: "Confirm buy", customAmount: "Or write custom amount",
+    notConnectedStore: "You must connect wallet first in Wallet tab to buy", connectedWith: "Connected with",
     dailyLogin: "📅 Daily Login - 30 days", ifMiss: "If you miss a day you start over!", registerToday: "Check-in Today",
     day: "Day", tasks: "📋 Tasks", newsChannel: "News Channel", withdrawChannel: "Withdraw Channel",
     subscribe: "Join", verify: "Verify", go: "Go", claimTask: "Claim", storyTask: "Post story every 24h", storyReward: "50 ANKH every 24h",
@@ -73,7 +75,8 @@ const TRANSLATIONS: any = {
     levelHeader: "УРОВЕНЬ", required: "Нужно", speed: "Скорость",
     storeTitle: "🛒 Магазин - Купить за GRAM", chooseGram: "Выберите GRAM (мин 1 грамм)",
     live: "LIVE", fallback: "FALLBACK", priceFromLiquidity: "Цена из ликвидности", youGet: "Вы получите",
-    paymentAddress: "Адрес оплаты (StonFi / TonKeeper)", confirmBuy: "Подтвердить покупку",
+    paymentAddress: "Адрес оплаты (StonFi / TonKeeper)", confirmBuy: "Подтвердить покупку", customAmount: "Или введите свое количество",
+    notConnectedStore: "Сначала подключите кошелек во вкладке Кошелек", connectedWith: "Подключен с",
     dailyLogin: "📅 Ежедневный вход - 30 дней", ifMiss: "Если пропустишь день - начнешь заново!", registerToday: "Отметиться сегодня",
     day: "День", tasks: "📋 Задания", newsChannel: "Канал новостей", withdrawChannel: "Канал выводов",
     subscribe: "Подписаться", verify: "Проверить", go: "Перейти", claimTask: "Получить", storyTask: "Выложи стори каждые 24ч", storyReward: "50 ANKH каждые 24ч",
@@ -113,13 +116,11 @@ export default function Page() {
   const [banned, setBanned] = useState(false);
   const [banReason, setBanReason] = useState("");
   const [selectedGram, setSelectedGram] = useState(1);
-  const [gramTx, setGramTx] = useState("");
   const [gramPrice, setGramPrice] = useState<number | null>(null);
   const [ankhPriceGram] = useState(0.006666);
   const FALLBACK_RATE = 150;
   const [showLevels, setShowLevels] = useState(false);
   const [invitedFriends, setInvitedFriends] = useState<any[]>([]);
-  // جديد
   const [taskStatus, setTaskStatus] = useState<any>({});
   const [lastStory, setLastStory] = useState(0);
   const [storyCountdown, setStoryCountdown] = useState("");
@@ -384,9 +385,60 @@ export default function Page() {
           </>
         )}
 
+        {tab==="store" && (
+          <div style={{width:"100%", maxWidth:400, display:"flex", flexDirection:"column", gap:14}}>
+            <h2 style={{fontWeight:900, fontSize:20, color:"#FACC15"}}>{t.storeTitle}</h2>
+            
+            {!connected ? (
+              <div style={{background:"#111", border:"1px solid #ef4444", borderRadius:20, padding:20, textAlign:"center"}}>
+                <div style={{fontSize:13, color:"#ef4444", fontWeight:800}}>⚠️ {t.notConnectedStore}</div>
+                <button onClick={()=>setTab("wallet")} style={{marginTop:12, background:"#FACC15", color:"#000", padding:"10px 16px", borderRadius:10, border:"none", fontWeight:800}}>{t.connectWallet}</button>
+              </div>
+            ) : (
+              <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.35)", borderRadius:20, padding:16}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                  <div style={{fontSize:13, fontWeight:800}}>{t.chooseGram}</div>
+                  <div style={{fontSize:9, background: gramPrice ? "#22c55e" : "#333", color: gramPrice ? "#000" : "#888", padding:"3px 8px", borderRadius:20, fontWeight:800}}>{gramPrice ? `${t.live} $${gramPrice.toFixed(4)}` : t.fallback}</div>
+                </div>
+                <div style={{fontSize:11, color:"#666", marginTop:6}}>1 GRAM = {displayRate} ANKH • {t.priceFromLiquidity}</div>
+                <div style={{marginTop:8, fontSize:10, color:"#22c55e", background:"rgba(34,197,94,0.1)", padding:"6px 10px", borderRadius:8}}>{t.connectedWith}: {walletAddress}</div>
+
+                <div style={{display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginTop:14}}>
+                  {[1,3,5,10].map(g=>(
+                    <button key={g} onClick={()=>setSelectedGram(g)} style={{padding:14, borderRadius:12, fontWeight:900, fontSize:14, border: selectedGram===g ? "2px solid #FACC15" : "1px solid #222", background: selectedGram===g ? "#FACC15" : "#1A1A1A", color: selectedGram===g ? "#000" : "#888"}}>{g} GRAM</button>
+                  ))}
+                </div>
+
+                <div style={{marginTop:14}}>
+                  <div style={{fontSize:11, color:"#aaa", marginBottom:6}}>{t.customAmount}</div>
+                  <input type="number" min={1} value={selectedGram} onChange={e=>setSelectedGram(Number(e.target.value)||1)} placeholder="مثال: 2.5" style={{width:"100%", background:"#0A0A0A", border:"1px solid #222", borderRadius:10, padding:12, color:"#fff", fontSize:13, outline:"none"}}/>
+                </div>
+
+                <div style={{marginTop:14, background:"#000", border:"1px solid #222", borderRadius:12, padding:12, textAlign:"center"}}>
+                  <div style={{fontSize:11, color:"#888"}}>{t.youGet}</div>
+                  <div style={{fontSize:26, fontWeight:900, color:"#FACC15", marginTop:2}}>{Math.floor(calculatedAnkh).toLocaleString()} ANKH</div>
+                  <div style={{fontSize:10, color:"#555", marginTop:2}}>مقابل {selectedGram} GRAM</div>
+                </div>
+
+                <button onClick={()=>{
+                  const amount = (selectedGram * 1e9).toString();
+                  window.open(`ton://transfer/UQAnkhStoreAddress?amount=${amount}&text=buy_${selectedGram}_GRAM_${refCode}`, "_blank");
+                  setTimeout(()=>{
+                    setWalletBalance(wb=>wb + Math.floor(calculatedAnkh));
+                    alert(`${t.youGet} ${Math.floor(calculatedAnkh).toLocaleString()} ANKH`);
+                  }, 1500);
+                }} style={{marginTop:14, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:14, borderRadius:12, border:"none", fontSize:14}}>
+                  {t.confirmBuy} {selectedGram} GRAM - {Math.floor(calculatedAnkh).toLocaleString()} ANKH
+                </button>
+
+                <div style={{marginTop:10, fontSize:9, color:"#666", textAlign:"center"}}>اقل شراء 1 GRAM • الدفع مباشر من محفظتك المربوطة {walletAddress.slice(0,10)}...</div>
+              </div>
+            )}
+          </div>
+        )}
+
         {tab==="list" && (
           <div style={{width:"100%", maxWidth:410, display:"flex", flexDirection:"column", gap:14}}>
-            {/* ستوري 50 كل 24 ساعة */}
             <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.5)", borderRadius:20, padding:16}}>
               <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
                 <div>
@@ -421,7 +473,6 @@ export default function Page() {
 
             <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>{t.tasks}</h2>
 
-            {/* قناة الاخبار */}
             <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
               <div><div style={{fontSize:13, fontWeight:800}}>{t.newsChannel}</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div>
               <div>
