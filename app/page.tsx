@@ -32,26 +32,25 @@ export default function Page() {
   };
 
   const inviteLink = `https://t.me{refCode}`;
-  const isWithdrawInvalid = withdrawAmount !== "" && Number(withdrawAmount) < 10000;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#060907", color: "#ffffff", display: "flex", justifyContent: "center", fontFamily: "'Tajawal', sans-serif", position: "relative", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: "#060907", color: "#ffffff", display: "flex", justifyContent: "center", fontFamily: "sans-serif", position: "relative", overflowX: "hidden" }}>
       
-      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", fontSize: "320px", color: "rgba(212, 175, 55, 0.025)", zIndex: 1, pointerEvents: "none", userSelect: "none" }}>
+      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", fontSize: "320px", color: "rgba(212, 175, 55, 0.02)", zIndex: 1, pointerEvents: "none", userSelect: "none" }}>
         ☥
       </div>
 
-      <div style={{ width: "100%", maxWidth: "420px", background: "#0d110e", minHeight: "100vh", paddingBottom: "100px", position: "relative", zIndex: 2, boxSizing: "border-box", display: "flex", flexDirection: "column", borderLeft: "1px solid #1a221c", borderRight: "1px solid #1a221c" }}>
+      <div style={{ width: "100%", maxWidth: "420px", background: "#0d110e", minHeight: "100vh", paddingBottom: "100px", position: "relative", zIndex: 2, boxSizing: "border-box", display: "flex", flexDirection: "column" }}>
         
-        <div style={{ padding: "20px 16px", background: "#111612", borderBottom: "2px solid #d4af37", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.6)" }}>
+        <div style={{ padding: "20px 16px", background: "#111612", borderBottom: "2px solid #d4af37", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "linear-gradient(135deg, #d4af37, #aa841a)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "22px", boxShadow: "0 0 15px rgba(212,175,55,0.4)" }}>☥</div>
+            <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "#d4af37", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "22px" }}>☥</div>
             <div>
-              <b style={{ color: "#d4af37", fontSize: "18px", letterSpacing: "0.5px" }}>ANKH MINING</b>
+              <b style={{ color: "#d4af37", fontSize: "18px" }}>ANKH MINING</b>
               <p style={{ margin: 0, fontSize: "11px", color: "#8a9a8a", fontWeight: "bold" }}>LEVEL: {currentLevel} / 500</p>
             </div>
           </div>
-          <div style={{ background: "rgba(22, 42, 28, 0.4)", padding: "8px 14px", borderRadius: "16px", border: "1px solid rgba(212,175,55,0.4)", backdropFilter: "blur(5px)" }}>
+          <div style={{ background: "rgba(22, 42, 28, 0.4)", padding: "8px 14px", borderRadius: "16px", border: "1px solid #d4af37" }}>
             <span style={{ color: "#d4af37", fontWeight: "bold", fontSize: "15px" }}>{totalBalance.toFixed(4)} ☥</span>
           </div>
         </div>
@@ -62,13 +61,13 @@ export default function Page() {
             <div style={{ textAlign: "center", display: "flex", flexDirection: "column", flex: 1, justifyContent: "space-between" }}>
               <div>
                 <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  <button onClick={() => setShowGuide(true)} style={{ background: "none", color: "#d4af37", border: "1px solid #d4af37", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontWeight: "bold", fontSize: "14px", transition: "all 0.3s" }}>?</button>
+                  <button onClick={() => setShowGuide(true)} style={{ background: "none", color: "#d4af37", border: "1px solid #d4af37", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontWeight: "bold" }}>?</button>
                 </div>
                 
-                <p style={{ color: "#8a9a8a", margin: "15px 0 0 0", fontSize: "14px", letterSpacing: "0.5px" }}>Mined Balance</p>
-                <h1 style={{ fontSize: "52px", color: "#d4af37", margin: "5px 0 20px 0", fontWeight: "900", textShadow: "0 0 20px rgba(212,175,55,0.3)" }}>{minedAmount.toFixed(5)}</h1>
+                <p style={{ color: "#8a9a8a", margin: "15px 0 0 0", fontSize: "14px" }}>Mined Balance</p>
+                <h1 style={{ fontSize: "52px", color: "#d4af37", margin: "5px 0 20px 0", fontWeight: "bold" }}>{minedAmount.toFixed(5)}</h1>
                 
-                <div style={{ margin: "20px auto", width: "180px", height: "180px", borderRadius: "50%", border: "3px dashed #d4af37", display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(circle, rgba(22,34,25,0.6) 0%, rgba(13,17,14,0.9) 100%)", boxShadow: "0 0 40px rgba(212,175,55,0.15)", position: "relative" }}>
+                <div style={{ margin: "20px auto", width: "180px", height: "180px", borderRadius: "50%", border: "3px dashed #d4af37", display: "flex", alignItems: "center", justifyContent: "center", background: "#111612" }}>
                   <span style={{ fontSize: "65px" }}>⛏️</span>
                 </div>
 
@@ -79,11 +78,11 @@ export default function Page() {
               </div>
 
               <div>
-                <button onClick={handleClaim} style={{ width: "100%", background: "linear-gradient(90deg, #d4af37, #facc15)", color: "#000", border: "none", padding: "16px", borderRadius: "14px", fontWeight: "bold", fontSize: "17px", cursor: "pointer", boxShadow: "0 6px 20px rgba(212,175,55,0.35)", transition: "transform 0.1s" }}>📥 Claim Tokens</button>
+                <button onClick={handleClaim} style={{ width: "100%", background: "#d4af37", color: "#000", border: "none", padding: "16px", borderRadius: "14px", fontWeight: "bold", fontSize: "17px", cursor: "pointer" }}>📥 Claim Tokens</button>
                 
                 <div style={{ background: "rgba(40, 16, 16, 0.6)", border: "1px solid #ef4444", borderRadius: "14px", padding: "14px", marginTop: "20px", textAlign: "left" }}>
                   <b style={{ color: "#ef4444", display: "block", marginBottom: "4px", fontSize: "13px" }}>⚠️ Active Rule Restriction:</b>
-                  <p style={{ color: "#fca5a5", fontSize: "12px", margin: 0, lineHeight: "1.5" }}>You must claim at least once every 24 hours. Failure to interact will result in automated token decay at your current mining tier speed.</p>
+                  <p style={{ color: "#fca5a5", fontSize: "12px", margin: 0, lineHeight: "1.5" }}>You must claim at least once every 24 hours. Failure to interact will result in automated token decay.</p>
                 </div>
 
                 <div style={{ marginTop: "20px" }}>
@@ -97,18 +96,18 @@ export default function Page() {
             <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
               <div>
                 <h3 style={{ color: "#d4af37", margin: "10px 0 8px 0", fontSize: "20px" }}>Referral Matrix</h3>
-                <p style={{ fontSize: "14px", color: "#8a9a8a", lineHeight: "1.6" }}>Expand the ANKH ecosystem. Secure a permanent <b style={{ color: "#d4af37" }}>5% royalty</b> tracking all mining assets extracted by users onboarded through your link.</p>
+                <p style={{ fontSize: "14px", color: "#8a9a8a", lineHeight: "1.6" }}>Expand the ANKH ecosystem. Secure a permanent <b style={{ color: "#d4af37" }}>5% royalty</b> tracking all mining assets.</p>
                 
                 <div style={{ background: "#111612", padding: "16px", borderRadius: "16px", marginTop: "25px", border: "1px solid #1a221c" }}>
                   <p style={{ margin: "0 0 10px 0", fontSize: "12px", color: "#8a9a8a" }}>Your unique referral link:</p>
-                  <div style={{ background: "#060907", padding: "12px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #1a221c" }}>
-                    <code style={{ fontSize: "12px", color: "#d4af37", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "220px" }}>{inviteLink}</code>
+                  <div style={{ background: "#060907", padding: "12px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <code style={{ fontSize: "12px", color: "#d4af37" }}>{inviteLink}</code>
                     <button onClick={() => { navigator.clipboard.writeText(inviteLink); alert("Copied!"); }} style={{ background: "#d4af37", color: "#000", border: "none", padding: "8px 14px", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", fontSize: "12px" }}>Copy</button>
                   </div>
                 </div>
               </div>
 
-              <div style={{ background: "#111612", padding: "18px", borderRadius: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid #1a221c", marginBottom: "20px" }}>
+              <div style={{ background: "#111612", padding: "18px", borderRadius: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <span style={{ fontSize: "14px", color: "#8a9a8a" }}>Total Qualified Referrals:</span>
                 <b style={{ color: "#d4af37", fontSize: "18px" }}>0 Members</b>
               </div>
@@ -118,18 +117,18 @@ export default function Page() {
           {tab === "staking" && (
             <div>
               <h3 style={{ color: "#d4af37", margin: "10px 0 8px 0", fontSize: "20px" }}>Staking Escrow</h3>
-              <p style={{ fontSize: "14px", color: "#8a9a8a", lineHeight: "1.5" }}>Lock up surplus tokens into highly secure liquidity pools to multiply yield targets. Standard contract minimum is 100 ANKH.</p>
+              <p style={{ fontSize: "14px", color: "#8a9a8a" }}>Lock up surplus tokens into highly secure liquidity pools. Minimum is 100 ANKH.</p>
               
-              <div style={{ background: "#111612", padding: "20px", borderRadius: "18px", marginTop: "25px", border: "1px solid #1a221c", boxShadow: "0 8px 30px rgba(0,0,0,0.3)" }}>
-                <label style={{ fontSize: "13px", color: "#8a9a8a", display: "block", marginBottom: "10px" }}>Asset Allocation:</label>
-                <input type="number" placeholder="Amount (Min 100 ANKH)" value={stakeAmount} onChange={(e) => setStakeAmount(e.target.value)} style={{ width: "100%", padding: "14px", background: "#060907", border: "1px solid #1a221c", color: "#fff", borderRadius: "10px", boxSizing: "border-box", outline: "none", fontSize: "15px", transition: "border 0.3s" }} />
+              <div style={{ background: "#111612", padding: "20px", borderRadius: "18px", marginTop: "25px", border: "1px solid #1a221c" }}>
+                <input type="number" placeholder="Amount (Min 100 ANKH)" value={stakeAmount} onChange={(e) => setStakeAmount(e.target.value)} style={{ width: "100%", padding: "14px", background: "#060907", border: "1px solid #1a221c", color: "#fff", borderRadius: "10px", boxSizing: "border-box", outline: "none" }} />
                 
-                <label style={{ fontSize: "13px", color: "#8a9a8a", display: "block", margin: "20px 0 10px 0" }}>Select Maturity Lock:</label>
-                <div style={{ display: "flex", gap: "8px" }}>
-<button onClick={() => setStakeDuration(1)} style={{ flex: 1, padding: "12px 6px", borderRadius: "10px", background: stakeDuration === 1 ? "#d4af37" : "#060907", color: stakeDuration === 1 ? "#000" : "#fff", fontWeight: "bold", border: "1px solid #d4af37", cursor: "pointer", fontSize: "12px" }}>1 Month25% ROI
-<button onClick={() => setStakeDuration(3)} style={{ flex: 1, padding: "12px 6px", borderRadius: "10px", background: stakeDuration === 3 ? "#d4af37" : "#060907", color: stakeDuration === 3 ? "#000" : "#fff", fontWeight: "bold", border: "1px solid #d4af37", cursor: "pointer", fontSize: "12px" }}>3 Months60% ROI
-<button onClick={() => setStakeDuration(9)} style={{ flex: 1, padding: "12px 6px", borderRadius: "10px", background: stakeDuration === 9 ? "#d4af37" : "#060907", color: stakeDuration === 9 ? "#000" : "#fff", fontWeight: "bold", border: "1px solid #d4af37", cursor: "pointer", fontSize: "12px" }}>9 Months105% ROI
-<button onClick={() => { if(Number(stakeAmount) >= 100){ setTotalBalance(b => b - Number(stakeAmount)); setStakeAmount(""); alert("Staking Order Executed!"); } else { alert("Minimum required is 100 ANKH"); } }} style={{ width: "100%", background: "linear-gradient(90deg, #d4af37, #facc15)", color: "#000", border: "none", padding: "14px", borderRadius: "12px", fontWeight: "bold", cursor: "pointer", fontSize: "15px", marginTop: "25px", boxShadow: "0 4px 15px rgba(212,175,55,0.2)" }}>Execute Staking Contract
+                <div style={{ display: "flex", gap: "8px", marginTop: "15px" }}>
+                  <button onClick={() => setStakeDuration(1)} style={{ flex: 1, padding: "12px 6px", borderRadius: "10px", background: stakeDuration === 1 ? "#d4af37" : "#060907", color: stakeDuration === 1 ? "#000" : "#fff", fontWeight: "bold", border: "1px solid #d4af37", cursor: "pointer", fontSize: "12px" }}><b>1 Month</b><br/>25% ROI</button>
+                  <button onClick={() => setStakeDuration(3)} style={{ flex: 1, padding: "12px 6px", borderRadius: "10px", background: stakeDuration === 3 ? "#d4af37" : "#060907", color: stakeDuration === 3 ? "#000" : "#fff", fontWeight: "bold", border: "1px solid #d4af37", cursor: "pointer" }}><b>3 Months</b><br/>60% ROI</button>
+                  <button onClick={() => setStakeDuration(9)} style={{ flex: 1, padding: "12px 6px", borderRadius: "10px", background: stakeDuration === 9 ? "#d4af37" : "#060907", color: stakeDuration === 9 ? "#000" : "#fff", fontWeight: "bold", border: "1px solid #d4af37", cursor: "pointer" }}><b>9 Months</b><br/>105% ROI</button>
+                </div>
+
+<button onClick={() => { if(Number(stakeAmount) >= 100){ setTotalBalance(b => b - Number(stakeAmount)); setStakeAmount(""); alert("Staking Order Executed!"); } }} style={{ width: "100%", background: "#d4af37", color: "#000", border: "none", padding: "14px", borderRadius: "12px", fontWeight: "bold", cursor: "pointer", marginTop: "25px" }}>Execute Staking Contract
 
 
 )}
@@ -137,17 +136,17 @@ export default function Page() {
 
 <h3 style={{ color: "#d4af37", margin: "10px 0 8px 0", fontSize: "20px" }}>Clearing & Settlement
 {!connected ? (
-<button onClick={() => setConnected(true)} style={{ width: "100%", background: "#0098ea", color: "#fff", border: "none", padding: "15px", borderRadius: "12px", fontWeight: "bold", cursor: "pointer", fontSize: "16px", marginBottom: "20px", boxShadow: "0 4px 15px rgba(0,152,234,0.3)" }}>🔗 Connect Open TON Wallet
+<button onClick={() => setConnected(true)} style={{ width: "100%", background: "#0098ea", color: "#fff", border: "none", padding: "15px", borderRadius: "12px", fontWeight: "bold", cursor: "pointer", fontSize: "16px", marginBottom: "20px" }}>🔗 Connect Open TON Wallet
 ) : (
 <div style={{ background: "#111612", padding: "14px", borderRadius: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", border: "1px solid #22c55e" }}>
 <span style={{ color: "#22c55e", fontSize: "14px", fontWeight: "bold" }}>● Mainnet Link Established
-<button onClick={() => { setConnected(false); setVerified(false); }} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "13px" }}>Disconnect
+<button onClick={() => { setConnected(false); setVerified(false); }} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer" }}>Disconnect
 
 )}
 {connected && !verified && (
 <div style={{ background: "rgba(22,34,25,0.5)", padding: "16px", borderRadius: "14px", border: "1px solid #22c55e", marginBottom: "20px" }}>
-<p style={{ fontSize: "13px", color: "#8a9a8a", margin: "0 0 12px 0", lineHeight: "1.4" }}>Execute a one-time validation payload of 0.05 GRAM on-chain to verify non-automated human operation status.
-<button onClick={() => setVerified(true)} style={{ width: "100%", background: "#22c55e", color: "#fff", border: "none", padding: "12px", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Authorize Verification (0.05 GRAM)
+<p style={{ fontSize: "13px", color: "#8a9a8a", margin: "0 0 12px 0" }}>Execute a one-time validation payload of 0.05 GRAM on-chain.
+<button onClick={() => setVerified(true)} style={{ width: "100%", background: "#22c55e", color: "#fff", border: "none", padding: "12px", borderRadius: "10px", fontWeight: "bold", cursor: "pointer" }}>Authorize Verification (0.05 GRAM)
 
 )}
 <div style={{ background: "#111612", padding: "20px", borderRadius: "18px", border: "1px solid #1a221c" }}>
@@ -155,12 +154,12 @@ export default function Page() {
 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#8a9a8a", marginBottom: "15px" }}>
 Network Fee: 5%
 Minimum Threshold: 10,000 ANKH
-<div style={{ padding: "3px", borderRadius: "10px", background: isWithdrawInvalid ? "rgba(239, 68, 68, 0.25)" : "transparent", transition: "background 0.3s" }}>
-<input type="number" placeholder="Enter amount to extract" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} style={{ width: "100%", padding: "14px", background: "#060907", color: "#fff", border: isWithdrawInvalid ? "1px solid #ef4444" : "1px solid #1a221c", borderRadius: "8px", boxSizing: "border-box", outline: "none", fontSize: "15px" }} />
-{isWithdrawInvalid && (
+<div style={{ padding: "3px", borderRadius: "10px", background: (withdrawAmount !== "" && Number(withdrawAmount) < 10000) ? "rgba(239, 68, 68, 0.25)" : "transparent", transition: "background 0.3s" }}>
+<input type="number" placeholder="Enter amount to withdraw" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} style={{ width: "100%", padding: "14px", background: "#060907", color: "#fff", border: "1px solid #1a221c", borderRadius: "8px", boxSizing: "border-box", outline: "none" }} />
+{withdrawAmount !== "" && Number(withdrawAmount) < 10000 && (
 <p style={{ color: "#ef4444", fontSize: "12px", margin: "6px 0 0 0", fontWeight: "bold" }}>Alert: Amount resides below the 10,000 baseline requirement.
 )}
-<button onClick={() => { if (!verified) { alert("Account verification required!"); return; } if (Number(withdrawAmount) >= 10000) { alert("Processing settlement claim!"); setWithdrawAmount(""); } }} style={{ width: "100%", background: "linear-gradient(90deg, #d4af37, #facc15)", color: "#000", border: "none", padding: "14px", borderRadius: "12px", marginTop: "20px", fontWeight: "bold", cursor: "pointer", fontSize: "15px" }}>Dispatch Withdrawal
+<button onClick={() => { if (!verified) { alert("Account verification required!"); return; } if (Number(withdrawAmount) >= 10000) { alert("Processing settlement claim!"); setWithdrawAmount(""); } }} style={{ width: "100%", background: "#d4af37", color: "#000", border: "none", padding: "14px", borderRadius: "12px", marginTop: "20px", fontWeight: "bold", cursor: "pointer" }}>Dispatch Withdrawal
 
 
 )}
@@ -168,25 +167,25 @@ Minimum Threshold: 10,000 ANKH
 
 <h3 style={{ color: "#d4af37", margin: "10px 0 8px 0", fontSize: "20px" }}>Campaign Hub
 <p style={{ fontSize: "14px", color: "#8a9a8a" }}>Claim immediate auxiliary allocation grants by completing ecosystem verification actions.
-<div style={{ background: "#111612", padding: "16px", borderRadius: "16px", marginTop: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid #1a221c" }}>
+<div style={{ background: "#111612", padding: "16px", borderRadius: "16px", marginTop: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
 
 <b style={{ fontSize: "15px", color: "#fff" }}>Daily System Check-in
 <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#d4af37", fontWeight: "bold" }}>+7 ANKH Grant
 
-<button onClick={() => { setTotalBalance(b => b + 7); alert("Ecosystem reward claimed!"); }} style={{ background: "#d4af37", color: "#000", border: "none", padding: "10px 18px", borderRadius: "10px", fontWeight: "bold", fontSize: "13px", cursor: "pointer", boxShadow: "0 4px 10px rgba(212,175,55,0.2)" }}>Claim
+<button onClick={() => { setTotalBalance(b => b + 7); alert("Ecosystem reward claimed!"); }} style={{ background: "#d4af37", color: "#000", border: "none", padding: "10px 18px", borderRadius: "10px", fontWeight: "bold", cursor: "pointer" }}>Claim
 
 
 )}
 {showGuide && (
 <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.9)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 2000, padding: "20px" }}>
-<div style={{ background: "#111612", border: "2px solid #d4af37", padding: "24px", borderRadius: "20px", maxWidth: "320px", width: "100%", textAlign: "center", boxShadow: "0 10px 40px rgba(0,0,0,0.8)" }}>
-<h4 style={{ color: "#d4af37", marginTop: 0, fontSize: "18px" }}>Ecosystem Operation Rules
-<p style={{ fontSize: "13px", color: "#8a9a8a", lineHeight: "1.6", textAlign: "left" }}>• Tier 0 is entirely free providing 0.25 ANKH/H.• Tiers 1 through 500 adapt dynamic velocities calculated exclusively against your active connected On-chain network balance.
-<button onClick={() => setShowGuide(false)} style={{ background: "#d4af37", border: "none", padding: "10px 20px", borderRadius: "10px", width: "100%", fontWeight: "bold", cursor: "pointer", marginTop: "15px", color: "#000" }}>Close Portal
+<div style={{ background: "#111612", border: "2px solid #d4af37", padding: "24px", borderRadius: "20px", maxWidth: "320px", width: "100%", textAlign: "center" }}>
+<h4 style={{ color: "#d4af37", marginTop: 0 }}>Ecosystem Operation Rules
+<p style={{ fontSize: "13px", color: "#8a9a8a", lineHeight: "1.6" }}>• Tier 0 is entirely free providing 0.25 ANKH/H.• Tiers 1 through 500 adapt dynamic velocities calculated against your active connected On-chain balance.
+<button onClick={() => setShowGuide(false)} style={{ background: "#d4af37", border: "none", padding: "10px 20px", borderRadius: "10px", width: "100%", fontWeight: "bold", cursor: "pointer", marginTop: "15px" }}>Close Portal
 
 
 )}
-<div style={{ position: "fixed", bottom: 0, maxWidth: "420px", width: "100%", height: "76px", background: "#111612", display: "flex", justifyContent: "space-around", alignItems: "center", borderTop: "2px solid #d4af37", zIndex: 1000, boxSizing: "border-box", boxShadow: "0 -6px 25px rgba(0,0,0,0.5)" }}>
+<div style={{ position: "fixed", bottom: 0, maxWidth: "420px", width: "100%", height: "76px", background: "#111612", display: "flex", justifyContent: "space-around", alignItems: "center", borderTop: "2px solid #d4af37", zIndex: 1000, boxSizing: "border-box" }}>
 <button onClick={() => setTab("mining")} style={{ background: "none", border: "none", color: tab === "mining" ? "#d4af37" : "#8a9a8a", cursor: "pointer", fontSize: "11px", fontWeight: "bold", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}><span style={{ fontSize: "20px" }}>⛏️Mining
 <button onClick={() => setTab("friends")} style={{ background: "none", border: "none", color: tab === "friends" ? "#d4af37" : "#8a9a8a", cursor: "pointer", fontSize: "11px", fontWeight: "bold", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}><span style={{ fontSize: "20px" }}>👥Friends
 <button onClick={() => setTab("staking")} style={{ background: "none", border: "none", color: tab === "staking" ? "#d4af37" : "#8a9a8a", cursor: "pointer", fontSize: "11px", fontWeight: "bold", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}><span style={{ fontSize: "20px" }}>📈Staking
