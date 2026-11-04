@@ -1,11 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
+export const dynamic = "force-dynamic";
 
 export default function Page() {
   const [tab, setTab] = useState("mining");
   const [lang, setLang] = useState("en");
   const [balance, setBalance] = useState(0);
-  const [walletBalance, setWalletBalance] = useState(0);
+  const [walletBalance, setWalletBalance] = useState(0); // جديد - رصيد المحفظة
   const [level, setLevel] = useState(0);
   const [mining, setMining] = useState(false);
   const [miningRate] = useState(0.25);
@@ -22,18 +23,24 @@ export default function Page() {
   };
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const code = "ANKH-" + Math.floor(100000 + Math.random() * 900000);
     setRefCode(code);
-    const b = localStorage.getItem("ankh_bal");
-    const l = localStorage.getItem("ankh_level");
-    const last = localStorage.getItem("ankh_last");
-    if(b) setBalance(Number(b));
-    if(l) setLevel(Number(l));
-    if(last) setLastMine(Number(last));
+    try {
+      const b = window.localStorage.getItem("ankh_bal");
+      const wb = window.localStorage.getItem("ankh_wallet");
+      const l = window.localStorage.getItem("ankh_level");
+      const last = window.localStorage.getItem("ankh_last");
+      if(b) setBalance(Number(b));
+      if(wb) setWalletBalance(Number(wb));
+      if(l) setLevel(Number(l));
+      if(last) setLastMine(Number(last));
+    } catch {}
   }, []);
 
-  useEffect(() => { localStorage.setItem("ankh_bal", String(balance)); }, [balance]);
-  useEffect(() => { localStorage.setItem("ankh_level", String(level)); }, [level]);
+  useEffect(() => { if(typeof window!=="undefined") window.localStorage.setItem("ankh_bal", String(balance)); }, [balance]);
+  useEffect(() => { if(typeof window!=="undefined") window.localStorage.setItem("ankh_wallet", String(walletBalance)); }, [walletBalance]);
+  useEffect(() => { if(typeof window!=="undefined") window.localStorage.setItem("ankh_level", String(level)); }, [level]);
 
   useEffect(() => {
     const int = setInterval(() => {
@@ -60,13 +67,23 @@ export default function Page() {
       setBalance(newBal);
       const now = Date.now();
       setLastMine(now);
-      localStorage.setItem("ankh_last", String(now));
+      if(typeof window!=="undefined") window.localStorage.setItem("ankh_last", String(now));
       setMining(false);
-      let newLvl = level;
-      while(newLvl < 500 && newBal >= getRequiredForLevel(newLvl+1)) newLvl++;
-      if(newLvl !== level) setLevel(newLvl);
     }, 2000);
   };
+
+  // جديد - زرار الاستلام
+  const handleClaim = () => {
+    if(balance <= 0) return;
+    const newWallet = walletBalance + balance;
+    setWalletBalance(newWallet);
+    setBalance(0);
+    let newLvl = level;
+    while(newLvl < 500 && newWallet >= getRequiredForLevel(newLvl+1)) newLvl++;
+    if(newLvl !== level) setLevel(newLvl);
+  };
+
+  const needForNext = Math.max(0, getRequiredForLevel(level+1) - walletBalance);
 
   return (
     <div style={{minHeight:"100vh", background:"#050505", color:"#fff", paddingBottom:90, fontFamily:"sans-serif"}}>
@@ -77,56 +94,48 @@ export default function Page() {
       </div>
 
       <div style={{padding:20, display:"flex", flexDirection:"column", alignItems:"center"}}>
-{tab==="mining" && (
-  <>
-    <div style={{width:190, height:190, borderRadius:"50%", background:"linear-gradient(180deg, #FACC15, #854D0E)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:80, boxShadow:"0 0 70px rgba(250,204,21,0.35)"}}>☥</div>
-    <div style={{marginTop:20, color:"#FACC15", letterSpacing:5, fontSize:11, fontWeight:800}}>ANKH COIN</div>
-    
-    {/* الرصيد اللي لسه هيستلمه */}
-    <div style={{fontSize:42, fontWeight:900, marginTop:6}}>{balance.toFixed(2)}</div>
-    <div style={{fontSize:11, color:"#666"}}>قابل للاستلام من التعدين</div>
+        {tab==="mining" && (
+          <>
+            <div style={{width:190, height:190, borderRadius:"50%", background:"linear-gradient(180deg, #FACC15, #854D0E)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:80, boxShadow:"0 0 70px rgba(250,204,21,0.35)"}}>☥</div>
+            <div style={{marginTop:20, color:"#FACC15", letterSpacing:5, fontSize:11, fontWeight:800}}>ANKH COIN</div>
+            
+            {/* رصيد البوت */}
+            <div style={{fontSize:42, fontWeight:900, marginTop:6}}>{balance.toFixed(2)} ANKH</div>
+            <div style={{fontSize:11, color:"#666"}}>رصيد البوت - قابل للاستلام</div>
 
-    {/* زرارين: ابدأ و استلام */}
-    <div style={{display:"flex", gap:10, width:"100%", maxWidth:360, marginTop:22}}>
-      <button onClick={startMining} disabled={!canMine || mining} style={{flex:1, background: !canMine ? "#222" : mining ? "#333" : "#FACC15", color: !canMine ? "#555" : mining ? "#888" : "#000", fontWeight:900, padding:16, borderRadius:14, fontSize:14, border:"none"}}>
-        {!canMine ? `${countdown}` : mining ? "جاري..." : "ابدأ تعدين"}
-      </button>
-      <button onClick={()=>{ 
-        if(balance>0){ 
-          const newWallet = (Number(localStorage.getItem("ankh_wallet")||"0") + balance);
-          localStorage.setItem("ankh_wallet", String(newWallet));
-          setBalance(0); 
-          alert(`تم الاستلام ${balance.toFixed(2)} للمحفظة`);
-          let newLvl = level;
-          while(newLvl < 500 && newWallet >= getRequiredForLevel(newLvl+1)) newLvl++;
-          if(newLvl !== level) setLevel(newLvl);
-        }
-      }} disabled={balance===0} style={{flex:1, background: balance>0 ? "#fff" : "#111", color: balance>0 ? "#000" : "#444", fontWeight:900, padding:16, borderRadius:14, fontSize:14, border:"1px solid #222"}}>استلام CLAIM</button>
-    </div>
+            {/* زرارين */}
+            <div style={{display:"flex", gap:10, width:"100%", maxWidth:360, marginTop:20}}>
+              <button onClick={startMining} disabled={!canMine || mining} style={{flex:1, background: !canMine ? "#222" : mining ? "#333" : "#FACC15", color: !canMine ? "#666" : mining ? "#888" : "#000", fontWeight:900, padding:16, borderRadius:14, fontSize:14, border:"none"}}>
+                {!canMine ? `Next ${countdown}` : mining ? `Mining...` : `ابدأ التعدين`}
+              </button>
+              <button onClick={handleClaim} disabled={balance===0} style={{flex:1, background: balance>0 ? "#fff" : "#111", color: balance>0 ? "#000" : "#444", fontWeight:900, padding:16, borderRadius:14, fontSize:14, border:"1px solid #222"}}>
+                استلام CLAIM
+              </button>
+            </div>
 
-    {/* المحفظة هي اللي بتحدد الليفل */}
-    <div style={{marginTop:24, width:"100%", maxWidth:360, background:"#111", border:"1px solid rgba(250,204,21,0.2)", borderRadius:16, padding:14}}>
-      <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}>
-        <span style={{color:"#888"}}>عملات المحفظة (تحسب لليفل):</span>
-        <span style={{color:"#FACC15", fontWeight:900}}>{Number(localStorage.getItem("ankh_wallet")||"0").toFixed(2)} ANKH</span>
-      </div>
-      <div style={{display:"flex", justifyContent:"space-between", fontSize:11, marginTop:6}}>
-        <span style={{color:"#666"}}>Level {level}/500</span>
-        <span style={{color:"#666"}}>Next: {getRequiredForLevel(level+1).toLocaleString()} ANKH</span>
-      </div>
-      <div style={{marginTop:8, height:6, background:"#000", borderRadius:10, overflow:"hidden"}}>
-        <div style={{width:`${Math.min(100, (Number(localStorage.getItem("ankh_wallet")||"0") / (getRequiredForLevel(level+1)||160))*100)}%`, height:"100%", background:"#FACC15"}}></div>
-      </div>
-      <div style={{marginTop:6, fontSize:11, color:"#FACC15"}}>
-        باقي {Math.max(0, getRequiredForLevel(level+1) - Number(localStorage.getItem("ankh_wallet")||"0")).toFixed(2)} ANKH لليفل {level+1}
-      </div>
-    </div>
+            {/* رصيد المحفظة اللي بيحدد الليفل */}
+            <div style={{marginTop:20, width:"100%", maxWidth:360, background:"#111", border:"1px solid rgba(250,204,21,0.25)", borderRadius:16, padding:14}}>
+              <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}>
+                <span style={{color:"#888"}}>عملات المحفظة (تحسب لليفل):</span>
+                <span style={{color:"#FACC15", fontWeight:900}}>{walletBalance.toFixed(2)} ANKH</span>
+              </div>
+              <div style={{display:"flex", gap:12, marginTop:8, fontSize:12, color:"#666"}}>
+                <span>Level {level}/500</span>
+                <span style={{color:"#555"}}>Next: {getRequiredForLevel(level+1).toLocaleString()}</span>
+              </div>
+              <div style={{marginTop:8, width:"100%", height:6, background:"#1A1A1A", borderRadius:10, overflow:"hidden"}}>
+                <div style={{width:`${Math.min(100, (walletBalance / (getRequiredForLevel(level+1)||160))*100)}%`, height:"100%", background:"#FACC15"}}></div>
+              </div>
+              <div style={{marginTop:8, fontSize:12, color:"#FACC15", fontWeight:800, textAlign:"center"}}>
+                باقي {needForNext.toFixed(2)} ANKH لليفل {level+1}
+              </div>
+            </div>
 
-    <div style={{marginTop:10, width:"100%", maxWidth:360, background:"rgba(250,204,21,0.08)", border:"1px dashed rgba(250,204,21,0.2)", borderRadius:10, padding:10, fontSize:10, color:"#888", textAlign:"center", lineHeight:1.5}}>
-      ⚠️ ملاحظة: عملات البوت لا تؤثر على المستوى<br/>فقط العملات التي في المحفظة بعد الاستلام هي التي يتم احتسابها لرفع الليفل
-    </div>
-  </>
-)}
+            <div style={{marginTop:12, width:"100%", maxWidth:360, background:"rgba(250,204,21,0.08)", border:"1px dashed rgba(250,204,21,0.3)", borderRadius:10, padding:10, fontSize:10, color:"#aaa", textAlign:"center", lineHeight:1.6}}>
+              ⚠️ ملاحظة: العملات الموجودة في البوت لا تؤثر على المستوى<br/>فقط العملات الموجودة في المحفظة بعد الضغط على استلام هي التي يتم احتسابها لرفع المستوى
+            </div>
+          </>
+        )}
 
         {tab==="store" && (
           <div style={{width:"100%", maxWidth:380}}>
@@ -153,11 +162,13 @@ export default function Page() {
               </div>
               <button onClick={()=>{
                 const rewards = [9,14,23,31,42,55,68,77,89,102,115,130,145,162,180,199,219,240,262,285,309,334,360,387,415,444,474,505,537,600];
-                const dayIndex = Number(localStorage.getItem("ankh_daily_day") || "0");
+                const dayIndex = Number(typeof window!=="undefined" ? window.localStorage.getItem("ankh_daily_day") || "0" : "0");
                 const reward = rewards[dayIndex] || 9;
                 setBalance(b=>b+reward);
-                localStorage.setItem("ankh_daily_day", String((dayIndex+1)%30));
-                localStorage.setItem("ankh_daily_last", String(Date.now()));
+                if(typeof window!=="undefined"){
+                  window.localStorage.setItem("ankh_daily_day", String((dayIndex+1)%30));
+                  window.localStorage.setItem("ankh_daily_last", String(Date.now()));
+                }
                 alert(`يوم ${dayIndex+1} - ربحت ${reward} ANKH`);
               }} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>تسجيل اليوم</button>
             </div>
@@ -196,6 +207,7 @@ export default function Page() {
         {tab==="wallet" && (
           <div style={{width:"100%", maxWidth:380, background:"#111", border:"1px solid rgba(250,204,21,0.2)", borderRadius:24, padding:20}}>
             <h2 style={{fontWeight:900}}>Wallet</h2>
+            <div style={{marginTop:8, fontSize:12, color:"#888"}}>محفظة الليفل: {walletBalance.toFixed(2)} ANKH</div>
             {!connected ? <button onClick={()=>setConnected(true)} style={{marginTop:16, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:14, borderRadius:12, border:"none"}}>Connect</button> : <div style={{marginTop:12, color:"#22c55e"}}>✓ Connected {refCode.slice(-4)}</div>}
           </div>
         )}
