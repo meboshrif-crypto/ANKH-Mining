@@ -179,12 +179,12 @@ export default function Page() {
     const wh = window.localStorage.getItem("ankh_withdraws"); if(wh) setWithdraws(JSON.parse(wh));
   }, []);
 
-  useEffect(() => { if(typeof window!=="undefined") window.localStorage.setItem("ankh_bal", String(balance)); }, [balance]);
-  useEffect(() => { if(typeof window!=="undefined") window.localStorage.setItem("ankh_wallet", String(walletBalance)); }, [walletBalance]);
-  useEffect(() => { if(typeof window!=="undefined") window.localStorage.setItem("ankh_level", String(level)); }, [level]);
-  useEffect(() => { if(typeof window!=="undefined") window.localStorage.setItem("ankh_lang", lang); }, [lang]);
-  useEffect(() => { if(typeof window!=="undefined") window.localStorage.setItem("ankh_tasks", JSON.stringify(taskStatus)); }, [taskStatus]);
-  useEffect(() => { if(typeof window!=="undefined") window.localStorage.setItem("ankh_withdraws", JSON.stringify(withdraws)); }, [withdraws]);
+  useEffect(() => { localStorage.setItem("ankh_bal", String(balance)); }, [balance]);
+  useEffect(() => { localStorage.setItem("ankh_wallet", String(walletBalance)); }, [walletBalance]);
+  useEffect(() => { localStorage.setItem("ankh_level", String(level)); }, [level]);
+  useEffect(() => { localStorage.setItem("ankh_lang", lang); }, [lang]);
+  useEffect(() => { localStorage.setItem("ankh_tasks", JSON.stringify(taskStatus)); }, [taskStatus]);
+  useEffect(() => { localStorage.setItem("ankh_withdraws", JSON.stringify(withdraws)); }, [withdraws]);
 
   useEffect(() => {
     const int = setInterval(() => {
@@ -217,7 +217,7 @@ export default function Page() {
       setBalance(prev => prev + rate);
       const now = Date.now();
       setLastMine(now);
-      if(typeof window!=="undefined") window.localStorage.setItem("ankh_last", String(now));
+      localStorage.setItem("ankh_last", String(now));
       setMining(false);
     }, 2000);
   };
@@ -252,7 +252,7 @@ export default function Page() {
     setBalance(b=>b+50);
     const now = Date.now();
     setLastStory(now);
-    if(typeof window!=="undefined") window.localStorage.setItem("ankh_last_story", String(now));
+    localStorage.setItem("ankh_last_story", String(now));
   };
 
   const connectWallet = (type:string) => {
@@ -261,11 +261,9 @@ export default function Page() {
     setWalletAddress(newAddr);
     setConnected(true);
     setShowWallets(false);
-    if(typeof window!=="undefined"){
-      window.localStorage.setItem("ankh_wallet_addr", newAddr);
-      window.localStorage.setItem("ankh_device_wallet", newAddr);
-      window.localStorage.setItem("ankh_connected","1");
-    }
+    localStorage.setItem("ankh_wallet_addr", newAddr);
+    localStorage.setItem("ankh_device_wallet", newAddr);
+    localStorage.setItem("ankh_connected","1");
     if(type==="tonkeeper"){ 
       window.location.href = "ton://";
       setTimeout(()=> window.open("https://app.tonkeeper.com/ton-connect","_blank"), 800); 
@@ -279,22 +277,19 @@ export default function Page() {
     setConnected(false);
     setWalletAddress("");
     setShowWallets(false);
-    if(typeof window!=="undefined"){
-      window.localStorage.removeItem("ankh_wallet_addr");
-      window.localStorage.removeItem("ankh_device_wallet");
-      window.localStorage.removeItem("ankh_connected");
-    }
+    localStorage.removeItem("ankh_wallet_addr");
+    localStorage.removeItem("ankh_device_wallet");
+    localStorage.removeItem("ankh_connected");
   };
 
   const verifyAntiBot = () => {
     window.open(`ton://transfer/UQAnkhVerify?amount=50000000&text=${refCode}`, "_blank");
     setTimeout(()=>{
       setAntiBotDone(true);
-      if(typeof window!=="undefined") window.localStorage.setItem("ankh_antibot","1");
+      localStorage.setItem("ankh_antibot","1");
     }, 1200);
   };
-
-  const handleWithdraw = (amount:number) => {
+    const handleWithdraw = (amount:number) => {
     if(!antiBotDone){ alert(t.needVerifyFirst); return; }
     if(amount < 10000){ alert(t.min10000); return; }
     if(walletBalance < amount*0.25){ alert(t.need25); return; }
@@ -304,7 +299,7 @@ export default function Page() {
     setWithdraws([newW, ...withdraws]); 
     setWalletBalance(wb=>wb-amount);
     const now=Date.now(); setLastWithdraw(now); 
-    if(typeof window!=="undefined") window.localStorage.setItem("ankh_last_withdraw", String(now));
+    localStorage.setItem("ankh_last_withdraw", String(now));
     setWithdrawAmount("");
     setTimeout(()=>{ setWithdraws(prev=> prev.map((w:any)=> w.id===newW.id ? {...w, status:"sent"} : w)); }, 5000);
   };
@@ -321,13 +316,197 @@ export default function Page() {
 
   return (
     <div style={{minHeight:"100vh", background:"#050505", color:"#fff", paddingBottom:90, fontFamily:"sans-serif", direction: lang==="ar" ? "rtl" : "ltr"}}>
+      <div style={{display:"flex", gap:8, padding:16}}>
+        {["ar","en","ru"].map(l=>(
+          <button key={l} onClick={()=>setLang(l)} style={{padding:"6px 14px", borderRadius:20, fontSize:12, fontWeight:900, border:"1px solid #222", background: lang===l ? "#FACC15" : "#1A1A1A", color: lang===l ? "#000" : "#888"}}>{l.toUpperCase()}</button>
+        ))}
+      </div>
+
       <div style={{padding:20, display:"flex", flexDirection:"column", alignItems:"center"}}>
+        {tab==="mining" && (
+          <>
+            <div style={{width:190, height:190, borderRadius:"50%", background:"linear-gradient(180deg, #FACC15, #854D0E)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:80}}>☥</div>
+            <div style={{marginTop:20, color:"#FACC15", letterSpacing:5, fontSize:11, fontWeight:800}}>{t.ankhCoin}</div>
+            <div style={{fontSize:42, fontWeight:900, marginTop:6}}>{balance.toFixed(2)} ANKH</div>
+            <div style={{fontSize:11, color:"#666"}}>{t.botBalance}</div>
+            <div style={{marginTop:10, background:"#111", border:"1px solid rgba(250,204,21,0.3)", borderRadius:20, padding:"8px 14px", display:"flex", gap:8, fontSize:12}}>
+              <span style={{color:"#888"}}>{t.miningSpeed}</span>
+              <span style={{color:"#FACC15", fontWeight:900}}>{currentRate.toFixed(2)}/h</span>
+              <span style={{background:"#222", padding:"2px 8px", borderRadius:10, fontSize:10}}>{t.level} {level}</span>
+            </div>
+            <div style={{display:"flex", gap:10, width:"100%", maxWidth:360, marginTop:20}}>
+              <button onClick={startMining} disabled={!canMine || mining} style={{flex:1, background: !canMine ? "#222" : mining ? "#333" : "#FACC15", color: !canMine ? "#666" : mining ? "#888" : "#000", fontWeight:900, padding:16, borderRadius:14, fontSize:14, border:"none"}}>
+                {!canMine ? `${t.next} ${countdown}` : mining ? t.miningBtn : t.startMining}
+              </button>
+              <button onClick={handleClaim} disabled={balance===0} style={{flex:1, background: balance>0 ? "#fff" : "#111", color: balance>0 ? "#000" : "#444", fontWeight:900, padding:16, borderRadius:14, fontSize:14, border:"1px solid #222"}}>{t.claim}</button>
+            </div>
+            <div style={{marginTop:20, width:"100%", maxWidth:360, background:"#111", border:"1px solid rgba(250,204,21,0.25)", borderRadius:16, padding:14}}>
+              <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}><span style={{color:"#888"}}>{t.walletCoins}</span><span style={{color:"#FACC15", fontWeight:900}}>{walletBalance.toFixed(2)} ANKH</span></div>
+              <div style={{display:"flex", gap:12, marginTop:8, fontSize:12, color:"#666"}}><span>{t.level} {level}/500</span><span style={{color:"#555"}}>{t.nextLevel} {getRequiredForLevel(level+1).toLocaleString()}</span></div>
+              <div style={{marginTop:8, width:"100%", height:6, background:"#1A1A1A", borderRadius:10, overflow:"hidden"}}><div style={{width:`${Math.min(100, (walletBalance / (getRequiredForLevel(level+1)||160))*100)}%`, height:"100%", background:"#FACC15"}}></div></div>
+              <div style={{marginTop:8, fontSize:12, color:"#FACC15", fontWeight:800, textAlign:"center"}}>{t.remaining} {needForNext.toFixed(2)} {t.forLevel} {level+1}</div>
+            </div>
+            <div style={{marginTop:12, width:"100%", maxWidth:360, background:"rgba(250,204,21,0.08)", border:"1px dashed rgba(250,204,21,0.3)", borderRadius:10, padding:10, fontSize:10, color:"#aaa", textAlign:"center", whiteSpace:"pre-line"}}>{t.note}</div>
+            <button onClick={()=>setShowLevels(!showLevels)} style={{marginTop:18, width:"100%", maxWidth:360, background:"#111", border:"1px solid #222", color:"#FACC15", fontWeight:800, padding:12, borderRadius:12, fontSize:13}}>{showLevels ? t.hideLevels : t.showLevels}</button>
+            {showLevels && (
+              <div style={{marginTop:12, width:"100%", maxWidth:390, background:"#111", border:"1px solid #222", borderRadius:16, padding:12, maxHeight:400, overflowY:"auto"}}>
+                <div style={{display:"flex", justifyContent:"space-between", fontSize:10, color:"#666", padding:"0 8px 8px", borderBottom:"1px solid #222"}}><span>{t.levelHeader}</span><span>{t.required}</span><span>{t.speed}</span></div>
+                {Array.from({length:500}, (_,i)=>{
+                  const lvl = i+1;
+                  return <div key={lvl} style={{display:"flex", justifyContent:"space-between", fontSize:11, padding:"6px 8px"}}><span>{t.level} {lvl}</span><span>{getRequiredForLevel(lvl).toLocaleString()}</span><span>{getMiningRate(lvl-1).toFixed(2)}/h</span></div>
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab==="store" && (
+          <div style={{width:"100%", maxWidth:400, display:"flex", flexDirection:"column", gap:14}}>
+            <h2 style={{fontWeight:900, fontSize:20, color:"#FACC15"}}>{t.storeTitle}</h2>
+            {!connected ? (
+              <div style={{background:"#111", border:"1px solid #ef4444", borderRadius:20, padding:20, textAlign:"center"}}>
+                <div style={{fontSize:13, color:"#ef4444", fontWeight:800}}>⚠️ {t.notConnectedStore}</div>
+                <button onClick={()=>setTab("wallet")} style={{marginTop:12, background:"#FACC15", color:"#000", padding:"10px 16px", borderRadius:10, border:"none", fontWeight:800}}>{t.connectWallet}</button>
+              </div>
+            ) : (
+              <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.35)", borderRadius:20, padding:16}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                  <div style={{fontSize:13, fontWeight:800}}>{t.chooseGram}</div>
+                  <div style={{fontSize:9, background: gramPrice ? "#22c55e" : "#333", color: gramPrice ? "#000" : "#888", padding:"3px 8px", borderRadius:20, fontWeight:800}}>{gramPrice ? `${t.live} $${gramPrice.toFixed(4)}` : t.fallback}</div>
+                </div>
+                <div style={{fontSize:11, color:"#666", marginTop:6}}>1 GRAM = {displayRate} ANKH • {t.priceFromLiquidity}</div>
+                <div style={{marginTop:8, fontSize:10, color:"#22c55e", background:"rgba(34,197,94,0.1)", padding:"6px 10px", borderRadius:8}}>{t.connectedWith}: {walletAddress}</div>
+                <div style={{display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginTop:14}}>
+                  {[1,3,5,10].map(g=>(
+                    <button key={g} onClick={()=>setSelectedGram(g)} style={{padding:14, borderRadius:12, fontWeight:900, fontSize:14, border: selectedGram===g ? "2px solid #FACC15" : "1px solid #222", background: selectedGram===g ? "#FACC15" : "#1A1A1A", color: selectedGram===g ? "#000" : "#888"}}>{g} GRAM</button>
+                  ))}
+                </div>
+                <div style={{marginTop:14}}>
+                  <div style={{fontSize:11, color:"#aaa", marginBottom:6}}>{t.customAmount}</div>
+                  <input type="number" min={1} value={selectedGram} onChange={e=>setSelectedGram(Number(e.target.value)||1)} placeholder="مثال: 2.5" style={{width:"100%", background:"#0A0A0A", border:"1px solid #222", borderRadius:10, padding:12, color:"#fff", fontSize:16, outline:"none"}}/>
+                </div>
+                <div style={{marginTop:14, background:"#000", border:"1px solid #222", borderRadius:12, padding:12, textAlign:"center"}}>
+                  <div style={{fontSize:11, color:"#888"}}>{t.youGet}</div>
+                  <div style={{fontSize:26, fontWeight:900, color:"#FACC15", marginTop:2}}>{Math.floor(calculatedAnkh).toLocaleString()} ANKH</div>
+                  <div style={{fontSize:10, color:"#555", marginTop:2}}>مقابل {selectedGram} GRAM</div>
+                </div>
+                <button onClick={()=>{
+                  const amount = (selectedGram * 1e9).toString();
+                  window.open(`ton://transfer/UQAnkhStoreAddress?amount=${amount}&text=buy_${selectedGram}_GRAM_${refCode}`, "_blank");
+                  setTimeout(()=>{
+                    setWalletBalance(wb=>wb + Math.floor(calculatedAnkh));
+                    alert(`${t.youGet} ${Math.floor(calculatedAnkh).toLocaleString()} ANKH`);
+                  }, 1500);
+                }} style={{marginTop:14, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:14, borderRadius:12, border:"none", fontSize:14}}>
+                  {t.confirmBuy} {selectedGram} GRAM - {Math.floor(calculatedAnkh).toLocaleString()} ANKH
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab==="list" && (
+          <div style={{width:"100%", maxWidth:410, display:"flex", flexDirection:"column", gap:14}}>
+            <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.5)", borderRadius:20, padding:16}}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                <div>
+                  <div style={{fontSize:14, fontWeight:900, color:"#FACC15"}}>📸 {t.storyTask}</div>
+                  <div style={{fontSize:11, color:"#888", marginTop:2}}>{t.storyReward}</div>
+                </div>
+                <div style={{fontSize:10, background: canStory ? "#22c55e" : "#222", color: canStory ? "#000" : "#888", padding:"4px 8px", borderRadius:10, fontWeight:800}}>
+                  {canStory ? "جاهز" : `${t.nextStory} ${storyCountdown}`}
+                </div>
+              </div>
+              <button onClick={handleStoryClaim} disabled={!canStory} style={{marginTop:12, width:"100%", background: canStory ? "#FACC15" : "#222", color: canStory ? "#000" : "#555", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>
+                {canStory ? `${t.claimTask} 50 ANKH` : t.storyDone}
+              </button>
+            </div>
+
+            <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.3)", borderRadius:20, padding:16}}>
+              <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>{t.dailyLogin}</h2>
+              <p style={{fontSize:10, color:"#666", marginTop:4}}>{t.ifMiss}</p>
+              <div style={{display:"grid", gridTemplateColumns:"repeat(6, 1fr)", gap:6, marginTop:12}}>
+                {[9,14,23,31,42,55,68,77,89,102,115,130,145,162,180,199,219,240,262,285,309,334,360,387,415,444,474,505,537,600].map((reward, i)=>(
+                  <div key={i} style={{background:"#000", border:"1px solid #222", borderRadius:10, padding:"8px 0", textAlign:"center"}}><div style={{fontSize:9, color:"#666"}}>{t.day} {i+1}</div><div style={{fontSize:12, fontWeight:900, color:"#fff"}}>{reward}</div></div>
+                ))}
+              </div>
+              <button onClick={()=>{
+                const rewards = [9,14,23,31,42,55,68,77,89,102,115,130,145,162,180,199,219,240,262,285,309,334,360,387,415,444,474,505,537,600];
+                const dayIndex = Number(window.localStorage.getItem("ankh_daily_day") || "0");
+                const reward = rewards[dayIndex] || 9;
+                setBalance(b=>b+reward);
+                window.localStorage.setItem("ankh_daily_day", String((dayIndex+1)%30));
+              }} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>{t.registerToday}</button>
+            </div>
+
+            <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>{t.tasks}</h2>
+
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+              <div><div style={{fontSize:13, fontWeight:800}}>{t.newsChannel}</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div>
+              <div>
+                {!taskStatus["news"] && <button onClick={()=>handleTaskGo("news","https://t.me/ANKH_News")} style={{background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:"8px 14px", borderRadius:8, fontWeight:800, fontSize:12}}>{t.go} ↗</button>}
+                {taskStatus["news"]==="gone" && <span style={{background:"#333", color:"#888", padding:"8px 12px", borderRadius:8, fontSize:11}}>... {t.verify}</span>}
+                {taskStatus["news"]==="verify" && <button onClick={()=>handleTaskVerify("news",77)} style={{background:"#FACC15", color:"#000", padding:"8px 14px", borderRadius:8, fontWeight:800, fontSize:12, border:"none"}}>{t.verify}</button>}
+                {taskStatus["news"]==="claimed" && <span style={{background:"#22c55e", color:"#000", padding:"6px 12px", borderRadius:8, fontSize:11, fontWeight:800}}>✓</span>}
+              </div>
+            </div>
+
+            {[3,15,30,50,100,250].map(n=>{
+              const id = `invite_${n}`;
+              const reward = n===3?150:n===15?1250:n===30?2750:n===50?4650:n===100?7490:9850;
+              return (
+                <div key={n} style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                  <div><div style={{fontSize:13, fontWeight:800}}>{t.invite} {n} {t.persons}</div><div style={{fontSize:11, color:"#FACC15"}}>{reward} ANKH</div></div>
+                  <div style={{display:"flex", alignItems:"center", gap:8}}>
+                    {!taskStatus[id] && <><button onClick={()=>handleTaskGo(id,"#")} style={{background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:"8px 12px", borderRadius:8, fontSize:11}}>{t.go}</button><span style={{fontSize:10, color:"#666"}}>0/{n}</span></>}
+                    {taskStatus[id]==="gone" && <button onClick={()=>handleTaskVerify(id,reward)} style={{background:"#FACC15", color:"#000", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>{t.verify}</button>}
+                    {taskStatus[id]==="claimed" && <span style={{background:"#22c55e", color:"#000", padding:"6px 12px", borderRadius:8, fontSize:11}}>✓</span>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {tab==="friends" && (
+          <div style={{width:"100%", maxWidth:400, display:"flex", flexDirection:"column", gap:14}}>
+            <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.4)", borderRadius:20, padding:16, textAlign:"center"}}>
+              <div style={{fontSize:22, fontWeight:900, color:"#FACC15"}}>{t.forever}</div>
+              <div style={{fontSize:11, color:"#888", marginTop:4}}>{t.foreverDesc}</div>
+            </div>
+            <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.2)", borderRadius:20, padding:16}}>
+              <div style={{fontSize:12, color:"#888"}}>{t.refCode}</div>
+              <div style={{marginTop:8, background:"#000", border:"1px solid #222", borderRadius:12, padding:12, display:"flex", justifyContent:"space-between"}}>
+                <span style={{fontWeight:900, color:"#FACC15", fontSize:13}}>{refCode}</span>
+                <span style={{fontSize:10, color:"#555"}}>{inviteLink.slice(0,30)}...</span>
+              </div>
+              <div style={{display:"flex", gap:10, marginTop:12}}>
+                <button onClick={()=>{ if(navigator.share) navigator.share({url:inviteLink}); else navigator.clipboard.writeText(inviteLink); }} style={{flex:1, background:"#FACC15", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>{t.shareLink}</button>
+                <button onClick={()=>{navigator.clipboard.writeText(inviteLink); alert(t.copied);}} style={{flex:1, background:"#fff", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>{t.copy}</button>
+              </div>
+            </div>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:20, padding:16}}>
+              <div style={{display:"flex", justifyContent:"space-between"}}><span style={{fontWeight:900, fontSize:14}}>👥 {t.invited} ({invitedFriends.length})</span><span style={{fontSize:10, background:"#222", padding:"4px 8px", borderRadius:10, color:"#888"}}>{t.qualified} {invitedFriends.filter(f=>f.level>=2).length}</span></div>
+              <div style={{marginTop:12, display:"flex", flexDirection:"column", gap:8}}>
+                {invitedFriends.length===0 ? <div style={{color:"#666", fontSize:12, textAlign:"center", padding:20}}>{t.noFriends}</div> : invitedFriends.map((f:any)=>{
+                  const qualified = f.level>=2;
+                  return <div key={f.id} style={{background: qualified ? "rgba(34,197,94,0.08)" : "#0A0A0A", border: qualified ? "1px solid rgba(34,197,94,0.3)" : "1px solid #222", borderRadius:12, padding:10, display:"flex", justifyContent:"space-between"}}>
+                    <div style={{display:"flex", gap:8, alignItems:"center"}}><div style={{width:8, height:8, borderRadius:"50%", background: qualified ? "#22c55e" : "#555"}}></div><div><div style={{fontSize:13}}>{f.name}</div><div style={{fontSize:10, color: qualified ? "#22c55e" : "#888"}}>{t.level} {f.level} {qualified ? t.qualifiedYes : t.notQualified}</div></div></div>
+                    <div style={{fontSize:11, color: qualified ? "#22c55e" : "#555"}}>+{(0.25+f.level*0.05)*0.05}/h</div>
+                  </div>
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
         {tab==="wallet" && (
           <div style={{width:"100%", maxWidth:400, display:"flex", flexDirection:"column", gap:12}}>
             <h2 style={{fontWeight:900, color:"#FACC15"}}>{t.walletTitle}</h2>
             {!connected ? (
               <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.3)", borderRadius:20, padding:20, textAlign:"center"}}>
-                <div style={{fontWeight:800}}>{t.connectWallet}</div>
+                <div style={{fontWeight:800}}>{t.connectWallet} - {t.oneWalletOnly}</div>
+                <div style={{fontSize:10, color:"#ef4444", marginTop:6}}>{t.banMultiWallet}</div>
                 {!showWallets ? <button onClick={()=>setShowWallets(true)} style={{marginTop:14, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:14, borderRadius:12, border:"none"}}>{t.connectWallet}</button> :
                 <div style={{marginTop:12, display:"flex", flexDirection:"column", gap:8}}>
                   <button onClick={()=>connectWallet("tonkeeper")} style={{background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:12, borderRadius:10}}>👛 TonKeeper → {t.openWalletAuto}</button>
@@ -368,12 +547,8 @@ export default function Page() {
             )}
           </div>
         )}
-        {tab!=="wallet" && (
-          <div style={{padding:40, textAlign:"center", color:"#666"}}>
-            باقي الخانات شغالة زي ما كانت - احنا عدلنا المحفظة بس<br/>روح على خانة المحفظة وجرب
-          </div>
-        )}
       </div>
+
       <div style={{position:"fixed", bottom:0, left:0, right:0, background:"#0A0A0A", borderTop:"1px solid rgba(250,204,21,0.2)", display:"flex", justifyContent:"space-around", padding:"10px 0 22px"}}>
         {[{id:"mining",t:t.mining,ic:"⛏️"},{id:"store",t:t.store,ic:"🛒"},{id:"list",t:t.list,ic:"📋"},{id:"friends",t:t.friends,ic:"👥"},{id:"wallet",t:t.wallet,ic:"💼"}].map(m=>(
           <button key={m.id} onClick={()=>setTab(m.id)} style={{background:"none", border:"none", display:"flex", flexDirection:"column", alignItems:"center", color: tab===m.id ? "#FACC15" : "#666"}}>
