@@ -15,13 +15,12 @@ export default function Page() {
   const [connected, setConnected] = useState(false);
   const [verified, setVerified] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [showLevels, setShowLevels] = useState(false); // جديد
+  const [showLevels, setShowLevels] = useState(false);
 
   const getRequiredForLevel = (targetLevel: number) => {
     if (targetLevel <= 1) return 0;
     return 70 * targetLevel * targetLevel - 40 * targetLevel - 40;
   };
-  // جديد - سرعة التعدين بتزيد مع الليفل
   const getMiningRate = (lvl: number) => 0.25 + lvl * 0.05;
 
   useEffect(() => {
@@ -31,12 +30,15 @@ export default function Page() {
     try {
       const b = window.localStorage.getItem("ankh_bal");
       const wb = window.localStorage.getItem("ankh_wallet");
-      const l = window.localStorage.getItem("ankh_level");
       const last = window.localStorage.getItem("ankh_last");
+      let wallet = 0;
       if(b) setBalance(Number(b));
-      if(wb) setWalletBalance(Number(wb));
-      if(l) setLevel(Number(l));
+      if(wb) { wallet = Number(wb); setWalletBalance(wallet); }
       if(last) setLastMine(Number(last));
+      // احسب الليفل الصح من المحفظة - مش من localStorage
+      let lvl = 0;
+      while(lvl < 500 && wallet >= getRequiredForLevel(lvl+1)) lvl++;
+      setLevel(lvl);
     } catch {}
   }, []);
 
@@ -61,14 +63,12 @@ export default function Page() {
 
   const canMine = lastMine === 0 || Date.now() - lastMine >= 86400000;
 
-  // متصلح - شغال 100%
   const startMining = () => {
-    if(mining) return;
-    if(!canMine) return;
+    if(!canMine || mining) return;
     setMining(true);
     const rate = getMiningRate(level);
     setTimeout(() => {
-      setBalance(b => b + rate);
+      setBalance(prev => prev + rate);
       const now = Date.now();
       setLastMine(now);
       if(typeof window!=="undefined") window.localStorage.setItem("ankh_last", String(now));
@@ -105,7 +105,6 @@ export default function Page() {
             <div style={{fontSize:42, fontWeight:900, marginTop:6}}>{balance.toFixed(2)} ANKH</div>
             <div style={{fontSize:11, color:"#666"}}>رصيد البوت - قابل للاستلام</div>
 
-            {/* سرعة التعدين */}
             <div style={{marginTop:10, background:"#111", border:"1px solid rgba(250,204,21,0.3)", borderRadius:20, padding:"8px 14px", display:"flex", gap:8, fontSize:12, alignItems:"center"}}>
               <span style={{color:"#888"}}>سرعة التعدين:</span>
               <span style={{color:"#FACC15", fontWeight:900}}>{currentRate.toFixed(2)}/h</span>
@@ -114,25 +113,34 @@ export default function Page() {
 
             <div style={{display:"flex", gap:10, width:"100%", maxWidth:360, marginTop:20}}>
               <button onClick={startMining} style={{flex:1, background: !canMine ? "#222" : mining ? "#333" : "#FACC15", color: !canMine ? "#666" : mining ? "#888" : "#000", fontWeight:900, padding:16, borderRadius:14, fontSize:14, border:"none", cursor: canMine ? "pointer" : "not-allowed"}}>
-                {!canMine ? `Next ${countdown}` : mining ? `Mining...` : `START ${currentRate.toFixed(2)}/h`}
+                {!canMine ? `Next ${countdown}` : mining ? `Mining...` : `ابدأ التعدين`}
               </button>
               <button onClick={handleClaim} disabled={balance===0} style={{flex:1, background: balance>0 ? "#fff" : "#111", color: balance>0 ? "#000" : "#444", fontWeight:900, padding:16, borderRadius:14, fontSize:14, border:"1px solid #222"}}>
-                CLAIM
+                استلام CLAIM
               </button>
             </div>
 
             <div style={{marginTop:20, width:"100%", maxWidth:360, background:"#111", border:"1px solid rgba(250,204,21,0.25)", borderRadius:16, padding:14}}>
-              <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}><span style={{color:"#888"}}>عملات المحفظة (تحسب لليفل):</span><span style={{color:"#FACC15", fontWeight:900}}>{walletBalance.toFixed(2)} ANKH</span></div>
-              <div style={{display:"flex", gap:12, marginTop:8, fontSize:12, color:"#666"}}><span>Level {level}/500</span><span style={{color:"#555"}}>Next: {getRequiredForLevel(level+1).toLocaleString()}</span></div>
-              <div style={{marginTop:8, width:"100%", height:6, background:"#1A1A1A", borderRadius:10, overflow:"hidden"}}><div style={{width:`${Math.min(100, (walletBalance / (getRequiredForLevel(level+1)||160))*100)}%`, height:"100%", background:"#FACC15"}}></div></div>
-              <div style={{marginTop:8, fontSize:12, color:"#FACC15", fontWeight:800, textAlign:"center"}}>باقي {needForNext.toFixed(2)} ANKH لليفل {level+1}</div>
+              <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}>
+                <span style={{color:"#888"}}>عملات المحفظة (تحسب لليفل):</span>
+                <span style={{color:"#FACC15", fontWeight:900}}>{walletBalance.toFixed(2)} ANKH</span>
+              </div>
+              <div style={{display:"flex", gap:12, marginTop:8, fontSize:12, color:"#666"}}>
+                <span>Level {level}/500</span>
+                <span style={{color:"#555"}}>Next: {getRequiredForLevel(level+1).toLocaleString()}</span>
+              </div>
+              <div style={{marginTop:8, width:"100%", height:6, background:"#1A1A1A", borderRadius:10, overflow:"hidden"}}>
+                <div style={{width:`${Math.min(100, (walletBalance / (getRequiredForLevel(level+1)||160))*100)}%`, height:"100%", background:"#FACC15"}}></div>
+              </div>
+              <div style={{marginTop:8, fontSize:12, color:"#FACC15", fontWeight:800, textAlign:"center"}}>
+                باقي {needForNext.toFixed(2)} ANKH لليفل {level+1}
+              </div>
             </div>
 
             <div style={{marginTop:12, width:"100%", maxWidth:360, background:"rgba(250,204,21,0.08)", border:"1px dashed rgba(250,204,21,0.3)", borderRadius:10, padding:10, fontSize:10, color:"#aaa", textAlign:"center", lineHeight:1.6}}>
               ⚠️ ملاحظة: العملات الموجودة في البوت لا تؤثر على المستوى<br/>فقط العملات الموجودة في المحفظة بعد الضغط على استلام هي التي يتم احتسابها لرفع المستوى
             </div>
 
-            {/* جدول 1-500 */}
             <button onClick={()=>setShowLevels(!showLevels)} style={{marginTop:18, width:"100%", maxWidth:360, background:"#111", border:"1px solid #222", color:"#FACC15", fontWeight:800, padding:12, borderRadius:12, fontSize:13}}>
               {showLevels ? "اخفاء المستويات ▲" : "عرض كل المستويات 1-500 + السرعة ▼"}
             </button>
@@ -148,7 +156,7 @@ export default function Page() {
                   const isCurrent = lvl === level+1;
                   const passed = lvl <= level;
                   return (
-                    <div key={lvl} style={{display:"flex", justifyContent:"space-between", fontSize:11, padding:"6px 8px", borderRadius:8, marginTop:2, background: isCurrent ? "rgba(250,204,21,0.15)" : passed ? "#0F0F0F" : "transparent", border: isCurrent ? "1px solid #FACC15" : "1px solid transparent", color: passed ? "#555" : isCurrent ? "#fff" : "#777"}}>
+                    <div key={lvl} style={{display:"flex", justifyContent:"space-between", fontSize:11, padding:"6px 8px", borderRadius:8, marginTop:2, background: isCurrent ? "rgba(250,204,21,0.15)" : passed ? "#0F0F0F" : "transparent", border: isCurrent ? "1px solid #FACC15" : "1px solid transparent"}}>
                       <span>{passed ? "✓ " : isCurrent ? "→ " : ""}Level {lvl} {isCurrent ? "(انت هنا)" : ""}</span>
                       <span style={{color: isCurrent ? "#FACC15" : "#aaa"}}>{req.toLocaleString()}</span>
                       <span style={{color: isCurrent ? "#FACC15" : "#666"}}>{rate}/h</span>
