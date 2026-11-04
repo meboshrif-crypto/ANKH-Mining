@@ -110,8 +110,91 @@ export default function Page() {
         )}
 
         {tab==="list" && (
-          <div style={{width:"100%", maxWidth:380, textAlign:"center", marginTop:60, color:"#444"}}>Top Holders List - Coming Soon</div>
-        )}
+  <div style={{width:"100%", maxWidth:410, display:"flex", flexDirection:"column", gap:14}}>
+    
+    {/* === تسجيل الدخول اليومي 30 يوم === */}
+    <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.3)", borderRadius:20, padding:16}}>
+      <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>📅 تسجيل دخول يومي - 30 يوم</h2>
+      <p style={{fontSize:10, color:"#666", marginTop:4}}>لو فوت يوم واحد ترجع من اليوم الاول تاني!</p>
+      
+      <div style={{display:"grid", gridTemplateColumns:"repeat(6, 1fr)", gap:6, marginTop:12}}>
+        {[
+          9,14,23,31,42,55,68,77,89,102,
+          115,130,145,162,180,199,219,240,262,285,
+          309,334,360,387,415,444,474,505,537,600
+        ].map((reward, i)=>{
+          const day = i+1;
+          const isDone = false; // هتربطها بعدين بـ localStorage
+          const isToday = day === 1;
+          return (
+            <div key={day} style={{background: isDone ? "rgba(250,204,21,0.2)" : isToday ? "#FACC15" : "#000", border:`1px solid ${isDone ? "#FACC15" : "#222"}`, borderRadius:10, padding:"8px 0", textAlign:"center"}}>
+              <div style={{fontSize:9, color: isToday ? "#000" : "#666"}}>يوم {day}</div>
+              <div style={{fontSize:12, fontWeight:900, color: isToday ? "#000" : isDone ? "#FACC15" : "#fff", marginTop:2}}>{reward}</div>
+              <div style={{fontSize:8, color: isToday ? "#000" : "#444"}}>{isDone ? "✓" : "ANKH"}</div>
+            </div>
+          )
+        })}
+      </div>
+
+      <button onClick={()=>{
+        const rewards = [9,14,23,31,42,55,68,77,89,102,115,130,145,162,180,199,219,240,262,285,309,334,360,387,415,444,474,505,537,600];
+        const dayIndex = Number(localStorage.getItem("ankh_daily_day") || "0");
+        const reward = rewards[dayIndex] || 9;
+        setBalance(b=>b+reward);
+        localStorage.setItem("ankh_daily_day", String((dayIndex+1)%30));
+        localStorage.setItem("ankh_daily_last", String(Date.now()));
+        alert(`تم تسجيل اليوم ${dayIndex+1} - ربحت ${reward} ANKH`);
+      }} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>تسجيل دخول اليوم - احصل على المكافأة</button>
+    </div>
+
+    <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>📋 المهام الأساسية</h2>
+
+    {/* 1 - قناة الاخبار 77 */}
+    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+      <div><div style={{fontSize:13, fontWeight:800}}>الاشتراك في قناة الاخبار</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div>
+      <div style={{display:"flex", gap:6}}>
+        <a href="https://t.me/ANKH_News" target="_blank" style={{background:"#1A1A1A", border:"1px solid #333", color:"#aaa", padding:"8px 10px", borderRadius:8, fontSize:11, textDecoration:"none"}}>اشتراك</a>
+        <button onClick={()=>{ setBalance(b=>b+77); }} style={{background:"#FACC15", color:"#000", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>تحقق</button>
+      </div>
+    </div>
+
+    {/* 2 - قناة السحب 77 */}
+    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+      <div><div style={{fontSize:13, fontWeight:800}}>الاشتراك في قناة السحب</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div>
+      <div style={{display:"flex", gap:6}}>
+        <a href="https://t.me/ANKH_withdraws" target="_blank" style={{background:"#1A1A1A", border:"1px solid #333", color:"#aaa", padding:"8px 10px", borderRadius:8, fontSize:11, textDecoration:"none"}}>اشتراك</a>
+        <button onClick={()=>{ setBalance(b=>b+77); }} style={{background:"#FACC15", color:"#000", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>تحقق</button>
+      </div>
+    </div>
+
+    {/* 3 - 3 اشخاص ليفل 2 - 150 */}
+    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+      <div><div style={{fontSize:13, fontWeight:800}}>ادع 3 أشخاص ليفل 2</div><div style={{fontSize:11, color:"#666"}}>لا يحسب إلا لو وصل ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>150 ANKH</div></div>
+      <button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/3</button>
+    </div>
+
+    {/* 4 - 15 شخص - 1250 */}
+    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+      <div><div style={{fontSize:13, fontWeight:800}}>ادع 15 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>1250 ANKH</div></div>
+      <button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/15</button>
+    </div>
+
+    {/* 5 - 30 شخص - 2750 */}
+    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+      <div><div style={{fontSize:13, fontWeight:800}}>ادع 30 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>2750 ANKH</div></div>
+      <button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/30</button>
+    </div>
+
+    {/* 6 - 50 شخص - 4650 */}
+    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+      <div><div style={{fontSize:13, fontWeight:800}}>ادع 50 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>4650 ANKH</div></div>
+      <button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/50</button>
+    </div>
+
+    {/* 7 - 100 شخص - 7490 */}
+    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+      <div><div style={{fontSize:13, fontWeight:800}}>ادع 100 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>7490 ANKH</div></div>
+      <button style={{background:"#222", color:"#888", border:"none", padding:"8
 
         {tab==="friends" && (
           <div style={{width:"100%", maxWidth:380, background:"#111", border:"1px solid rgba(250,204,21,0.2)", borderRadius:24, padding:20}}>
