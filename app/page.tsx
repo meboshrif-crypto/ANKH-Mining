@@ -13,11 +13,12 @@ export default function Page() {
   const [lastMine, setLastMine] = useState(0);
   const [countdown, setCountdown] = useState("");
   const [connected, setConnected] = useState(false);
-  const [verified, setVerified] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
   const [showWallets, setShowWallets] = useState(false);
   const [antiBotDone, setAntiBotDone] = useState(false);
+  const [banned, setBanned] = useState(false);
+  const [banReason, setBanReason] = useState("");
 
   const [selectedGram, setSelectedGram] = useState(1);
   const [gramTx, setGramTx] = useState("");
@@ -43,14 +44,46 @@ export default function Page() {
       } catch {}
     };
     fetchPrices();
-    const i = setInterval(fetchPrices, 60000);
-    return () => clearInterval(i);
   }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const code = "ANKH-" + Math.floor(100000 + Math.random() * 900000);
-    setRefCode(code);
+
+    // فحص الحظر السابق
+    if(window.localStorage.getItem("ankh_banned")==="1"){
+      setBanned(true);
+      setBanReason(window.localStorage.getItem("ankh_ban_reason")||"تعدد حسابات");
+      return;
+    }
+
+    // انشاء Device ID ثابت للجهاز
+    let deviceId = window.localStorage.getItem("ankh_device_id");
+    if(!deviceId){
+      deviceId = "DEV-" + Math.random().toString(36).slice(2,12) + Date.now().toString(36);
+      window.localStorage.setItem("ankh_device_id", deviceId);
+    }
+
+    // كشف تعدد الحسابات
+    let currentCode = window.localStorage.getItem("ankh_current_code");
+    const storedAccount = window.localStorage.getItem("ankh_device_account");
+    const allAccounts = JSON.parse(window.localStorage.getItem("ankh_all_accounts")||"[]");
+
+    if(!currentCode){
+      currentCode = "ANKH-" + Math.floor(100000 + Math.random() * 900000);
+      window.localStorage.setItem("ankh_current_code", currentCode);
+      
+      if(storedAccount && storedAccount!==currentCode && allAccounts.length>=1){
+        window.localStorage.setItem("ankh_banned","1");
+        window.localStorage.setItem("ankh_ban_reason","تم اكتشاف حسابين على نفس الجهاز - ممنوع");
+        setBanned(true);
+        setBanReason("تم اكتشاف حسابين على نفس الجهاز");
+        return;
+      }
+      window.localStorage.setItem("ankh_device_account", currentCode);
+      window.localStorage.setItem("ankh_all_accounts", JSON.stringify([...allAccounts, currentCode]));
+    }
+    setRefCode(currentCode);
+
     try {
       const b = window.localStorage.getItem("ankh_bal");
       const wb = window.localStorage.getItem("ankh_wallet");
@@ -65,7 +98,7 @@ export default function Page() {
       if(l) setLevel(Number(l));
       if(last) setLastMine(Number(last));
       if(invites) setInvitedFriends(JSON.parse(invites));
-      else setInvitedFriends([{id:1, name:"Ahmed", username:"@ahmed", level:0},{id:2, name:"Sara", username:"@sara", level:3}]);
+      else setInvitedFriends([{id:1, name:"Ahmed", username:"@ahmed", level:0},{id:2, name:"Sara", username:"@sara", level:3},{id:3, name:"Mido", username:"@mido", level:12}]);
       if(wa) setWalletAddress(wa);
       if(conn==="1") setConnected(true);
       if(anti==="1") setAntiBotDone(true);
@@ -94,6 +127,7 @@ export default function Page() {
   const canMine = Date.now() - lastMine >= 86400000 || lastMine === 0;
 
   const startMining = () => {
+    if(banned) return;
     if(!canMine || mining) return;
     setMining(true);
     const rate = getMiningRate(level);
@@ -106,8 +140,8 @@ export default function Page() {
     }, 2000);
   };
 
-  // مهم - الاستلام بيعيد العد من جديد
   const handleClaim = () => {
+    if(banned) return;
     if(balance <= 0) return;
     const newWallet = walletBalance + balance;
     setWalletBalance(newWallet);
@@ -115,7 +149,7 @@ export default function Page() {
     let newLvl = level;
     while(newLvl < 500 && newWallet >= getRequiredForLevel(newLvl+1)) newLvl++;
     if(newLvl !== level) setLevel(newLvl);
-    // اعادة العد 24 ساعة بعد الاستلام
+    // مهم: يعيد العد من جديد
     const now = Date.now();
     setLastMine(now);
     if(typeof window!=="undefined") window.localStorage.setItem("ankh_last", String(now));
@@ -128,28 +162,51 @@ export default function Page() {
   const inviteLink = `https://t.me/ANKH_Mining_bot?start=${refCode}`;
 
   const connectWallet = (type:string) => {
-    const addr = "UQ" + Math.random().toString(36).substring(2,10) + "..." + refCode.slice(-4);
-    setWalletAddress(addr);
+    if(banned) return;
+    const deviceWallet = typeof window!=="undefined" ? window.localStorage.getItem("ankh_device_wallet") : null;
+    
+    if(deviceWallet && walletAddress && deviceWallet!==walletAddress){
+      window.localStorage.setItem("ankh_banned","1");
+      window.localStorage.setItem("ankh_ban_reason","محاولة ربط أكثر من محفظة");
+      setBanned(true); setBanReason("محاولة ربط أكثر من محفظة");
+      alert("🚫 محفظة واحدة فقط - تم حظرك");
+      return;
+    }
+    if(walletAddress && deviceWallet){
+      alert("🚫 انت رابط محفظة قبل كده - ممنوع التعدد");
+      return;
+    }
+
+    const newAddr = "UQ" + Math.random().toString(36).slice(2,10) + "..." + refCode.slice(-4);
+    setWalletAddress(newAddr);
     setConnected(true);
     setShowWallets(false);
     if(typeof window!=="undefined"){
-      window.localStorage.setItem("ankh_wallet_addr", addr);
-      window.localStorage.setItem("ankh_connected", "1");
+      window.localStorage.setItem("ankh_wallet_addr", newAddr);
+      window.localStorage.setItem("ankh_device_wallet", newAddr);
+      window.localStorage.setItem("ankh_connected","1");
     }
-    // محاكاة فتح المحفظة
-    if(type==="tonkeeper") window.open("ton://", "_blank");
-    else window.open("https://app.ston.fi", "_blank");
+    if(type==="tonkeeper") window.open("ton://","_blank");
   };
 
   const verifyAntiBot = () => {
-    // تحويل 0.05 GRAM
-    window.open(`ton://transfer/UQAnkhVerificationAddress?amount=50000000&text=antibot_${refCode}`, "_blank");
+    window.open(`ton://transfer/UQAnkhVerify?amount=50000000&text=${refCode}`, "_blank");
     setTimeout(()=>{
       setAntiBotDone(true);
-      if(typeof window!=="undefined") window.localStorage.setItem("ankh_antibot", "1");
-      alert("تم تأكيد انك مش روبوت ✅ 0.05 GRAM");
-    }, 2000);
+      if(typeof window!=="undefined") window.localStorage.setItem("ankh_antibot","1");
+    }, 1200);
   };
+
+  if(banned){
+    return (
+      <div style={{minHeight:"100vh", background:"#050505", color:"#fff", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, textAlign:"center"}}>
+        <div style={{fontSize:64}}>🚫</div>
+        <div style={{fontSize:20, fontWeight:900, color:"#ef4444", marginTop:12}}>تم حظر حسابك تلقائياً</div>
+        <div style={{marginTop:8, color:"#888", fontSize:13}}>السبب: {banReason}</div>
+        <div style={{marginTop:16, background:"#111", border:"1px solid #222", borderRadius:12, padding:12, fontSize:11, color:"#666"}}>• محفظة واحدة فقط لكل جهاز<br/>• حساب واحد فقط لكل جهاز<br/>• ممنوع تعدد الحسابات</div>
+      </div>
+    )
+  }
 
   return (
     <div style={{minHeight:"100vh", background:"#050505", color:"#fff", paddingBottom:90, fontFamily:"sans-serif"}}>
@@ -183,9 +240,11 @@ export default function Page() {
               <div style={{marginTop:8, width:"100%", height:6, background:"#1A1A1A", borderRadius:10, overflow:"hidden"}}><div style={{width:`${Math.min(100, (walletBalance / (getRequiredForLevel(level+1)||160))*100)}%`, height:"100%", background:"#FACC15"}}></div></div>
               <div style={{marginTop:8, fontSize:12, color:"#FACC15", fontWeight:800, textAlign:"center"}}>باقي {needForNext.toFixed(2)} ANKH لليفل {level+1}</div>
             </div>
+            <div style={{marginTop:12, width:"100%", maxWidth:360, background:"rgba(250,204,21,0.08)", border:"1px dashed rgba(250,204,21,0.3)", borderRadius:10, padding:10, fontSize:10, color:"#aaa", textAlign:"center"}}>⚠️ ملاحظة: العملات الموجودة في البوت لا تؤثر على المستوى<br/>فقط العملات الموجودة في المحفظة بعد الضغط على استلام هي التي يتم احتسابها لرفع المستوى</div>
             <button onClick={()=>setShowLevels(!showLevels)} style={{marginTop:18, width:"100%", maxWidth:360, background:"#111", border:"1px solid #222", color:"#FACC15", fontWeight:800, padding:12, borderRadius:12, fontSize:13}}>{showLevels ? "اخفاء المستويات ▲" : "عرض المستويات 1-500 + سرعة التعدين ▼"}</button>
             {showLevels && (
               <div style={{marginTop:12, width:"100%", maxWidth:390, background:"#111", border:"1px solid #222", borderRadius:16, padding:12, maxHeight:400, overflowY:"auto"}}>
+                <div style={{display:"flex", justifyContent:"space-between", fontSize:10, color:"#666", padding:"0 8px 8px", borderBottom:"1px solid #222"}}><span>LEVEL</span><span>المطلوب</span><span>السرعة</span></div>
                 {Array.from({length:500}, (_,i)=>{
                   const lvl = i+1;
                   return <div key={lvl} style={{display:"flex", justifyContent:"space-between", fontSize:11, padding:"6px 8px"}}><span>Level {lvl}</span><span>{getRequiredForLevel(lvl).toLocaleString()}</span><span>{getMiningRate(lvl-1).toFixed(2)}/h</span></div>
@@ -199,15 +258,15 @@ export default function Page() {
           <div style={{width:"100%", maxWidth:400, display:"flex", flexDirection:"column", gap:14}}>
             <h2 style={{fontWeight:900, fontSize:20, color:"#FACC15"}}>🛒 المتجر - شراء بـ GRAM</h2>
             <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.35)", borderRadius:20, padding:16}}>
-              <div style={{fontSize:13, fontWeight:800}}>اختر كمية GRAM (اقل شراء 1 جرام)</div>
+              <div style={{display:"flex", justifyContent:"space-between"}}><div style={{fontSize:13, fontWeight:800}}>اختر كمية GRAM (اقل شراء 1 جرام)</div><div style={{fontSize:9, background: gramPrice ? "#22c55e" : "#333", color: gramPrice ? "#000" : "#888", padding:"3px 8px", borderRadius:20, fontWeight:800}}>{gramPrice ? `LIVE $${gramPrice.toFixed(4)}` : "FALLBACK"}</div></div>
+              <div style={{fontSize:11, color:"#666", marginTop:6}}>1 GRAM = {displayRate} ANKH • السعر يحسب من السيولة</div>
               <div style={{display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginTop:14}}>
                 {[1,3,5,10].map(g=>(
                   <button key={g} onClick={()=>setSelectedGram(g)} style={{padding:14, borderRadius:12, fontWeight:900, fontSize:14, border: selectedGram===g ? "2px solid #FACC15" : "1px solid #222", background: selectedGram===g ? "#FACC15" : "#1A1A1A", color: selectedGram===g ? "#000" : "#888"}}>{g} GRAM</button>
                 ))}
               </div>
-              <div style={{marginTop:14, background:"#000", border:"1px solid #222", borderRadius:12, padding:12, textAlign:"center"}}>
-                <div style={{fontSize:24, fontWeight:900, color:"#FACC15"}}>{Math.floor(calculatedAnkh).toLocaleString()} ANKH</div>
-              </div>
+              <div style={{marginTop:14, background:"#000", border:"1px solid #222", borderRadius:12, padding:12, textAlign:"center"}}><div style={{fontSize:24, fontWeight:900, color:"#FACC15"}}>{Math.floor(calculatedAnkh).toLocaleString()} ANKH</div></div>
+              <div style={{marginTop:14}}><input value={gramTx} onChange={e=>setGramTx(e.target.value)} placeholder="UQ... TonKeeper / StonFi" style={{width:"100%", background:"#0A0A0A", border:"1px solid #222", borderRadius:10, padding:12, color:"#fff", fontSize:12, outline:"none"}}/></div>
             </div>
           </div>
         )}
@@ -222,88 +281,79 @@ export default function Page() {
                 ))}
               </div>
             </div>
+            <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>📋 المهام</h2>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between"}}><span>قناة الاخبار 77 ANKH</span><button onClick={()=>setBalance(b=>b+77)} style={{background:"#FACC15", border:"none", padding:"6px 12px", borderRadius:8, fontWeight:800}}>تحقق</button></div>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between"}}><span>قناة السحب 77 ANKH</span><button onClick={()=>setBalance(b=>b+77)} style={{background:"#FACC15", border:"none", padding:"6px 12px", borderRadius:8, fontWeight:800}}>تحقق</button></div>
+            {[3,15,30,50,100,250].map(n=><div key={n} style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between"}}><span>ادع {n} اشخاص ليفل 2</span><span style={{color:"#888"}}>0/{n}</span></div>)}
           </div>
         )}
 
         {tab==="friends" && (
-          <div style={{width:"100%", maxWidth:400}}>
+          <div style={{width:"100%", maxWidth:400, display:"flex", flexDirection:"column", gap:14}}>
             <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.4)", borderRadius:20, padding:16, textAlign:"center"}}>
               <div style={{fontSize:22, fontWeight:900, color:"#FACC15"}}>5% للأبد ♾️</div>
+              <div style={{fontSize:11, color:"#888", marginTop:4}}>تاخد 5% من معدل تعدين كل صديق مؤهل مدى الحياة</div>
             </div>
-            <div style={{marginTop:12, background:"#111", borderRadius:20, padding:16, display:"flex", gap:10}}>
-              <button onClick={()=>{ if(navigator.share) navigator.share({url:inviteLink}); else navigator.clipboard.writeText(inviteLink); }} style={{flex:1, background:"#FACC15", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>📤 مشاركة</button>
-              <button onClick={()=>navigator.clipboard.writeText(inviteLink)} style={{flex:1, background:"#fff", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>📋 نسخ</button>
+            <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.2)", borderRadius:20, padding:16}}>
+              <div style={{fontSize:12, color:"#888"}}>رمز الإحالة الخاص بك</div>
+              <div style={{marginTop:8, background:"#000", border:"1px solid #222", borderRadius:12, padding:12, display:"flex", justifyContent:"space-between"}}>
+                <span style={{fontWeight:900, color:"#FACC15", fontSize:13}}>{refCode}</span>
+                <span style={{fontSize:10, color:"#555"}}>{inviteLink.slice(0,30)}...</span>
+              </div>
+              <div style={{display:"flex", gap:10, marginTop:12}}>
+                <button onClick={()=>{ if(navigator.share) navigator.share({url:inviteLink}); else navigator.clipboard.writeText(inviteLink); }} style={{flex:1, background:"#FACC15", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>📤 مشاركة الرابط</button>
+                <button onClick={()=>{navigator.clipboard.writeText(inviteLink); alert("تم النسخ");}} style={{flex:1, background:"#fff", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>📋 نسخ</button>
+              </div>
+            </div>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:20, padding:16}}>
+              <h3 style={{fontWeight:900, fontSize:14}}>👥 الأصدقاء ({invitedFriends.length})</h3>
+              <div style={{marginTop:12, display:"flex", flexDirection:"column", gap:8}}>
+                {invitedFriends.map(f=>{
+                  const qualified = f.level>=2;
+                  return <div key={f.id} style={{background: qualified ? "rgba(34,197,94,0.08)" : "#0A0A0A", border: qualified ? "1px solid rgba(34,197,94,0.3)" : "1px solid #222", borderRadius:12, padding:10, display:"flex", justifyContent:"space-between"}}>
+                    <div style={{display:"flex", gap:8, alignItems:"center"}}><div style={{width:8, height:8, borderRadius:"50%", background: qualified ? "#22c55e" : "#555"}}></div><div><div style={{fontSize:13}}>{f.name}</div><div style={{fontSize:10, color: qualified ? "#22c55e" : "#888"}}>Level {f.level} {qualified ? "مؤهل ✓" : "غير مؤهل"}</div></div></div>
+                    <div style={{fontSize:11, color: qualified ? "#22c55e" : "#555"}}>+{(0.25+f.level*0.05)*0.05}/h</div>
+                  </div>
+                })}
+              </div>
             </div>
           </div>
         )}
 
         {tab==="wallet" && (
-          <div style={{width:"100%", maxWidth:400, display:"flex", flexDirection:"column", gap:14}}>
-            <h2 style={{fontWeight:900, fontSize:20, color:"#FACC15"}}>💼 المحفظة</h2>
-
+          <div style={{width:"100%", maxWidth:400, display:"flex", flexDirection:"column", gap:12}}>
+            <h2 style={{fontWeight:900, color:"#FACC15"}}>💼 المحفظة</h2>
             {!connected ? (
               <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.3)", borderRadius:20, padding:20, textAlign:"center"}}>
-                <div style={{fontSize:14, fontWeight:800}}>ربط المحفظة</div>
-                <div style={{fontSize:11, color:"#666", marginTop:6}}>اختار محفظتك وهيتم تحويلك اوتوماتيك للتأكيد</div>
-                {!showWallets ? (
-                  <button onClick={()=>setShowWallets(true)} style={{marginTop:16, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:14, borderRadius:12, border:"none"}}>🔗 ربط المحفظة</button>
-                ) : (
-                  <div style={{marginTop:14, display:"flex", flexDirection:"column", gap:8}}>
-                    <button onClick={()=>connectWallet("tonkeeper")} style={{background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:14, borderRadius:12, fontWeight:700, display:"flex", justifyContent:"space-between"}}><span>👛 TonKeeper</span><span>→</span></button>
-                    <button onClick={()=>connectWallet("myton")} style={{background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:14, borderRadius:12, fontWeight:700, display:"flex", justifyContent:"space-between"}}><span>💎 MyTonWallet</span><span>→</span></button>
-                    <button onClick={()=>connectWallet("tonhub")} style={{background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:14, borderRadius:12, fontWeight:700, display:"flex", justifyContent:"space-between"}}><span>🚀 Tonhub</span><span>→</span></button>
-                    <button onClick={()=>connectWallet("stonfi")} style={{background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:14, borderRadius:12, fontWeight:700, display:"flex", justifyContent:"space-between"}}><span>💎 StonFi</span><span>→</span></button>
-                  </div>
-                )}
+                <div style={{fontWeight:800}}>ربط المحفظة - محفظة واحدة فقط</div>
+                <div style={{fontSize:10, color:"#ef4444", marginTop:6}}>🚫 ممنوع تعدد المحافظ - حظر تلقائي لو حاولت تربط اكتر من واحدة</div>
+                <div style={{fontSize:10, color:"#ef4444"}}>🚫 ممنوع فتح حسابين على نفس الجهاز - حظر تلقائي</div>
+                {!showWallets ? <button onClick={()=>setShowWallets(true)} style={{marginTop:14, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:14, borderRadius:12, border:"none"}}>🔗 ربط المحفظة</button> :
+                <div style={{marginTop:12, display:"flex", flexDirection:"column", gap:8}}>
+                  <button onClick={()=>connectWallet("tonkeeper")} style={{background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:12, borderRadius:10}}>👛 TonKeeper → يفتح المحفظة اوتوماتيك</button>
+                  <button onClick={()=>connectWallet("myton")} style={{background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:12, borderRadius:10}}>💎 MyTonWallet →</button>
+                  <button onClick={()=>connectWallet("tonhub")} style={{background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:12, borderRadius:10}}>🚀 Tonhub →</button>
+                </div>}
               </div>
             ) : (
               <>
-                <div style={{background:"#111", border:"1px solid #22c55e", borderRadius:20, padding:16}}>
-                  <div style={{color:"#22c55e", fontSize:12, fontWeight:800}}>✓ تم الربط</div>
-                  <div style={{marginTop:6, background:"#000", borderRadius:10, padding:10, fontSize:11, color:"#FACC15", wordBreak:"break-all"}}>{walletAddress}</div>
-                  <div style={{marginTop:8, fontSize:11, color:"#888"}}>رصيد الليفل (المحفظة): <span style={{color:"#FACC15", fontWeight:900}}>{walletBalance.toFixed(2)} ANKH</span></div>
+                <div style={{background:"#111", border:"1px solid #22c55e", borderRadius:16, padding:14}}>
+                  <div style={{color:"#22c55e", fontSize:11, fontWeight:800}}>✓ تم الربط - محفظة واحدة مربوطة بالجهاز ولا يمكن تغييرها</div>
+                  <div style={{marginTop:6, background:"#000", padding:8, borderRadius:8, fontSize:11, color:"#FACC15", wordBreak:"break-all"}}>{walletAddress}</div>
                 </div>
-
-                {/* تأكيد انك مش روبوت */}
-                <div style={{background: antiBotDone ? "rgba(34,197,94,0.1)" : "#111", border: antiBotDone ? "1px solid #22c55e" : "1px solid rgba(250,204,21,0.4)", borderRadius:20, padding:16}}>
-                  <div style={{fontWeight:800, fontSize:13, color: antiBotDone ? "#22c55e" : "#FACC15"}}>{antiBotDone ? "✅ تم التأكيد - مش روبوت" : "⚠️ خطوة إلزامية - تأكيد انك مش روبوت"}</div>
-                  <div style={{fontSize:11, color:"#888", marginTop:6}}>لازم تعمل تحويل 0.05 GRAM للتأكيد</div>
-                  {!antiBotDone ? (
-                    <button onClick={verifyAntiBot} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>تحويل 0.05 GRAM للتأكيد</button>
-                  ) : (
-                    <div style={{marginTop:10, fontSize:11, color:"#22c55e", textAlign:"center"}}>تم التحقق بنجاح - تقدر تسحب دلوقتي</div>
-                  )}
+                <div style={{background: antiBotDone ? "rgba(34,197,94,0.1)" : "#111", border: antiBotDone ? "1px solid #22c55e" : "1px solid #FACC15", borderRadius:16, padding:14}}>
+                  <div style={{fontSize:12, fontWeight:800}}>{antiBotDone ? "✅ تم التأكيد - مش روبوت" : "⚠️ الزامي - تحويل 0.05 GRAM للتأكيد انك مش روبوت"}</div>
+                  {!antiBotDone && <button onClick={verifyAntiBot} style={{marginTop:10, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:12, borderRadius:10, border:"none"}}>تحويل 0.05 GRAM</button>}
                 </div>
-
-                {/* السحب */}
-                <div style={{background:"#111", border:"1px solid #222", borderRadius:20, padding:16}}>
-                  <div style={{fontWeight:900, fontSize:14}}>💸 سحب ANKH</div>
-                  <div style={{marginTop:8, background:"rgba(250,204,21,0.08)", border:"1px dashed rgba(250,204,21,0.2)", borderRadius:10, padding:8, fontSize:10, color:"#aaa", lineHeight:1.5}}>
-                    • الحد الادنى للسحب: 10,000 ANKH<br/>
-                    • لازم يكون معاك 25% من العملات في المحفظة علشان تقدر تسحب<br/>
-                    • العملات اللي في المحفظة هي اللي بتزود مستواك مش عملات البوت
-                  </div>
-                  <div style={{marginTop:12}}>
-                    <input value={withdrawAmount} onChange={e=>setWithdrawAmount(e.target.value)} type="number" placeholder="10000" style={{width:"100%", background:"#000", border:"1px solid #333", borderRadius:10, padding:12, color:"#fff", fontSize:13, outline:"none"}}/>
-                    <div style={{marginTop:8, fontSize:11, color:"#888", display:"flex", justifyContent:"space-between"}}>
-                      <span>المطلوب في المحفظة (25%):</span>
-                      <span style={{color: walletBalance >= Number(withdrawAmount||0)*0.25 ? "#22c55e" : "#ef4444", fontWeight:800}}>
-                        {withdrawAmount ? (Number(withdrawAmount)*0.25).toLocaleString() : "0"} ANKH
-                      </span>
-                    </div>
-                    <div style={{marginTop:4, fontSize:11, color:"#888", display:"flex", justifyContent:"space-between"}}>
-                      <span>معاك حاليا:</span><span style={{color:"#FACC15"}}>{walletBalance.toFixed(2)} ANKH</span>
-                    </div>
-                    <button 
-                      disabled={!antiBotDone || Number(withdrawAmount) < 10000 || walletBalance < Number(withdrawAmount)*0.25}
-                      onClick={()=>{ alert(`تم طلب سحب ${withdrawAmount} ANKH الى ${walletAddress}`); setWithdrawAmount(""); }}
-                      style={{marginTop:12, width:"100%", background: (!antiBotDone || Number(withdrawAmount) < 10000 || walletBalance < Number(withdrawAmount)*0.25) ? "#222" : "#FACC15", color: (!antiBotDone || Number(withdrawAmount) < 10000 || walletBalance < Number(withdrawAmount)*0.25) ? "#555" : "#000", fontWeight:900, padding:14, borderRadius:12, border:"none"}}>
-                      {!antiBotDone ? "اعمل تأكيد الروبوت الاول" : Number(withdrawAmount) < 10000 ? "الحد الادنى 10000" : walletBalance < Number(withdrawAmount)*0.25 ? `محتاج ${(Number(withdrawAmount)*0.25).toFixed(0)} في المحفظة` : `سحب ${withdrawAmount} ANKH`}
-                    </button>
-                  </div>
+                <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14}}>
+                  <div style={{fontWeight:800, fontSize:13}}>💸 السحب - الحد الادنى 10000 ANKH</div>
+                  <div style={{fontSize:10, color:"#888", marginTop:6, lineHeight:1.5}}>• لازم يكون معاك 25% في المحفظة<br/>• العملات اللي في المحفظة هي اللي بتزود الليفل مش عملات البوت</div>
+                  <input value={withdrawAmount} onChange={e=>setWithdrawAmount(e.target.value)} type="number" placeholder="10000" style={{marginTop:10, width:"100%", background:"#000", border:"1px solid #333", borderRadius:10, padding:12, color:"#fff"}}/>
+                  <div style={{marginTop:6, fontSize:11, display:"flex", justifyContent:"space-between"}}><span>تحتاج في المحفظة (25%):</span><span style={{color: walletBalance >= Number(withdrawAmount||0)*0.25 ? "#22c55e" : "#ef4444"}}>{withdrawAmount ? (Number(withdrawAmount)*0.25).toLocaleString() : 0}</span></div>
+                  <button disabled={!antiBotDone || Number(withdrawAmount)<10000 || walletBalance < Number(withdrawAmount)*0.25} onClick={()=>alert(`طلب سحب ${withdrawAmount}`)} style={{marginTop:10, width:"100%", background: (!antiBotDone || Number(withdrawAmount)<10000 || walletBalance < Number(withdrawAmount)*0.25) ? "#222" : "#FACC15", color: (!antiBotDone || Number(withdrawAmount)<10000 || walletBalance < Number(withdrawAmount)*0.25) ? "#555" : "#000", fontWeight:900, padding:14, borderRadius:12, border:"none"}}>
+                    {!antiBotDone ? "اكد انك مش روبوت اولا" : Number(withdrawAmount)<10000 ? "الحد الادنى 10000" : walletBalance < Number(withdrawAmount)*0.25 ? "محتاج 25% في المحفظة" : `سحب ${withdrawAmount} ANKH`}
+                  </button>
                 </div>
-
-                <button onClick={()=>{ setConnected(false); setAntiBotDone(false); setWalletAddress(""); if(typeof window!=="undefined"){ localStorage.removeItem("ankh_connected"); localStorage.removeItem("ankh_antibot"); localStorage.removeItem("ankh_wallet_addr"); } }} style={{background:"#111", border:"1px solid #333", color:"#888", padding:10, borderRadius:10, fontSize:11, width:"100%"}}>فصل المحفظة</button>
               </>
             )}
           </div>
