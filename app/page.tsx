@@ -16,16 +16,44 @@ export default function Page() {
   const [verified, setVerified] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
 
-  // جديد للمتجر
+  // متجر GRAM
   const [selectedGram, setSelectedGram] = useState(1);
   const [gramTx, setGramTx] = useState("");
-  const GRAM_RATE = 150; // 1 GRAM = 150 ANKH - تقدر تغيره
+  const [gramPrice, setGramPrice] = useState<number | null>(null); // سعر GRAM بالدولار
+  const [ankhPriceGram, setAnkhPriceGram] = useState(0.006666); // سعر ANKH بالـ GRAM - هيتغير لما تحط سيولة
+  
+  // سعر افتراضي لحد ما تحط سيولة - 1 GRAM = 150 ANKH
+  const FALLBACK_RATE = 150;
 
   const getRequiredForLevel = (targetLevel: number) => {
     if (targetLevel <= 1) return 0;
     return 70 * targetLevel * targetLevel - 40 * targetLevel - 40;
   };
   const getMiningRate = (lvl: number) => 0.25 + lvl * 0.05;
+
+  // جلب سعر GRAM لايف + سعر ANKH/GRAM من البول لو موجود
+  useEffect(() => {
+    const fetchPrices = async () => {
+      try {
+        // سعر GRAM لايف من Dexscreener
+        const res = await fetch("https://api.dexscreener.com/latest/dex/search/?q=GRAM");
+        const data = await res.json();
+        const pair = data?.pairs?.find((p:any)=> p.chainId==="ton" && p.baseToken?.symbol==="GRAM") || data?.pairs?.[0];
+        if(pair?.priceUsd) setGramPrice(Number(pair.priceUsd));
+
+        // لو عندك بول ANKH/GRAM على StonFi - حط عنوان العقد هنا وهيحسب اوتوماتيك
+        // مثال: لو ANKH/GRAM pool موجود، السعر هيجي من هنا
+        // const stonRes = await fetch("https://api.ston.fi/v1/pools?asset=YOUR_ANKH_ADDRESS");
+        // لو لقي البول يحسب ankhPriceGram = price
+
+      } catch (e) {
+        console.log("price fetch failed, using fallback");
+      }
+    };
+    fetchPrices();
+    const int = setInterval(fetchPrices, 60000); // يحدث كل دقيقة
+    return () => clearInterval(int);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -92,6 +120,10 @@ export default function Page() {
   const needForNext = Math.max(0, getRequiredForLevel(level+1) - walletBalance);
   const currentRate = getMiningRate(level);
 
+  // حساب عدد ANKH اللي هياخدها - لايف من السيولة
+  const calculatedAnkh = selectedGram / ankhPriceGram;
+  const displayRate = gramPrice ? (1/ankhPriceGram).toLocaleString() : FALLBACK_RATE.toLocaleString();
+
   return (
     <div style={{minHeight:"100vh", background:"#050505", color:"#fff", paddingBottom:90, fontFamily:"sans-serif"}}>
       <div style={{display:"flex", gap:8, padding:16}}>
@@ -124,18 +156,21 @@ export default function Page() {
               <div style={{marginTop:8, width:"100%", height:6, background:"#1A1A1A", borderRadius:10, overflow:"hidden"}}><div style={{width:`${Math.min(100, (walletBalance / (getRequiredForLevel(level+1)||160))*100)}%`, height:"100%", background:"#FACC15"}}></div></div>
               <div style={{marginTop:8, fontSize:12, color:"#FACC15", fontWeight:800, textAlign:"center"}}>باقي {needForNext.toFixed(2)} ANKH لليفل {level+1}</div>
             </div>
-            <div style={{marginTop:12, width:"100%", maxWidth:360, background:"rgba(250,204,21,0.08)", border:"1px dashed rgba(250,204,21,0.3)", borderRadius:10, padding:10, fontSize:10, color:"#aaa", textAlign:"center", lineHeight:1.6}}>⚠️ ملاحظة: العملات الموجودة في البوت لا تؤثر على المستوى<br/>فقط العملات الموجودة في المحفظة بعد الضغط على استلام هي التي يتم احتسابها لرفع المستوى</div>
           </>
         )}
 
         {tab==="store" && (
           <div style={{width:"100%", maxWidth:390, display:"flex", flexDirection:"column", gap:14}}>
-            <h2 style={{fontWeight:900, fontSize:20, color:"#FACC15"}}>🛒 المتجر - شراء ANKH بـ GRAM</h2>
+            <h2 style={{fontWeight:900, fontSize:20, color:"#FACC15"}}>🛒 المتجر - شراء بـ GRAM</h2>
             
-            {/* شراء بعملة GRAM */}
             <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.3)", borderRadius:20, padding:16}}>
-              <div style={{fontSize:13, fontWeight:800, color:"#fff"}}>اختر كمية GRAM (اقل شراء 1 جرام)</div>
-              <div style={{fontSize:11, color:"#666", marginTop:4}}>1 GRAM = {GRAM_RATE} ANKH</div>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                <div style={{fontSize:13, fontWeight:800, color:"#fff"}}>اختر كمية GRAM (اقل شراء 1 جرام)</div>
+                <div style={{fontSize:9, background: gramPrice ? "#22c55e" : "#333", color: gramPrice ? "#000" : "#888", padding:"3px 8px", borderRadius:20, fontWeight:800}}>{gramPrice ? `LIVE $${gramPrice.toFixed(4)}` : "FALLBACK"}</div>
+              </div>
+              <div style={{fontSize:11, color:"#666", marginTop:6}}>
+                1 GRAM = {displayRate} ANKH {gramPrice ? "• سعر لايف من البول" : "• سعر مبدئي لحد ما تحط سيولة"}
+              </div>
               
               <div style={{display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginTop:14}}>
                 {[1,3,5,10].map(g=>(
@@ -146,38 +181,33 @@ export default function Page() {
               </div>
 
               <div style={{marginTop:14, background:"#000", border:"1px solid #222", borderRadius:12, padding:12, textAlign:"center"}}>
-                <div style={{fontSize:11, color:"#888"}}>هتستلم</div>
-                <div style={{fontSize:22, fontWeight:900, color:"#FACC15", marginTop:2}}>{(selectedGram * GRAM_RATE).toLocaleString()} ANKH</div>
+                <div style={{fontSize:11, color:"#888"}}>هتستلم (محسوب من السيولة)</div>
+                <div style={{fontSize:22, fontWeight:900, color:"#FACC15", marginTop:2}}>{Math.floor(calculatedAnkh).toLocaleString()} ANKH</div>
                 <div style={{fontSize:10, color:"#555", marginTop:2}}>مقابل {selectedGram} GRAM</div>
+                {gramPrice && <div style={{fontSize:9, color:"#666", marginTop:4}}>= ${(selectedGram * gramPrice).toFixed(2)} USD</div>}
               </div>
 
               <div style={{marginTop:14}}>
-                <div style={{fontSize:11, color:"#aaa", marginBottom:6}}>ادخل عنوان محفظتك او رابط الدفع (StonFi / TonKeeper)</div>
-                <input value={gramTx} onChange={e=>setGramTx(e.target.value)} placeholder="TonKeeper address / Tx Hash / StonFi link" style={{width:"100%", background:"#0A0A0A", border:"1px solid #222", borderRadius:10, padding:12, color:"#fff", fontSize:12, outline:"none"}}/>
+                <div style={{fontSize:11, color:"#aaa", marginBottom:6}}>عنوان الدفع (StonFi / TonKeeper)</div>
+                <input value={gramTx} onChange={e=>setGramTx(e.target.value)} placeholder="UQ... TonKeeper / StonFi link / Tx Hash" style={{width:"100%", background:"#0A0A0A", border:"1px solid #222", borderRadius:10, padding:12, color:"#fff", fontSize:12, outline:"none"}}/>
               </div>
 
               <div style={{display:"flex", gap:8, marginTop:12}}>
-                <button onClick={()=>{
-                  if(!gramTx) return alert("ادخل عنوان المحفظة او رابط الدفع");
-                  window.open(`https://app.ston.fi/swap?ft=GRAM&tt=TON`, "_blank");
-                }} style={{flex:1, background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:12, borderRadius:10, fontWeight:800, fontSize:12}}>💎 StonFi</button>
-                <button onClick={()=>{
-                  if(!gramTx) return alert("ادخل عنوان المحفظة او رابط الدفع");
-                  window.open(`ton://transfer/`, "_blank");
-                }} style={{flex:1, background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:12, borderRadius:10, fontWeight:800, fontSize:12}}>👛 TonKeeper</button>
+                <button onClick={()=>{ if(!gramTx) return alert("ادخل عنوان المحفظة"); window.open("https://app.ston.fi/swap?ft=GRAM&tt=TON","_blank")}} style={{flex:1, background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:12, borderRadius:10, fontWeight:800, fontSize:12}}>💎 StonFi</button>
+                <button onClick={()=>{ if(!gramTx) return alert("ادخل عنوان المحفظة"); window.open("ton://transfer/","_blank")}} style={{flex:1, background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:12, borderRadius:10, fontWeight:800, fontSize:12}}>👛 TonKeeper</button>
               </div>
 
               <button onClick={()=>{
                 if(!gramTx) return alert("ادخل بيانات الدفع الاول");
-                alert(`تم تسجيل طلب شراء ${selectedGram} GRAM = ${selectedGram*GRAM_RATE} ANKH\nهنراجع الدفع على: ${gramTx}`);
+                alert(`تم تسجيل طلب شراء ${selectedGram} GRAM = ${Math.floor(calculatedAnkh).toLocaleString()} ANKH\nهنراجع الدفع على: ${gramTx}`);
                 setGramTx("");
               }} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:14, borderRadius:12, border:"none"}}>تأكيد شراء {selectedGram} GRAM</button>
 
-              <div style={{marginTop:10, fontSize:9, color:"#666", textAlign:"center", lineHeight:1.5}}>اقل شراء 1 GRAM • الدفع يتم عبر TON Network<br/>بعد الدفع ابعت الـ Tx Hash للمراجعة</div>
+              <div style={{marginTop:10, fontSize:9, color:"#666", textAlign:"center", lineHeight:1.5}}>
+                اقل شراء 1 GRAM • السعر يحسب اوتوماتيك من بول ANKH/GRAM على StonFi<br/>
+                لما تحط سيولة السعر هيتحدث لوحده كل دقيقة
+              </div>
             </div>
-
-            {/* البوستات القديمة */}
-            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:16, display:"flex", justifyContent:"space-between"}}><span>1.5x Boost - 50 ANKH</span><button style={{background:"#FACC15", border:"none", padding:"6px 12px", borderRadius:8, fontWeight:800}}>Buy</button></div>
           </div>
         )}
 
@@ -185,16 +215,10 @@ export default function Page() {
           <div style={{width:"100%", maxWidth:410, display:"flex", flexDirection:"column", gap:14}}>
             <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.3)", borderRadius:20, padding:16}}>
               <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>📅 تسجيل دخول يومي - 30 يوم</h2>
-              <p style={{fontSize:10, color:"#666", marginTop:4}}>لو فوت يوم ترجع من الاول!</p>
               <div style={{display:"grid", gridTemplateColumns:"repeat(6, 1fr)", gap:6, marginTop:12}}>
                 {[9,14,23,31,42,55,68,77,89,102,115,130,145,162,180,199,219,240,262,285,309,334,360,387,415,444,474,505,537,600].map((reward, i)=>{
                   const day = i+1;
-                  return (
-                    <div key={day} style={{background:"#000", border:"1px solid #222", borderRadius:10, padding:"8px 0", textAlign:"center"}}>
-                      <div style={{fontSize:9, color:"#666"}}>يوم {day}</div>
-                      <div style={{fontSize:12, fontWeight:900, color:"#fff", marginTop:2}}>{reward}</div>
-                    </div>
-                  )
+                  return (<div key={day} style={{background:"#000", border:"1px solid #222", borderRadius:10, padding:"8px 0", textAlign:"center"}}><div style={{fontSize:9, color:"#666"}}>يوم {day}</div><div style={{fontSize:12, fontWeight:900, color:"#fff", marginTop:2}}>{reward}</div></div>)
                 })}
               </div>
               <button onClick={()=>{
