@@ -126,3 +126,71 @@ export default function Page() {
                 
                 <label style={{ fontSize: "13px", color: "#8a9a8a", display: "block", margin: "20px 0 10px 0" }}>Select Maturity Lock:</label>
                 <div style={{ display: "flex", gap: "8px" }}>
+<button onClick={() => setStakeDuration(1)} style={{ flex: 1, padding: "12px 6px", borderRadius: "10px", background: stakeDuration === 1 ? "#d4af37" : "#060907", color: stakeDuration === 1 ? "#000" : "#fff", fontWeight: "bold", border: "1px solid #d4af37", cursor: "pointer", fontSize: "12px" }}>1 Month25% ROI
+<button onClick={() => setStakeDuration(3)} style={{ flex: 1, padding: "12px 6px", borderRadius: "10px", background: stakeDuration === 3 ? "#d4af37" : "#060907", color: stakeDuration === 3 ? "#000" : "#fff", fontWeight: "bold", border: "1px solid #d4af37", cursor: "pointer", fontSize: "12px" }}>3 Months60% ROI
+<button onClick={() => setStakeDuration(9)} style={{ flex: 1, padding: "12px 6px", borderRadius: "10px", background: stakeDuration === 9 ? "#d4af37" : "#060907", color: stakeDuration === 9 ? "#000" : "#fff", fontWeight: "bold", border: "1px solid #d4af37", cursor: "pointer", fontSize: "12px" }}>9 Months105% ROI
+<button onClick={() => { if(Number(stakeAmount) >= 100){ setTotalBalance(b => b - Number(stakeAmount)); setStakeAmount(""); alert("Staking Order Executed!"); } else { alert("Minimum required is 100 ANKH"); } }} style={{ width: "100%", background: "linear-gradient(90deg, #d4af37, #facc15)", color: "#000", border: "none", padding: "14px", borderRadius: "12px", fontWeight: "bold", cursor: "pointer", fontSize: "15px", marginTop: "25px", boxShadow: "0 4px 15px rgba(212,175,55,0.2)" }}>Execute Staking Contract
+
+
+)}
+{tab === "wallet" && (
+
+<h3 style={{ color: "#d4af37", margin: "10px 0 8px 0", fontSize: "20px" }}>Clearing & Settlement
+{!connected ? (
+<button onClick={() => setConnected(true)} style={{ width: "100%", background: "#0098ea", color: "#fff", border: "none", padding: "15px", borderRadius: "12px", fontWeight: "bold", cursor: "pointer", fontSize: "16px", marginBottom: "20px", boxShadow: "0 4px 15px rgba(0,152,234,0.3)" }}>🔗 Connect Open TON Wallet
+) : (
+<div style={{ background: "#111612", padding: "14px", borderRadius: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", border: "1px solid #22c55e" }}>
+<span style={{ color: "#22c55e", fontSize: "14px", fontWeight: "bold" }}>● Mainnet Link Established
+<button onClick={() => { setConnected(false); setVerified(false); }} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "13px" }}>Disconnect
+
+)}
+{connected && !verified && (
+<div style={{ background: "rgba(22,34,25,0.5)", padding: "16px", borderRadius: "14px", border: "1px solid #22c55e", marginBottom: "20px" }}>
+<p style={{ fontSize: "13px", color: "#8a9a8a", margin: "0 0 12px 0", lineHeight: "1.4" }}>Execute a one-time validation payload of 0.05 GRAM on-chain to verify non-automated human operation status.
+<button onClick={() => setVerified(true)} style={{ width: "100%", background: "#22c55e", color: "#fff", border: "none", padding: "12px", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}>Authorize Verification (0.05 GRAM)
+
+)}
+<div style={{ background: "#111612", padding: "20px", borderRadius: "18px", border: "1px solid #1a221c" }}>
+<h4 style={{ margin: "0 0 6px 0", color: "#fff" }}>Withdraw Assets
+<div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#8a9a8a", marginBottom: "15px" }}>
+Network Fee: 5%
+Minimum Threshold: 10,000 ANKH
+<div style={{ padding: "3px", borderRadius: "10px", background: isWithdrawInvalid ? "rgba(239, 68, 68, 0.25)" : "transparent", transition: "background 0.3s" }}>
+<input type="number" placeholder="Enter amount to extract" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} style={{ width: "100%", padding: "14px", background: "#060907", color: "#fff", border: isWithdrawInvalid ? "1px solid #ef4444" : "1px solid #1a221c", borderRadius: "8px", boxSizing: "border-box", outline: "none", fontSize: "15px" }} />
+{isWithdrawInvalid && (
+<p style={{ color: "#ef4444", fontSize: "12px", margin: "6px 0 0 0", fontWeight: "bold" }}>Alert: Amount resides below the 10,000 baseline requirement.
+)}
+<button onClick={() => { if (!verified) { alert("Account verification required!"); return; } if (Number(withdrawAmount) >= 10000) { alert("Processing settlement claim!"); setWithdrawAmount(""); } }} style={{ width: "100%", background: "linear-gradient(90deg, #d4af37, #facc15)", color: "#000", border: "none", padding: "14px", borderRadius: "12px", marginTop: "20px", fontWeight: "bold", cursor: "pointer", fontSize: "15px" }}>Dispatch Withdrawal
+
+
+)}
+{tab === "tasks" && (
+
+<h3 style={{ color: "#d4af37", margin: "10px 0 8px 0", fontSize: "20px" }}>Campaign Hub
+<p style={{ fontSize: "14px", color: "#8a9a8a" }}>Claim immediate auxiliary allocation grants by completing ecosystem verification actions.
+<div style={{ background: "#111612", padding: "16px", borderRadius: "16px", marginTop: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid #1a221c" }}>
+
+<b style={{ fontSize: "15px", color: "#fff" }}>Daily System Check-in
+<p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#d4af37", fontWeight: "bold" }}>+7 ANKH Grant
+
+<button onClick={() => { setTotalBalance(b => b + 7); alert("Ecosystem reward claimed!"); }} style={{ background: "#d4af37", color: "#000", border: "none", padding: "10px 18px", borderRadius: "10px", fontWeight: "bold", fontSize: "13px", cursor: "pointer", boxShadow: "0 4px 10px rgba(212,175,55,0.2)" }}>Claim
+
+
+)}
+{showGuide && (
+<div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.9)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 2000, padding: "20px" }}>
+<div style={{ background: "#111612", border: "2px solid #d4af37", padding: "24px", borderRadius: "20px", maxWidth: "320px", width: "100%", textAlign: "center", boxShadow: "0 10px 40px rgba(0,0,0,0.8)" }}>
+<h4 style={{ color: "#d4af37", marginTop: 0, fontSize: "18px" }}>Ecosystem Operation Rules
+<p style={{ fontSize: "13px", color: "#8a9a8a", lineHeight: "1.6", textAlign: "left" }}>• Tier 0 is entirely free providing 0.25 ANKH/H.• Tiers 1 through 500 adapt dynamic velocities calculated exclusively against your active connected On-chain network balance.
+<button onClick={() => setShowGuide(false)} style={{ background: "#d4af37", border: "none", padding: "10px 20px", borderRadius: "10px", width: "100%", fontWeight: "bold", cursor: "pointer", marginTop: "15px", color: "#000" }}>Close Portal
+
+
+)}
+<div style={{ position: "fixed", bottom: 0, maxWidth: "420px", width: "100%", height: "76px", background: "#111612", display: "flex", justifyContent: "space-around", alignItems: "center", borderTop: "2px solid #d4af37", zIndex: 1000, boxSizing: "border-box", boxShadow: "0 -6px 25px rgba(0,0,0,0.5)" }}>
+<button onClick={() => setTab("mining")} style={{ background: "none", border: "none", color: tab === "mining" ? "#d4af37" : "#8a9a8a", cursor: "pointer", fontSize: "11px", fontWeight: "bold", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}><span style={{ fontSize: "20px" }}>⛏️Mining
+<button onClick={() => setTab("friends")} style={{ background: "none", border: "none", color: tab === "friends" ? "#d4af37" : "#8a9a8a", cursor: "pointer", fontSize: "11px", fontWeight: "bold", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}><span style={{ fontSize: "20px" }}>👥Friends
+<button onClick={() => setTab("staking")} style={{ background: "none", border: "none", color: tab === "staking" ? "#d4af37" : "#8a9a8a", cursor: "pointer", fontSize: "11px", fontWeight: "bold", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}><span style={{ fontSize: "20px" }}>📈Staking
+<button onClick={() => setTab("wallet")} style={{ background: "none", border: "none", color: tab === "wallet" ? "#d4af37" : "#8a9a8a", cursor: "pointer", fontSize: "11px", fontWeight: "bold", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}><span style={{ fontSize: "20px" }}>💼Wallet
+<button onClick={() => setTab("tasks")} style={{ background: "none", border: "none", color: tab === "tasks" ? "#d4af37" : "#8a9a8a", cursor: "pointer", fontSize: "11px", fontWeight: "bold", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}><span style={{ fontSize: "20px" }}>📋Tasks
+);
+}
