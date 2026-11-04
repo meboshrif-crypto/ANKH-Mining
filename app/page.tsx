@@ -16,7 +16,8 @@ const TRANSLATIONS: any = {
     paymentAddress: "عنوان الدفع (StonFi / TonKeeper)", confirmBuy: "تأكيد شراء",
     dailyLogin: "📅 تسجيل دخول يومي - 30 يوم", ifMiss: "لو فوت يوم ترجع من الاول!", registerToday: "تسجيل اليوم",
     day: "يوم", tasks: "📋 المهام", newsChannel: "قناة الاخبار", withdrawChannel: "قناة السحب",
-    subscribe: "اشتراك", verify: "تحقق", invite: "ادع", persons: "اشخاص ليفل 2",
+    subscribe: "اشتراك", verify: "تحقق", go: "اذهب", claimTask: "استلام", storyTask: "نزل ستوري كل 24 ساعة", storyReward: "50 ANKH كل 24 ساعة",
+    invite: "ادع", persons: "اشخاص ليفل 2",
     forever: "5% للأبد ♾️", foreverDesc: "تاخد 5% من معدل تعدين كل صديق مؤهل مدى الحياة",
     refCode: "رمز الإحالة الخاص بك", shareLink: "📤 مشاركة الرابط", copy: "📋 نسخ", copied: "تم النسخ",
     invited: "الأصدقاء المدعوين", qualified: "مؤهل:", noFriends: "لسه مدعتش حد - شارك رابطك",
@@ -29,7 +30,8 @@ const TRANSLATIONS: any = {
     transfer: "تحويل 0.05 GRAM", withdraw: "💸 السحب - الحد الادنى 10000 ANKH",
     withdrawRules: "• لازم يكون معاك 25% في المحفظة\n• العملات اللي في المحفظة هي اللي بتزود الليفل مش عملات البوت",
     needInWallet: "تحتاج في المحفظة (25%):", needVerifyFirst: "اكد انك مش روبوت اولا", min10000: "الحد الادنى 10000",
-    need25: "محتاج 25% في المحفظة", withdrawBtn: "سحب", openWalletAuto: "يفتح المحفظة اوتوماتيك"
+    need25: "محتاج 25% في المحفظة", withdrawBtn: "سحب", openWalletAuto: "يفتح المحفظة اوتوماتيك",
+    nextStory: "متبقي", storyDone: "تم اليوم - ارجع بعد 24 ساعة"
   },
   en: {
     mining: "Mining", store: "Store", list: "Tasks", friends: "Friends", wallet: "Wallet",
@@ -44,7 +46,8 @@ const TRANSLATIONS: any = {
     paymentAddress: "Payment address (StonFi / TonKeeper)", confirmBuy: "Confirm buy",
     dailyLogin: "📅 Daily Login - 30 days", ifMiss: "If you miss a day you start over!", registerToday: "Check-in Today",
     day: "Day", tasks: "📋 Tasks", newsChannel: "News Channel", withdrawChannel: "Withdraw Channel",
-    subscribe: "Join", verify: "Verify", invite: "Invite", persons: "persons level 2",
+    subscribe: "Join", verify: "Verify", go: "Go", claimTask: "Claim", storyTask: "Post story every 24h", storyReward: "50 ANKH every 24h",
+    invite: "Invite", persons: "persons level 2",
     forever: "5% Forever ♾️", foreverDesc: "You get 5% of mining rate from each qualified friend forever",
     refCode: "Your referral code", shareLink: "📤 Share Link", copy: "📋 Copy", copied: "Copied",
     invited: "Invited Friends", qualified: "Qualified:", noFriends: "No friends yet - share your link",
@@ -57,7 +60,8 @@ const TRANSLATIONS: any = {
     transfer: "Transfer 0.05 GRAM", withdraw: "💸 Withdraw - Min 10000 ANKH",
     withdrawRules: "• You need 25% in wallet\n• Wallet coins increase your level, not bot coins",
     needInWallet: "Need in wallet (25%):", needVerifyFirst: "Verify anti-bot first", min10000: "Min 10000",
-    need25: "Need 25% in wallet", withdrawBtn: "Withdraw", openWalletAuto: "Opens wallet automatically"
+    need25: "Need 25% in wallet", withdrawBtn: "Withdraw", openWalletAuto: "Opens wallet automatically",
+    nextStory: "Left", storyDone: "Done today - come after 24h"
   },
   ru: {
     mining: "Майнинг", store: "Магазин", list: "Задания", friends: "Друзья", wallet: "Кошелек",
@@ -72,7 +76,8 @@ const TRANSLATIONS: any = {
     paymentAddress: "Адрес оплаты (StonFi / TonKeeper)", confirmBuy: "Подтвердить покупку",
     dailyLogin: "📅 Ежедневный вход - 30 дней", ifMiss: "Если пропустишь день - начнешь заново!", registerToday: "Отметиться сегодня",
     day: "День", tasks: "📋 Задания", newsChannel: "Канал новостей", withdrawChannel: "Канал выводов",
-    subscribe: "Подписаться", verify: "Проверить", invite: "Пригласи", persons: "человек уровень 2",
+    subscribe: "Подписаться", verify: "Проверить", go: "Перейти", claimTask: "Получить", storyTask: "Выложи стори каждые 24ч", storyReward: "50 ANKH каждые 24ч",
+    invite: "Пригласи", persons: "человек уровень 2",
     forever: "5% Навсегда ♾️", foreverDesc: "Вы получаете 5% от майнинга каждого квалифицированного друга навсегда",
     refCode: "Ваш реферальный код", shareLink: "📤 Поделиться", copy: "📋 Копировать", copied: "Скопировано",
     invited: "Приглашенные друзья", qualified: "Квалифицировано:", noFriends: "Пока нет друзей - поделись ссылкой",
@@ -85,7 +90,8 @@ const TRANSLATIONS: any = {
     transfer: "Перевести 0.05 GRAM", withdraw: "💸 Вывод - Мин 10000 ANKH",
     withdrawRules: "• Нужно 25% в кошельке\n• Монеты кошелька повышают уровень, а не монеты бота",
     needInWallet: "Нужно в кошельке (25%):", needVerifyFirst: "Сначала подтверди антибот", min10000: "Мин 10000",
-    need25: "Нужно 25% в кошельке", withdrawBtn: "Вывести", openWalletAuto: "Открывает кошелек автоматически"
+    need25: "Нужно 25% в кошельке", withdrawBtn: "Вывести", openWalletAuto: "Открывает кошелек автоматически",
+    nextStory: "Осталось", storyDone: "Готово сегодня - вернись через 24ч"
   }
 };
 
@@ -106,7 +112,6 @@ export default function Page() {
   const [antiBotDone, setAntiBotDone] = useState(false);
   const [banned, setBanned] = useState(false);
   const [banReason, setBanReason] = useState("");
-
   const [selectedGram, setSelectedGram] = useState(1);
   const [gramTx, setGramTx] = useState("");
   const [gramPrice, setGramPrice] = useState<number | null>(null);
@@ -114,6 +119,10 @@ export default function Page() {
   const FALLBACK_RATE = 150;
   const [showLevels, setShowLevels] = useState(false);
   const [invitedFriends, setInvitedFriends] = useState<any[]>([]);
+  // جديد
+  const [taskStatus, setTaskStatus] = useState<any>({});
+  const [lastStory, setLastStory] = useState(0);
+  const [storyCountdown, setStoryCountdown] = useState("");
 
   const t = TRANSLATIONS[lang] || TRANSLATIONS.ar;
 
@@ -174,6 +183,8 @@ export default function Page() {
       const conn = window.localStorage.getItem("ankh_connected");
       const anti = window.localStorage.getItem("ankh_antibot");
       const savedLang = window.localStorage.getItem("ankh_lang");
+      const tasks = window.localStorage.getItem("ankh_tasks");
+      const story = window.localStorage.getItem("ankh_last_story");
       if(b) setBalance(Number(b));
       if(wb) setWalletBalance(Number(wb));
       if(l) setLevel(Number(l));
@@ -184,6 +195,8 @@ export default function Page() {
       if(conn==="1") setConnected(true);
       if(anti==="1") setAntiBotDone(true);
       if(savedLang) setLang(savedLang);
+      if(tasks) setTaskStatus(JSON.parse(tasks));
+      if(story) setLastStory(Number(story));
     } catch {}
   }, []);
 
@@ -191,23 +204,35 @@ export default function Page() {
   useEffect(() => { if(typeof window!=="undefined") window.localStorage.setItem("ankh_wallet", String(walletBalance)); }, [walletBalance]);
   useEffect(() => { if(typeof window!=="undefined") window.localStorage.setItem("ankh_level", String(level)); }, [level]);
   useEffect(() => { if(typeof window!=="undefined") window.localStorage.setItem("ankh_lang", lang); }, [lang]);
+  useEffect(() => { if(typeof window!=="undefined") window.localStorage.setItem("ankh_tasks", JSON.stringify(taskStatus)); }, [taskStatus]);
 
   useEffect(() => {
     const int = setInterval(() => {
-      if(!lastMine) { setCountdown(""); return; }
-      const diff = lastMine + 86400000 - Date.now();
-      if(diff <= 0) setCountdown("");
-      else {
-        const h = Math.floor(diff/3600000);
-        const m = Math.floor((diff%3600000)/60000);
-        const s = Math.floor((diff%60000)/1000);
-        setCountdown(`${h}h ${m}m ${s}s`);
+      if(!lastMine) { setCountdown(""); } else {
+        const diff = lastMine + 86400000 - Date.now();
+        if(diff <= 0) setCountdown("");
+        else {
+          const h = Math.floor(diff/3600000);
+          const m = Math.floor((diff%3600000)/60000);
+          const s = Math.floor((diff%60000)/1000);
+          setCountdown(`${h}h ${m}m ${s}s`);
+        }
+      }
+      if(!lastStory) { setStoryCountdown(""); } else {
+        const diff = lastStory + 86400000 - Date.now();
+        if(diff <= 0) setStoryCountdown("");
+        else {
+          const h = Math.floor(diff/3600000);
+          const m = Math.floor((diff%3600000)/60000);
+          setStoryCountdown(`${h}h ${m}m`);
+        }
       }
     }, 1000);
     return () => clearInterval(int);
-  }, [lastMine]);
+  }, [lastMine, lastStory]);
 
   const canMine = Date.now() - lastMine >= 86400000 || lastMine === 0;
+  const canStory = Date.now() - lastStory >= 86400000 || lastStory === 0;
 
   const startMining = () => {
     if(banned) return;
@@ -242,6 +267,31 @@ export default function Page() {
   const calculatedAnkh = selectedGram / ankhPriceGram;
   const displayRate = gramPrice ? (1/ankhPriceGram).toFixed(0) : FALLBACK_RATE.toString();
   const inviteLink = `https://t.me/ANKH_Mining_bot?start=${refCode}`;
+
+  const handleTaskGo = (id:string, link:string) => {
+    if(link!=="#") window.open(link, "_blank");
+    const newStatus = {...taskStatus, [id]: "gone"};
+    setTaskStatus(newStatus);
+    setTimeout(()=>{
+      const updated = {...newStatus, [id]: "verify"};
+      setTaskStatus(updated);
+      if(typeof window!=="undefined") window.localStorage.setItem("ankh_tasks", JSON.stringify(updated));
+    }, 1500);
+  };
+
+  const handleTaskVerify = (id:string, reward:number) => {
+    const newStatus = {...taskStatus, [id]: "claimed"};
+    setTaskStatus(newStatus);
+    setBalance(b=>b+reward);
+  };
+
+  const handleStoryClaim = () => {
+    if(!canStory) return;
+    setBalance(b=>b+50);
+    const now = Date.now();
+    setLastStory(now);
+    if(typeof window!=="undefined") window.localStorage.setItem("ankh_last_story", String(now));
+  };
 
   const connectWallet = (type:string) => {
     if(banned) return;
@@ -334,26 +384,24 @@ export default function Page() {
           </>
         )}
 
-        {tab==="store" && (
-          <div style={{width:"100%", maxWidth:400, display:"flex", flexDirection:"column", gap:14}}>
-            <h2 style={{fontWeight:900, fontSize:20, color:"#FACC15"}}>{t.storeTitle}</h2>
-            <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.35)", borderRadius:20, padding:16}}>
-              <div style={{display:"flex", justifyContent:"space-between"}}><div style={{fontSize:13, fontWeight:800}}>{t.chooseGram}</div><div style={{fontSize:9, background: gramPrice ? "#22c55e" : "#333", color: gramPrice ? "#000" : "#888", padding:"3px 8px", borderRadius:20, fontWeight:800}}>{gramPrice ? `${t.live} $${gramPrice.toFixed(4)}` : t.fallback}</div></div>
-              <div style={{fontSize:11, color:"#666", marginTop:6}}>1 GRAM = {displayRate} ANKH • {t.priceFromLiquidity}</div>
-              <div style={{display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginTop:14}}>
-                {[1,3,5,10].map(g=>(
-                  <button key={g} onClick={()=>setSelectedGram(g)} style={{padding:14, borderRadius:12, fontWeight:900, fontSize:14, border: selectedGram===g ? "2px solid #FACC15" : "1px solid #222", background: selectedGram===g ? "#FACC15" : "#1A1A1A", color: selectedGram===g ? "#000" : "#888"}}>{g} GRAM</button>
-                ))}
-              </div>
-              <div style={{marginTop:14, background:"#000", border:"1px solid #222", borderRadius:12, padding:12, textAlign:"center"}}><div style={{fontSize:11, color:"#888"}}>{t.youGet}</div><div style={{fontSize:24, fontWeight:900, color:"#FACC15"}}>{Math.floor(calculatedAnkh).toLocaleString()} ANKH</div></div>
-              <div style={{marginTop:14}}><div style={{fontSize:11, color:"#aaa", marginBottom:6}}>{t.paymentAddress}</div><input value={gramTx} onChange={e=>setGramTx(e.target.value)} placeholder="UQ... TonKeeper / StonFi" style={{width:"100%", background:"#0A0A0A", border:"1px solid #222", borderRadius:10, padding:12, color:"#fff", fontSize:12, outline:"none"}}/></div>
-              <button onClick={()=>{ if(!gramTx) return alert("..."); alert(`${t.confirmBuy} ${selectedGram} GRAM`); }} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:14, borderRadius:12, border:"none"}}>{t.confirmBuy} {selectedGram} GRAM</button>
-            </div>
-          </div>
-        )}
-
         {tab==="list" && (
           <div style={{width:"100%", maxWidth:410, display:"flex", flexDirection:"column", gap:14}}>
+            {/* ستوري 50 كل 24 ساعة */}
+            <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.5)", borderRadius:20, padding:16}}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                <div>
+                  <div style={{fontSize:14, fontWeight:900, color:"#FACC15"}}>📸 {t.storyTask}</div>
+                  <div style={{fontSize:11, color:"#888", marginTop:2}}>{t.storyReward}</div>
+                </div>
+                <div style={{fontSize:10, background: canStory ? "#22c55e" : "#222", color: canStory ? "#000" : "#888", padding:"4px 8px", borderRadius:10, fontWeight:800}}>
+                  {canStory ? "جاهز" : `${t.nextStory} ${storyCountdown}`}
+                </div>
+              </div>
+              <button onClick={handleStoryClaim} disabled={!canStory} style={{marginTop:12, width:"100%", background: canStory ? "#FACC15" : "#222", color: canStory ? "#000" : "#555", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>
+                {canStory ? `${t.claimTask} 50 ANKH` : t.storyDone}
+              </button>
+            </div>
+
             <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.3)", borderRadius:20, padding:16}}>
               <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>{t.dailyLogin}</h2>
               <p style={{fontSize:10, color:"#666", marginTop:4}}>{t.ifMiss}</p>
@@ -370,10 +418,43 @@ export default function Page() {
                 window.localStorage.setItem("ankh_daily_day", String((dayIndex+1)%30));
               }} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>{t.registerToday}</button>
             </div>
+
             <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>{t.tasks}</h2>
-            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between"}}><span>{t.newsChannel} 77 ANKH</span><button onClick={()=>setBalance(b=>b+77)} style={{background:"#FACC15", border:"none", padding:"6px 12px", borderRadius:8, fontWeight:800}}>{t.verify}</button></div>
-            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between"}}><span>{t.withdrawChannel} 77 ANKH</span><button onClick={()=>setBalance(b=>b+77)} style={{background:"#FACC15", border:"none", padding:"6px 12px", borderRadius:8, fontWeight:800}}>{t.verify}</button></div>
-            {[3,15,30,50,100,250].map(n=><div key={n} style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between"}}><span>{t.invite} {n} {t.persons}</span><span style={{color:"#888"}}>0/{n}</span></div>)}
+
+            {/* قناة الاخبار */}
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+              <div><div style={{fontSize:13, fontWeight:800}}>{t.newsChannel}</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div>
+              <div>
+                {!taskStatus["news"] && <button onClick={()=>handleTaskGo("news","https://t.me/ANKH_News")} style={{background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:"8px 14px", borderRadius:8, fontWeight:800, fontSize:12}}>{t.go} ↗</button>}
+                {taskStatus["news"]==="gone" && <span style={{background:"#333", color:"#888", padding:"8px 12px", borderRadius:8, fontSize:11}}>... {t.verify}</span>}
+                {taskStatus["news"]==="verify" && <button onClick={()=>handleTaskVerify("news",77)} style={{background:"#FACC15", color:"#000", padding:"8px 14px", borderRadius:8, fontWeight:800, fontSize:12, border:"none"}}>{t.verify}</button>}
+                {taskStatus["news"]==="claimed" && <span style={{background:"#22c55e", color:"#000", padding:"6px 12px", borderRadius:8, fontSize:11, fontWeight:800}}>✓</span>}
+              </div>
+            </div>
+
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+              <div><div style={{fontSize:13, fontWeight:800}}>{t.withdrawChannel}</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div>
+              <div>
+                {!taskStatus["withdraw_ch"] && <button onClick={()=>handleTaskGo("withdraw_ch","https://t.me/ANKH_withdraws")} style={{background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:"8px 14px", borderRadius:8, fontWeight:800, fontSize:12}}>{t.go} ↗</button>}
+                {taskStatus["withdraw_ch"]==="verify" && <button onClick={()=>handleTaskVerify("withdraw_ch",77)} style={{background:"#FACC15", color:"#000", padding:"8px 14px", borderRadius:8, fontWeight:800, fontSize:12, border:"none"}}>{t.verify}</button>}
+                {taskStatus["withdraw_ch"]==="claimed" && <span style={{background:"#22c55e", color:"#000", padding:"6px 12px", borderRadius:8, fontSize:11, fontWeight:800}}>✓</span>}
+              </div>
+            </div>
+
+            {[3,15,30,50,100,250].map(n=>{
+              const id = `invite_${n}`;
+              const reward = n===3?150:n===15?1250:n===30?2750:n===50?4650:n===100?7490:9850;
+              return (
+                <div key={n} style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                  <div><div style={{fontSize:13, fontWeight:800}}>{t.invite} {n} {t.persons}</div><div style={{fontSize:11, color:"#FACC15"}}>{reward} ANKH</div></div>
+                  <div style={{display:"flex", alignItems:"center", gap:8}}>
+                    {!taskStatus[id] && <><button onClick={()=>handleTaskGo(id,"#")} style={{background:"#1A1A1A", border:"1px solid #333", color:"#fff", padding:"8px 12px", borderRadius:8, fontSize:11}}>{t.go}</button><span style={{fontSize:10, color:"#666"}}>0/{n}</span></>}
+                    {taskStatus[id]==="verify" && <button onClick={()=>handleTaskVerify(id,reward)} style={{background:"#FACC15", color:"#000", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>{t.claimTask}</button>}
+                    {taskStatus[id]==="claimed" && <span style={{background:"#22c55e", color:"#000", padding:"6px 12px", borderRadius:8, fontSize:11}}>✓</span>}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
 
