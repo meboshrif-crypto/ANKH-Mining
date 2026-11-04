@@ -14,10 +14,6 @@ export default function Page() {
   const [connected, setConnected] = useState(false);
   const [verified, setVerified] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
-  
-  // Staking States
-  const [stakeAmount, setStakeAmount] = useState("");
-  const [stakePeriod, setStakePeriod] = useState("30");
 
   const getRequiredForLevel = (targetLevel: number) => {
     if (targetLevel <= 1) return 0;
@@ -71,17 +67,6 @@ export default function Page() {
     }, 2000);
   };
 
-  const getAPR = () => {
-    if(stakePeriod === "30") return 15;
-    if(stakePeriod === "90") return 25;
-    return 35;
-  };
-
-  const getStakeReturn = () => {
-    const amt = Number(stakeAmount) || 0;
-    return amt + (amt * getAPR() / 100);
-  };
-
   return (
     <div style={{minHeight:"100vh", background:"#050505", color:"#fff", paddingBottom:90, fontFamily:"sans-serif"}}>
       <div style={{display:"flex", gap:8, padding:16}}>
@@ -93,157 +78,92 @@ export default function Page() {
       <div style={{padding:20, display:"flex", flexDirection:"column", alignItems:"center"}}>
         {tab==="mining" && (
           <>
-            <img src="/ankh-coin.png" alt="ANKH" style={{width:200, height:200, borderRadius:"50%", objectFit:"cover", boxShadow:"0 0 80px rgba(250,204,21,0.5)", border:"2px solid rgba(250,204,21,0.3)"}} />
-            <div style={{marginTop:22, color:"#FACC15", letterSpacing:5, fontSize:11, fontWeight:800}}>ANKH COIN</div>
-            <div style={{fontSize:54, fontWeight:900, marginTop:6}}>{balance.toFixed(2)}</div>
-            <div style={{display:"flex", gap:14, marginTop:6, fontSize:12, color:"#777"}}><span>Level {level}/500</span><span style={{color:"#FACC15"}}>{miningRate}/h</span><span>Next: {getRequiredForLevel(level+1).toLocaleString()}</span></div>
-            <div style={{marginTop:10, width:"100%", maxWidth:320, height:6, background:"#1A1A1A", borderRadius:10, overflow:"hidden"}}><div style={{width:`${Math.min(100, (balance/(getRequiredForLevel(level+1)||160))*100)}%`, height:"100%", background:"#FACC15"}}></div></div>
-            <button onClick={startMining} disabled={!canMine || mining} style={{marginTop:26, width:"100%", maxWidth:360, background: !canMine ? "#1A1A1A" : mining ? "#333" : "#FACC15", color: !canMine ? "#555" : mining ? "#888" : "#000", fontWeight:900, padding:18, borderRadius:16, fontSize:16, border:"none"}}>{!canMine ? `Next: ${countdown}` : mining ? "Mining..." : `START MINING ${miningRate}/h`}</button>
+            <div style={{width:190, height:190, borderRadius:"50%", background:"linear-gradient(180deg, #FACC15, #854D0E)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:80, boxShadow:"0 0 70px rgba(250,204,21,0.35)"}}>☥</div>
+            <div style={{marginTop:20, color:"#FACC15", letterSpacing:5, fontSize:11, fontWeight:800}}>ANKH COIN</div>
+            <div style={{fontSize:52, fontWeight:900, marginTop:6}}>{balance.toFixed(2)}</div>
+            <div style={{display:"flex", gap:12, marginTop:8, fontSize:12, color:"#666"}}>
+              <span>Level {level}/500</span>
+              <span style={{color:"#FACC15"}}>{miningRate}/h</span>
+            </div>
+            <div style={{marginTop:6, fontSize:11, color:"#555"}}>Next: {getRequiredForLevel(level+1).toLocaleString()} ANKH</div>
+            <div style={{marginTop:10, width:"100%", maxWidth:320, height:6, background:"#1A1A1A", borderRadius:10, overflow:"hidden"}}>
+              <div style={{width:`${Math.min(100, (balance / (getRequiredForLevel(level+1)||160))*100)}%`, height:"100%", background:"#FACC15"}}></div>
+            </div>
+            <button onClick={startMining} disabled={!canMine || mining} style={{marginTop:28, width:"100%", maxWidth:360, background: !canMine ? "#222" : mining ? "#333" : "#FACC15", color: !canMine ? "#666" : mining ? "#888" : "#000", fontWeight:900, padding:18, borderRadius:16, fontSize:16, border:"none"}}>
+              {!canMine ? `Next in ${countdown}` : mining ? `Mining...` : `START MINING ${miningRate}/h (24h)`}
+            </button>
           </>
         )}
 
         {tab==="store" && (
           <div style={{width:"100%", maxWidth:380}}>
-            <h2 style={{fontWeight:900, color:"#FACC15", fontSize:20}}>Store - Boosters</h2>
-            <div style={{marginTop:12, background:"#111", border:"1px solid #222", borderRadius:16, padding:16, display:"flex", justifyContent:"space-between"}}><span>1.5x - 50 ANKH</span><button style={{background:"#FACC15", border:"none", padding:"6px 12px", borderRadius:8, fontWeight:800}}>Buy</button></div>
+            <h2 style={{fontWeight:900, fontSize:20, color:"#FACC15"}}>Store</h2>
+            <div style={{marginTop:12, background:"#111", border:"1px solid #222", borderRadius:16, padding:16, display:"flex", justifyContent:"space-between"}}><span>1.5x Boost - 50 ANKH</span><button style={{background:"#FACC15", border:"none", padding:"6px 12px", borderRadius:8, fontWeight:800}}>Buy</button></div>
           </div>
         )}
 
         {tab==="list" && (
-  <div style={{width:"100%", maxWidth:410, display:"flex", flexDirection:"column", gap:14}}>
-    
-    {/* === تسجيل الدخول اليومي 30 يوم === */}
-    <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.3)", borderRadius:20, padding:16}}>
-      <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>📅 تسجيل دخول يومي - 30 يوم</h2>
-      <p style={{fontSize:10, color:"#666", marginTop:4}}>لو فوت يوم واحد ترجع من اليوم الاول تاني!</p>
-      
-      <div style={{display:"grid", gridTemplateColumns:"repeat(6, 1fr)", gap:6, marginTop:12}}>
-        {[
-          9,14,23,31,42,55,68,77,89,102,
-          115,130,145,162,180,199,219,240,262,285,
-          309,334,360,387,415,444,474,505,537,600
-        ].map((reward, i)=>{
-          const day = i+1;
-          const isDone = false; // هتربطها بعدين بـ localStorage
-          const isToday = day === 1;
-          return (
-            <div key={day} style={{background: isDone ? "rgba(250,204,21,0.2)" : isToday ? "#FACC15" : "#000", border:`1px solid ${isDone ? "#FACC15" : "#222"}`, borderRadius:10, padding:"8px 0", textAlign:"center"}}>
-              <div style={{fontSize:9, color: isToday ? "#000" : "#666"}}>يوم {day}</div>
-              <div style={{fontSize:12, fontWeight:900, color: isToday ? "#000" : isDone ? "#FACC15" : "#fff", marginTop:2}}>{reward}</div>
-              <div style={{fontSize:8, color: isToday ? "#000" : "#444"}}>{isDone ? "✓" : "ANKH"}</div>
+          <div style={{width:"100%", maxWidth:410, display:"flex", flexDirection:"column", gap:14}}>
+            <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.3)", borderRadius:20, padding:16}}>
+              <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>📅 تسجيل دخول يومي - 30 يوم</h2>
+              <p style={{fontSize:10, color:"#666", marginTop:4}}>لو فوت يوم ترجع من الاول!</p>
+              <div style={{display:"grid", gridTemplateColumns:"repeat(6, 1fr)", gap:6, marginTop:12}}>
+                {[9,14,23,31,42,55,68,77,89,102,115,130,145,162,180,199,219,240,262,285,309,334,360,387,415,444,474,505,537,600].map((reward, i)=>{
+                  const day = i+1;
+                  return (
+                    <div key={day} style={{background:"#000", border:"1px solid #222", borderRadius:10, padding:"8px 0", textAlign:"center"}}>
+                      <div style={{fontSize:9, color:"#666"}}>يوم {day}</div>
+                      <div style={{fontSize:12, fontWeight:900, color:"#fff", marginTop:2}}>{reward}</div>
+                    </div>
+                  )
+                })}
+              </div>
+              <button onClick={()=>{
+                const rewards = [9,14,23,31,42,55,68,77,89,102,115,130,145,162,180,199,219,240,262,285,309,334,360,387,415,444,474,505,537,600];
+                const dayIndex = Number(localStorage.getItem("ankh_daily_day") || "0");
+                const reward = rewards[dayIndex] || 9;
+                setBalance(b=>b+reward);
+                localStorage.setItem("ankh_daily_day", String((dayIndex+1)%30));
+                localStorage.setItem("ankh_daily_last", String(Date.now()));
+                alert(`يوم ${dayIndex+1} - ربحت ${reward} ANKH`);
+              }} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>تسجيل اليوم</button>
             </div>
-          )
-        })}
-      </div>
 
-      <button onClick={()=>{
-        const rewards = [9,14,23,31,42,55,68,77,89,102,115,130,145,162,180,199,219,240,262,285,309,334,360,387,415,444,474,505,537,600];
-        const dayIndex = Number(localStorage.getItem("ankh_daily_day") || "0");
-        const reward = rewards[dayIndex] || 9;
-        setBalance(b=>b+reward);
-        localStorage.setItem("ankh_daily_day", String((dayIndex+1)%30));
-        localStorage.setItem("ankh_daily_last", String(Date.now()));
-        alert(`تم تسجيل اليوم ${dayIndex+1} - ربحت ${reward} ANKH`);
-      }} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>تسجيل دخول اليوم - احصل على المكافأة</button>
-    </div>
-
-    <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>📋 المهام الأساسية</h2>
-
-    {/* 1 - قناة الاخبار 77 */}
-    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-      <div><div style={{fontSize:13, fontWeight:800}}>الاشتراك في قناة الاخبار</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div>
-      <div style={{display:"flex", gap:6}}>
-        <a href="https://t.me/ANKH_News" target="_blank" style={{background:"#1A1A1A", border:"1px solid #333", color:"#aaa", padding:"8px 10px", borderRadius:8, fontSize:11, textDecoration:"none"}}>اشتراك</a>
-        <button onClick={()=>{ setBalance(b=>b+77); }} style={{background:"#FACC15", color:"#000", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>تحقق</button>
-      </div>
-    </div>
-
-    {/* 2 - قناة السحب 77 */}
-    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-      <div><div style={{fontSize:13, fontWeight:800}}>الاشتراك في قناة السحب</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div>
-      <div style={{display:"flex", gap:6}}>
-        <a href="https://t.me/ANKH_withdraws" target="_blank" style={{background:"#1A1A1A", border:"1px solid #333", color:"#aaa", padding:"8px 10px", borderRadius:8, fontSize:11, textDecoration:"none"}}>اشتراك</a>
-        <button onClick={()=>{ setBalance(b=>b+77); }} style={{background:"#FACC15", color:"#000", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>تحقق</button>
-      </div>
-    </div>
-
-    {/* 3 - 3 اشخاص ليفل 2 - 150 */}
-    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-      <div><div style={{fontSize:13, fontWeight:800}}>ادع 3 أشخاص ليفل 2</div><div style={{fontSize:11, color:"#666"}}>لا يحسب إلا لو وصل ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>150 ANKH</div></div>
-      <button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/3</button>
-    </div>
-
-    {/* 4 - 15 شخص - 1250 */}
-    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-      <div><div style={{fontSize:13, fontWeight:800}}>ادع 15 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>1250 ANKH</div></div>
-      <button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/15</button>
-    </div>
-
-    {/* 5 - 30 شخص - 2750 */}
-    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-      <div><div style={{fontSize:13, fontWeight:800}}>ادع 30 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>2750 ANKH</div></div>
-      <button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/30</button>
-    </div>
-
-    {/* 6 - 50 شخص - 4650 */}
-    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-      <div><div style={{fontSize:13, fontWeight:800}}>ادع 50 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>4650 ANKH</div></div>
-      <button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/50</button>
-    </div>
-
-    {/* 7 - 100 شخص - 7490 */}
-    <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-      <div><div style={{fontSize:13, fontWeight:800}}>ادع 100 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>7490 ANKH</div></div>
-      <button style={{background:"#222", color:"#888", border:"none", padding:"8
+            <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>📋 المهام</h2>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+              <div><div style={{fontSize:13, fontWeight:800}}>قناة الاخبار</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div>
+              <div style={{display:"flex", gap:6}}>
+                <a href="https://t.me/ANKH_News" target="_blank" style={{background:"#1A1A1A", border:"1px solid #333", color:"#aaa", padding:"8px 10px", borderRadius:8, fontSize:11, textDecoration:"none"}}>اشتراك</a>
+                <button onClick={()=>setBalance(b=>b+77)} style={{background:"#FACC15", color:"#000", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>تحقق</button>
+              </div>
+            </div>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+              <div><div style={{fontSize:13, fontWeight:800}}>قناة السحب</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div>
+              <div style={{display:"flex", gap:6}}>
+                <a href="https://t.me/ANKH_withdraws" target="_blank" style={{background:"#1A1A1A", border:"1px solid #333", color:"#aaa", padding:"8px 10px", borderRadius:8, fontSize:11, textDecoration:"none"}}>اشتراك</a>
+                <button onClick={()=>setBalance(b=>b+77)} style={{background:"#FACC15", color:"#000", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>تحقق</button>
+              </div>
+            </div>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}><div><div style={{fontSize:13, fontWeight:800}}>ادع 3 اشخاص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>150 ANKH</div></div><button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/3</button></div>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}><div><div style={{fontSize:13, fontWeight:800}}>ادع 15 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>1250 ANKH</div></div><button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/15</button></div>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}><div><div style={{fontSize:13, fontWeight:800}}>ادع 30 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>2750 ANKH</div></div><button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/30</button></div>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}><div><div style={{fontSize:13, fontWeight:800}}>ادع 50 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>4650 ANKH</div></div><button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/50</button></div>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}><div><div style={{fontSize:13, fontWeight:800}}>ادع 100 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>7490 ANKH</div></div><button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/100</button></div>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}><div><div style={{fontSize:13, fontWeight:800}}>ادع 250 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>9850 ANKH</div></div><button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/250</button></div>
+          </div>
+        )}
 
         {tab==="friends" && (
           <div style={{width:"100%", maxWidth:380, background:"#111", border:"1px solid rgba(250,204,21,0.2)", borderRadius:24, padding:20}}>
             <h2 style={{fontSize:20, fontWeight:900, color:"#FACC15"}}>Referral 5%</h2>
             <button onClick={()=>navigator.clipboard.writeText(`https://t.me/ANKH_Mining_bot?start=${refCode}`)} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:800, padding:12, borderRadius:12, border:"none"}}>Copy: {refCode}</button>
-            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:12}}>
-              <div style={{background:"#000", borderRadius:12, padding:12, border:"1px solid #222"}}><div style={{fontSize:11, color:"#666"}}>Invited</div><div style={{fontWeight:900, fontSize:20}}>0</div></div>
-              <div style={{background:"#000", borderRadius:12, padding:12, border:"1px solid #222"}}><div style={{fontSize:11, color:"#666"}}>Earnings</div><div style={{fontWeight:900, fontSize:20, color:"#FACC15"}}>+0.00</div></div>
-            </div>
           </div>
         )}
 
         {tab==="wallet" && (
-          <div style={{width:"100%", maxWidth:400, display:"flex", flexDirection:"column", gap:16}}>
-            {/* STAKING CALCULATOR FIRST */}
-            <div style={{background:"#111", border:"1px solid #FACC15", borderRadius:24, padding:20}}>
-              <h2 style={{fontWeight:900, fontSize:18, color:"#FACC15"}}>🔒 Staking Calculator</h2>
-              <div style={{display:"flex", gap:8, marginTop:14}}>
-                {[
-                  {id:"30", label:"30D", apr:"15%"},
-                  {id:"90", label:"90D", apr:"25%"},
-                  {id:"120", label:"120D", apr:"35%"},
-                ].map(p=>(
-                  <button key={p.id} onClick={()=>setStakePeriod(p.id)} style={{flex:1, padding:12, borderRadius:12, border:"1px solid", borderColor: stakePeriod===p.id ? "#FACC15" : "#222", background: stakePeriod===p.id ? "rgba(250,204,21,0.15)" : "#000", color: stakePeriod===p.id ? "#FACC15" : "#888", fontWeight:800}}>
-                    <div style={{fontSize:14}}>{p.label}</div><div style={{fontSize:11, marginTop:2}}>{p.apr}</div>
-                  </button>
-                ))}
-              </div>
-              <input value={stakeAmount} onChange={e=>setStakeAmount(e.target.value)} placeholder="Amount ANKH" type="number" style={{marginTop:14, width:"100%", background:"#000", border:"1px solid #222", borderRadius:12, padding:14, color:"#fff", boxSizing:"border-box"}} />
-              <div style={{marginTop:12, background:"#000", border:"1px solid #222", borderRadius:12, padding:14}}>
-                <div style={{display:"flex", justifyContent:"space-between", fontSize:12, color:"#888"}}><span>You Stake:</span><span style={{color:"#fff"}}>{stakeAmount || 0} ANKH</span></div>
-                <div style={{display:"flex", justifyContent:"space-between", fontSize:12, color:"#888", marginTop:8}}><span>APR ({getAPR()}%):</span><span style={{color:"#FACC15"}}>+{((Number(stakeAmount)||0)*getAPR()/100).toFixed(2)} ANKH</span></div>
-                <div style={{height:1, background:"#222", margin:"10px 0"}}></div>
-                <div style={{display:"flex", justifyContent:"space-between", fontSize:14, fontWeight:900}}><span>You Receive:</span><span style={{color:"#FACC15"}}>{getStakeReturn().toFixed(2)} ANKH</span></div>
-              </div>
-              <button style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:14, borderRadius:12, border:"none"}}>Stake Now</button>
-            </div>
-
-            {/* WALLET SECOND */}
-            <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.2)", borderRadius:24, padding:20}}>
-              <h2 style={{fontWeight:900}}>Wallet</h2>
-              {!connected ? <button onClick={()=>setConnected(true)} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:14, borderRadius:12, border:"none"}}>Connect Tonkeeper</button> : <>
-                <div style={{marginTop:10, fontFamily:"monospace", fontSize:12, color:"#FACC15"}}>UQ...{refCode.slice(-4)} Connected ✓</div>
-                {!verified ? <button onClick={()=>setVerified(true)} style={{marginTop:10, width:"100%", border:"1px solid #FACC15", color:"#FACC15", background:"transparent", padding:12, borderRadius:12}}>Verify 0.05 GRAM</button> : <div style={{marginTop:8, color:"#22c55e", fontSize:12}}>✓ Verified</div>}
-                <input value={withdrawAmount} onChange={e=>setWithdrawAmount(e.target.value)} placeholder="0.00" style={{marginTop:14, width:"100%", background:"#000", border:"1px solid #222", borderRadius:12, padding:12, color:"#fff", boxSizing:"border-box"}} />
-                <div style={{display:"flex", gap:6, marginTop:8}}>{["25%","50%","75%","100%"].map(p=><button key={p} onClick={()=>setWithdrawAmount(String((balance*parseInt(p)/100).toFixed(2)))} style={{flex:1, background:"#222", border:"none", color:"#aaa", padding:6, borderRadius:6, fontSize:11}}>{p}</button>)}</div>
-                <button style={{marginTop:8, width:"100%", background:"rgba(250,204,21,0.15)", color:"#FACC15", border:"1px solid rgba(250,204,21,0.3)", padding:14, borderRadius:12, fontWeight:900}}>Withdraw (Min 10k - 5% Fee)</button>
-              </>}
-            </div>
+          <div style={{width:"100%", maxWidth:380, background:"#111", border:"1px solid rgba(250,204,21,0.2)", borderRadius:24, padding:20}}>
+            <h2 style={{fontWeight:900}}>Wallet</h2>
+            {!connected ? <button onClick={()=>setConnected(true)} style={{marginTop:16, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:14, borderRadius:12, border:"none"}}>Connect</button> : <div style={{marginTop:12, color:"#22c55e"}}>✓ Connected {refCode.slice(-4)}</div>}
           </div>
         )}
       </div>
