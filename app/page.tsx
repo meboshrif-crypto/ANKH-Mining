@@ -9,7 +9,6 @@ export default function Page() {
   const [walletBalance, setWalletBalance] = useState(0);
   const [level, setLevel] = useState(0);
   const [mining, setMining] = useState(false);
-  const [miningRate] = useState(0.25);
   const [refCode, setRefCode] = useState("ANKH-000000");
   const [lastMine, setLastMine] = useState(0);
   const [countdown, setCountdown] = useState("");
@@ -17,17 +16,21 @@ export default function Page() {
   const [verified, setVerified] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
 
-  // --- جديد للمتجر ---
   const [selectedGram, setSelectedGram] = useState(1);
   const [gramTx, setGramTx] = useState("");
   const [gramPrice, setGramPrice] = useState<number | null>(null);
-  const [ankhPriceGram] = useState(0.006666); // لما تحط سيولة ANKH/GRAM هيتغير السعر اوتوماتيك
+  const [ankhPriceGram] = useState(0.006666);
   const FALLBACK_RATE = 150;
+
+  // جديد
+  const [showLevels, setShowLevels] = useState(false);
+  const [invitedFriends, setInvitedFriends] = useState<any[]>([]);
 
   const getRequiredForLevel = (targetLevel: number) => {
     if (targetLevel <= 1) return 0;
     return 70 * targetLevel * targetLevel - 40 * targetLevel - 40;
   };
+  const getMiningRate = (lvl: number) => 0.25 + lvl * 0.05;
 
   useEffect(() => {
     const fetchPrices = async () => {
@@ -52,10 +55,21 @@ export default function Page() {
       const wb = window.localStorage.getItem("ankh_wallet");
       const l = window.localStorage.getItem("ankh_level");
       const last = window.localStorage.getItem("ankh_last");
+      const invites = window.localStorage.getItem("ankh_invites");
       if(b) setBalance(Number(b));
       if(wb) setWalletBalance(Number(wb));
       if(l) setLevel(Number(l));
       if(last) setLastMine(Number(last));
+      if(invites) setInvitedFriends(JSON.parse(invites));
+      else {
+        // بيانات تجريبية لحد ما تربط بوت تليجرام
+        const demo = [
+          {id:1, name:"Ahmed", username:"@ahmed", level:0},
+          {id:2, name:"Sara", username:"@sara", level:3},
+          {id:3, name:"Mido", username:"@mido", level:12},
+        ];
+        setInvitedFriends(demo);
+      }
     } catch {}
   }, []);
 
@@ -65,7 +79,7 @@ export default function Page() {
 
   useEffect(() => {
     const int = setInterval(() => {
-      if(!lastMine) return;
+      if(!lastMine) { setCountdown(""); return; }
       const diff = lastMine + 86400000 - Date.now();
       if(diff <= 0) setCountdown("");
       else {
@@ -83,9 +97,9 @@ export default function Page() {
   const startMining = () => {
     if(!canMine || mining) return;
     setMining(true);
+    const rate = getMiningRate(level);
     setTimeout(() => {
-      const newBal = balance + miningRate;
-      setBalance(newBal);
+      setBalance(prev => prev + rate);
       const now = Date.now();
       setLastMine(now);
       if(typeof window!=="undefined") window.localStorage.setItem("ankh_last", String(now));
@@ -104,8 +118,10 @@ export default function Page() {
   };
 
   const needForNext = Math.max(0, getRequiredForLevel(level+1) - walletBalance);
+  const currentRate = getMiningRate(level);
   const calculatedAnkh = selectedGram / ankhPriceGram;
   const displayRate = gramPrice ? (1/ankhPriceGram).toFixed(0) : FALLBACK_RATE.toString();
+  const inviteLink = `https://t.me/ANKH_Mining_bot?start=${refCode}`;
 
   return (
     <div style={{minHeight:"100vh", background:"#050505", color:"#fff", paddingBottom:90, fontFamily:"sans-serif"}}>
@@ -122,6 +138,11 @@ export default function Page() {
             <div style={{marginTop:20, color:"#FACC15", letterSpacing:5, fontSize:11, fontWeight:800}}>ANKH COIN</div>
             <div style={{fontSize:42, fontWeight:900, marginTop:6}}>{balance.toFixed(2)} ANKH</div>
             <div style={{fontSize:11, color:"#666"}}>رصيد البوت - قابل للاستلام</div>
+            <div style={{marginTop:10, background:"#111", border:"1px solid rgba(250,204,21,0.3)", borderRadius:20, padding:"8px 14px", display:"flex", gap:8, fontSize:12, alignItems:"center"}}>
+              <span style={{color:"#888"}}>سرعة التعدين:</span>
+              <span style={{color:"#FACC15", fontWeight:900}}>{currentRate.toFixed(2)}/h</span>
+              <span style={{background:"#222", padding:"2px 8px", borderRadius:10, fontSize:10}}>Level {level}</span>
+            </div>
             <div style={{display:"flex", gap:10, width:"100%", maxWidth:360, marginTop:20}}>
               <button onClick={startMining} disabled={!canMine || mining} style={{flex:1, background: !canMine ? "#222" : mining ? "#333" : "#FACC15", color: !canMine ? "#666" : mining ? "#888" : "#000", fontWeight:900, padding:16, borderRadius:14, fontSize:14, border:"none"}}>
                 {!canMine ? `Next ${countdown}` : mining ? `Mining...` : `ابدأ التعدين`}
@@ -135,6 +156,28 @@ export default function Page() {
               <div style={{marginTop:8, fontSize:12, color:"#FACC15", fontWeight:800, textAlign:"center"}}>باقي {needForNext.toFixed(2)} ANKH لليفل {level+1}</div>
             </div>
             <div style={{marginTop:12, width:"100%", maxWidth:360, background:"rgba(250,204,21,0.08)", border:"1px dashed rgba(250,204,21,0.3)", borderRadius:10, padding:10, fontSize:10, color:"#aaa", textAlign:"center", lineHeight:1.6}}>⚠️ ملاحظة: العملات الموجودة في البوت لا تؤثر على المستوى<br/>فقط العملات الموجودة في المحفظة بعد الضغط على استلام هي التي يتم احتسابها لرفع المستوى</div>
+
+            {/* مستويات 1-500 */}
+            <button onClick={()=>setShowLevels(!showLevels)} style={{marginTop:18, width:"100%", maxWidth:360, background:"#111", border:"1px solid #222", color:"#FACC15", fontWeight:800, padding:12, borderRadius:12, fontSize:13}}>{showLevels ? "اخفاء المستويات ▲" : "عرض المستويات 1-500 + سرعة التعدين ▼"}</button>
+            {showLevels && (
+              <div style={{marginTop:12, width:"100%", maxWidth:390, background:"#111", border:"1px solid #222", borderRadius:16, padding:12, maxHeight:400, overflowY:"auto"}}>
+                <div style={{display:"flex", justifyContent:"space-between", fontSize:10, color:"#666", padding:"0 8px 8px", borderBottom:"1px solid #222"}}><span>LEVEL</span><span>المطلوب</span><span>السرعة</span></div>
+                {Array.from({length:500}, (_,i)=>{
+                  const lvl = i+1;
+                  const req = getRequiredForLevel(lvl);
+                  const rate = getMiningRate(lvl-1).toFixed(2);
+                  const isCurrent = lvl === level+1;
+                  const passed = lvl <= level;
+                  return (
+                    <div key={lvl} style={{display:"flex", justifyContent:"space-between", fontSize:11, padding:"6px 8px", borderRadius:8, marginTop:2, background: isCurrent ? "rgba(250,204,21,0.15)" : passed ? "#0F0F0F" : "transparent", border: isCurrent ? "1px solid #FACC15" : "1px solid transparent", color: passed ? "#555" : "#fff"}}>
+                      <span>{passed ? "✓ " : isCurrent ? "→ " : ""}Level {lvl}</span>
+                      <span style={{color: isCurrent ? "#FACC15" : "#aaa"}}>{req.toLocaleString()}</span>
+                      <span style={{color: isCurrent ? "#FACC15" : "#888"}}>{rate}/h</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </>
         )}
 
@@ -155,18 +198,16 @@ export default function Page() {
               <div style={{marginTop:14, background:"#000", border:"1px solid #222", borderRadius:12, padding:12, textAlign:"center"}}>
                 <div style={{fontSize:11, color:"#888"}}>هتستلم</div>
                 <div style={{fontSize:24, fontWeight:900, color:"#FACC15", marginTop:2}}>{Math.floor(calculatedAnkh).toLocaleString()} ANKH</div>
-                <div style={{fontSize:10, color:"#555", marginTop:2}}>مقابل {selectedGram} GRAM</div>
               </div>
               <div style={{marginTop:14}}>
                 <div style={{fontSize:11, color:"#aaa", marginBottom:6}}>عنوان الدفع (StonFi / TonKeeper)</div>
-                <input value={gramTx} onChange={e=>setGramTx(e.target.value)} placeholder="UQ... TonKeeper / StonFi / Tx Hash" style={{width:"100%", background:"#0A0A0A", border:"1px solid #222", borderRadius:10, padding:12, color:"#fff", fontSize:12, outline:"none"}}/>
+                <input value={gramTx} onChange={e=>setGramTx(e.target.value)} placeholder="UQ... TonKeeper / StonFi" style={{width:"100%", background:"#0A0A0A", border:"1px solid #222", borderRadius:10, padding:12, color:"#fff", fontSize:12, outline:"none"}}/>
               </div>
               <div style={{display:"flex", gap:8, marginTop:12}}>
                 <a href="https://app.ston.fi" target="_blank" style={{flex:1, background:"#1A1A1A", border:"1px solid #333", color:"#fff", textAlign:"center", padding:12, borderRadius:10, fontSize:11, fontWeight:700, textDecoration:"none"}}>💎 StonFi</a>
                 <a href="https://tonkeeper.com" target="_blank" style={{flex:1, background:"#1A1A1A", border:"1px solid #333", color:"#fff", textAlign:"center", padding:12, borderRadius:10, fontSize:11, fontWeight:700, textDecoration:"none"}}>👛 TonKeeper</a>
               </div>
-              <button onClick={()=>{ if(!gramTx) return alert("ادخل بيانات الدفع الاول"); alert(`طلب شراء ${selectedGram} GRAM = ${Math.floor(calculatedAnkh).toLocaleString()} ANKH`); }} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:14, borderRadius:12, border:"none"}}>تأكيد شراء {selectedGram} GRAM</button>
-              <div style={{marginTop:10, fontSize:9, color:"#666", textAlign:"center"}}>اقل شراء 1 GRAM • السعر يحسب اوتوماتيك من بول ANKH/GRAM</div>
+              <button onClick={()=>{ if(!gramTx) return alert("ادخل بيانات الدفع الاول"); alert(`طلب شراء ${selectedGram} GRAM`); }} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:14, borderRadius:12, border:"none"}}>تأكيد شراء {selectedGram} GRAM</button>
             </div>
           </div>
         )}
@@ -199,22 +240,9 @@ export default function Page() {
                 alert(`يوم ${dayIndex+1} - ربحت ${reward} ANKH`);
               }} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none"}}>تسجيل اليوم</button>
             </div>
-
             <h2 style={{fontWeight:900, fontSize:16, color:"#FACC15"}}>📋 المهام</h2>
-            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-              <div><div style={{fontSize:13, fontWeight:800}}>قناة الاخبار</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div>
-              <div style={{display:"flex", gap:6}}>
-                <a href="https://t.me/ANKH_News" target="_blank" style={{background:"#1A1A1A", border:"1px solid #333", color:"#aaa", padding:"8px 10px", borderRadius:8, fontSize:11, textDecoration:"none"}}>اشتراك</a>
-                <button onClick={()=>setBalance(b=>b+77)} style={{background:"#FACC15", color:"#000", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>تحقق</button>
-              </div>
-            </div>
-            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-              <div><div style={{fontSize:13, fontWeight:800}}>قناة السحب</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div>
-              <div style={{display:"flex", gap:6}}>
-                <a href="https://t.me/ANKH_withdraws" target="_blank" style={{background:"#1A1A1A", border:"1px solid #333", color:"#aaa", padding:"8px 10px", borderRadius:8, fontSize:11, textDecoration:"none"}}>اشتراك</a>
-                <button onClick={()=>setBalance(b=>b+77)} style={{background:"#FACC15", color:"#000", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>تحقق</button>
-              </div>
-            </div>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}><div><div style={{fontSize:13, fontWeight:800}}>قناة الاخبار</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div><div style={{display:"flex", gap:6}}><a href="https://t.me/ANKH_News" target="_blank" style={{background:"#1A1A1A", border:"1px solid #333", color:"#aaa", padding:"8px 10px", borderRadius:8, fontSize:11, textDecoration:"none"}}>اشتراك</a><button onClick={()=>setBalance(b=>b+77)} style={{background:"#FACC15", color:"#000", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>تحقق</button></div></div>
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}><div><div style={{fontSize:13, fontWeight:800}}>قناة السحب</div><div style={{fontSize:11, color:"#FACC15"}}>77 ANKH</div></div><div style={{display:"flex", gap:6}}><a href="https://t.me/ANKH_withdraws" target="_blank" style={{background:"#1A1A1A", border:"1px solid #333", color:"#aaa", padding:"8px 10px", borderRadius:8, fontSize:11, textDecoration:"none"}}>اشتراك</a><button onClick={()=>setBalance(b=>b+77)} style={{background:"#FACC15", color:"#000", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>تحقق</button></div></div>
             <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}><div><div style={{fontSize:13, fontWeight:800}}>ادع 3 اشخاص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>150 ANKH</div></div><button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/3</button></div>
             <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}><div><div style={{fontSize:13, fontWeight:800}}>ادع 15 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>1250 ANKH</div></div><button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/15</button></div>
             <div style={{background:"#111", border:"1px solid #222", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center"}}><div><div style={{fontSize:13, fontWeight:800}}>ادع 30 شخص ليفل 2</div><div style={{fontSize:11, color:"#FACC15"}}>2750 ANKH</div></div><button style={{background:"#222", color:"#888", border:"none", padding:"8px 12px", borderRadius:8, fontWeight:800, fontSize:11}}>0/30</button></div>
@@ -225,9 +253,62 @@ export default function Page() {
         )}
 
         {tab==="friends" && (
-          <div style={{width:"100%", maxWidth:380, background:"#111", border:"1px solid rgba(250,204,21,0.2)", borderRadius:24, padding:20}}>
-            <h2 style={{fontSize:20, fontWeight:900, color:"#FACC15"}}>Referral 5%</h2>
-            <button onClick={()=>navigator.clipboard.writeText(`https://t.me/ANKH_Mining_bot?start=${refCode}`)} style={{marginTop:12, width:"100%", background:"#FACC15", color:"#000", fontWeight:800, padding:12, borderRadius:12, border:"none"}}>Copy: {refCode}</button>
+          <div style={{width:"100%", maxWidth:400, display:"flex", flexDirection:"column", gap:14}}>
+            <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.4)", borderRadius:20, padding:16, textAlign:"center"}}>
+              <div style={{fontSize:22, fontWeight:900, color:"#FACC15"}}>5% للأبد ♾️</div>
+              <div style={{fontSize:11, color:"#888", marginTop:4}}>تاخد 5% من معدل تعدين كل صديق مؤهل مدى الحياة</div>
+            </div>
+
+            <div style={{background:"#111", border:"1px solid rgba(250,204,21,0.2)", borderRadius:20, padding:16}}>
+              <div style={{fontSize:12, color:"#888"}}>رمز الإحالة الخاص بك (من تليجرام)</div>
+              <div style={{marginTop:8, background:"#000", border:"1px solid #222", borderRadius:12, padding:12, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                <span style={{fontWeight:900, color:"#FACC15", fontSize:13}}>{refCode}</span>
+                <span style={{fontSize:10, color:"#555"}}>{inviteLink.slice(0,30)}...</span>
+              </div>
+              <div style={{display:"flex", gap:10, marginTop:12}}>
+                <button onClick={()=>{
+                  if(navigator.share) navigator.share({title:"ANKH Mining", text:`ادخل بوت ANKH وعدن معايا`, url: inviteLink});
+                  else navigator.clipboard.writeText(inviteLink);
+                }} style={{flex:1, background:"#FACC15", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none", fontSize:13}}>📤 مشاركة الرابط</button>
+                <button onClick={()=>{navigator.clipboard.writeText(inviteLink); alert("تم نسخ رابط الاحالة: "+inviteLink)}} style={{flex:1, background:"#fff", color:"#000", fontWeight:900, padding:12, borderRadius:12, border:"none", fontSize:13}}>📋 نسخ</button>
+              </div>
+              <div style={{marginTop:8, fontSize:10, color:"#666", textAlign:"center"}}>اللينك فيه رمز الاحالة بتاعك اوتوماتيك</div>
+            </div>
+
+            <div style={{background:"#111", border:"1px solid #222", borderRadius:20, padding:16}}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                <h3 style={{fontWeight:900, fontSize:14, color:"#fff"}}>👥 الأصدقاء المدعوين ({invitedFriends.length})</h3>
+                <span style={{fontSize:10, background:"#222", padding:"4px 8px", borderRadius:10, color:"#888"}}>مؤهل: {invitedFriends.filter(f=>f.level>=2).length}</span>
+              </div>
+
+              <div style={{marginTop:12, display:"flex", flexDirection:"column", gap:8}}>
+                {invitedFriends.length===0 && <div style={{fontSize:12, color:"#666", textAlign:"center", padding:20}}>لسه مدعتش حد - شارك رابطك</div>}
+                {invitedFriends.map(f=>{
+                  const qualified = f.level >= 2;
+                  const miningRateFriend = 0.25 + f.level * 0.05;
+                  const yourEarn = miningRateFriend * 0.05;
+                  return (
+                    <div key={f.id} style={{background: qualified ? "rgba(34,197,94,0.08)" : "#0A0A0A", border: qualified ? "1px solid rgba(34,197,94,0.3)" : "1px solid #222", borderRadius:12, padding:10, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                      <div style={{display:"flex", alignItems:"center", gap:8}}>
+                        <div style={{width:8, height:8, borderRadius:"50%", background: qualified ? "#22c55e" : "#555", boxShadow: qualified ? "0 0 8px #22c55e" : "none"}}></div>
+                        <div>
+                          <div style={{fontSize:13, fontWeight:700, color:"#fff"}}>{f.name} <span style={{fontSize:10, color:"#666"}}>{f.username}</span></div>
+                          <div style={{fontSize:10, color: qualified ? "#22c55e" : "#888"}}>Level {f.level} {qualified ? "• مؤهل ✓" : "• غير مؤهل (اقل من 2)"}</div>
+                        </div>
+                      </div>
+                      <div style={{textAlign:"right"}}>
+                        <div style={{fontSize:11, fontWeight:900, color: qualified ? "#22c55e" : "#555"}}>+{yourEarn.toFixed(3)}/h</div>
+                        <div style={{fontSize:9, color:"#666"}}>5% من {miningRateFriend.toFixed(2)}/h</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div style={{marginTop:12, background:"rgba(250,204,21,0.08)", border:"1px dashed rgba(250,204,21,0.2)", borderRadius:10, padding:8, fontSize:10, color:"#aaa", textAlign:"center"}}>
+                اللي اقل من Level 2 يعتبر غير مؤهل ومش هتاخد منه 5%<br/>اول ما يوصل Level 2 هيبقى جنبه نقطة خضرا 🟢 وهتاخد 5% من تعدينه للأبد
+              </div>
+            </div>
           </div>
         )}
 
