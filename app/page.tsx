@@ -34,7 +34,6 @@ const TRANSLATIONS: any = {
     need25: "محتاج 25% في المحفظة", withdrawBtn: "سحب", withdrawAll: "سحب الكل", disconnect: "🔌 فصل المحفظة", openWalletAuto: "يفتح المحفظة اوتوماتيك",
     nextStory: "متبقي", storyDone: "تم اليوم - ارجع بعد 24 ساعة", notCompleted: "لم يكتمل",
     withdrawHistory: "📜 سحوباتي", pending: "معلق ⏳", sent: "مرسلة ✅", oneWithdrawPerDay: "سحب واحد كل 24 ساعة", withdrawCountdown: "متبقي للسحب التالي:",
-    // اضافات LootVault
     totalMined: "إجمالي الرصيد المعدن", inGameNoLevel: "داخل اللعبة لا يؤثر على المستوى", activeMining: "التعدين النشط", workingNow: "يعمل الآن", rounds: "الدوريات", perHour: "في الساعة", daily: "يوميا", boost: "تعزيز", lvlUp: "في المحفظة إلى المستوى", levelRules: "قواعد مستويات التعدين", howLevelUp: "كيف ترتفع المستويات والسرعة؟", alert: "تنبيه", levelRises: "المستوى يرتفع حصرياً برصيد التوكن في محفظتك الشخصية:", botNotCount: "العملات داخل التطبيق لا تُحتسب للمستوى:", collect: "جمع ANKH", checkBlockchain: "تدقيق الرصيد على البلوكشين", verified: "تم التحقق من السجل على شبكة TON", confirmedAmount: "الكمية المؤكدة", currentMult: "المضاعف الفعلي", periods: "الفترات المحسوبة", swipeToCollect: "اسحب للجمع", cancel: "إلغاء"
   },
   en: {
@@ -268,6 +267,7 @@ export default function Page() {
   const calculatedAnkh = selectedGram / ankhPriceGram;
   const displayRate = gramPrice ? (1/ankhPriceGram).toFixed(0) : FALLBACK_RATE.toString();
   const inviteLink = `https://t.me/ANKH_Mining_bot?start=${refCode}`;
+  const progress = Math.min(100, (walletBalance / (getRequiredForLevel(level+1) || 1)) * 100);
 
   const handleTaskGo = (id:string, link:string) => {
     if(link!=="#") window.open(link, "_blank");
@@ -346,7 +346,6 @@ export default function Page() {
 
   return (
     <div style={{minHeight:"100vh", background:"#0F0F0F", color:"#fff", paddingBottom:90, fontFamily:"sans-serif", direction: lang==="ar" ? "rtl" : "ltr"}}>
-      {/* TOP HEADER - مثل LootVault بالظبط */}
       {tab==="mining" && (
         <div style={{padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", background:"#141414", borderBottom:"1px solid #222"}}>
           <div style={{display:"flex", alignItems:"center", gap:10}}>
@@ -370,7 +369,6 @@ export default function Page() {
       <div style={{padding:16, display:"flex", flexDirection:"column", alignItems:"center", gap:10}}>
         {tab==="mining" && (
           <>
-            {/* CARD 1 - إجمالي الرصيد */}
             <div style={{width:"100%", maxWidth:400, background:"#1A1A1A", borderRadius:16, padding:14, border:"1px solid #222"}}>
               <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
                 <div style={{display:"flex", gap:6, color:"#aaa", fontSize:12}}><span>◎</span> {t.totalMined}</div>
@@ -379,7 +377,6 @@ export default function Page() {
               <div style={{fontSize:30, fontWeight:900, marginTop:8}}>{balance.toFixed(4)} <span style={{color:"#FACC15", fontSize:14}}>ANKH</span></div>
             </div>
 
-            {/* CARD 2 - التعدين النشط */}
             <div style={{width:"100%", maxWidth:400, background:"#1A1A1A", borderRadius:16, padding:14, border:"1px solid #222"}}>
               <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
                 <div style={{display:"flex", gap:10, alignItems:"center"}}>
@@ -390,8 +387,8 @@ export default function Page() {
               </div>
               <div style={{marginTop:14}}>
                 <div style={{fontSize:28, fontWeight:900, color:"#22c55e"}}>+{balance>0?balance.toFixed(4):dailyRate.toFixed(4)} <span style={{fontSize:12, color:"#888"}}>ANKH</span></div>
-                <div style={{marginTop:10, width:"100%", height:5, background:"#222", borderRadius:10, overflow:"hidden"}}><div style={{width:`${Math.min(100, progress)}%`, height:"100%", background:"#FACC15"}}></div></div>
-                <div style={{display:"flex", justifyContent:"space-between", fontSize:10, color:"#888", marginTop:6}}><span>{t.lvlUp} {level+1} : {needForNext.toFixed(0)}+</span><span style={{color:"#FACC15"}}>{Math.min(99, Math.floor(progress))}%</span></div>
+                <div style={{marginTop:10, width:"100%", height:5, background:"#222", borderRadius:10, overflow:"hidden"}}><div style={{width:`${progress}%`, height:"100%", background:"#FACC15"}}></div></div>
+                <div style={{display:"flex", justifyContent:"space-between", fontSize:10, color:"#888", marginTop:6}}><span>{t.lvlUp} {level+1} : {needForNext.toFixed(0)}+</span><span style={{color:"#FACC15"}}>{Math.floor(progress)}%</span></div>
               </div>
               <div style={{display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8, marginTop:14}}>
                 <div style={{background:"#121212", borderRadius:12, padding:10, textAlign:"center", border:"1px solid #222"}}><div style={{fontSize:10, color:"#888"}}>⚡ {t.perHour}</div><div style={{fontWeight:900, marginTop:6}}>{currentRate.toFixed(1)}</div><div style={{fontSize:9, color:"#555"}}>ANKH</div></div>
@@ -400,7 +397,6 @@ export default function Page() {
               </div>
             </div>
 
-            {/* CARD LEVEL - LVL 5 */}
             <div style={{width:"100%", maxWidth:400, background:"#1A1A1A", borderRadius:14, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
               <div style={{display:"flex", gap:10, alignItems:"center"}}>
                 <div style={{width:40, height:40, borderRadius:10, background:"#2A2210", border:"1px solid #3A2E10", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column"}}><span style={{fontSize:8, color:"#FACC15"}}>LVL</span><span style={{fontWeight:900}}>{level}</span></div>
@@ -409,7 +405,6 @@ export default function Page() {
               <div style={{color:"#666"}}>›</div>
             </div>
 
-            {/* RULES */}
             <div style={{width:"100%", maxWidth:400, display:"flex", flexDirection:"column", gap:8}}>
               <div style={{background:"#1A1A1A", borderRadius:12, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between"}}>
                 <div style={{display:"flex", gap:8}}><div style={{width:30, height:30, borderRadius:8, background:"#222", display:"flex", alignItems:"center", justifyContent:"center"}}>🛡️</div><div><div style={{fontWeight:800, fontSize:12}}>{t.levelRules}</div><div style={{fontSize:10, color:"#FACC15"}}>{t.howLevelUp}</div></div></div>
@@ -425,7 +420,6 @@ export default function Page() {
               </div>
             </div>
 
-            {/* زرار جمع ANKH الأصفر الكبير + زر التعدين */}
             <div style={{display:"flex", gap:10, width:"100%", maxWidth:400, marginTop:4}}>
               <button onClick={startMining} disabled={!canMine || mining} style={{flex:1, background: !canMine ? "#222" : mining ? "#333" : "#1A1A1A", color: !canMine ? "#666" : mining ? "#888" : "#fff", fontWeight:900, padding:16, borderRadius:14, fontSize:13, border:"1px solid #333"}}>
                 {!canMine ? `${t.next} ${countdown}` : mining ? t.miningBtn : t.startMining} ({dailyRate}/يوم)
@@ -638,7 +632,6 @@ export default function Page() {
         )}
       </div>
 
-      {/* Modal جمع ANKH مثل LootVault */}
       {showCollectModal && (
         <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:100, padding:10}}>
           <div style={{width:"100%", maxWidth:400, background:"#1A1A1A", borderRadius:20, padding:14, border:"1px solid #333"}}>
