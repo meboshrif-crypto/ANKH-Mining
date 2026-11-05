@@ -8,7 +8,15 @@ const TRANSLATIONS: any = {
   ru: { mining: "ANKH Mining", subtitle: "Майни, чтобы создать славу", balance: "Добытый баланс", active: "Активный майнинг", working: "Работает", ready: "Готово!", claim: "Получить ANKH", perHour: "В час", daily: "В день", boost: "Буст", tier: "Лига", nextLevel: "След. уровень:", keep: "Держи", toReach: "в кошельке для уровня", profile: "Профиль", smallLevel: "Мал. уровень", tiersTitle: "Лиги и уровни", tiersSub: "Держи ANKH, открой главу", yourTier: "Твоя лига", walletBal: "Баланс", browse: "Уровни", progress: "Прогресс", levelsTitle: "Уровни майнинга", levelsSub: "500 уровней - ANKH", small: "Ур.", reqWallet: "Нужно", perDay: "ANKH / День", main: "Главная", miningTab: "Майнинг", station: "Станция", market: "Рынок", friends: "Друзья", wallet: "Кошелек" },
 };
 
-const LEVELS = [
+const TIERS = [
+  { id: "bronze", n: "البرونزي", r: "1-100", start: 1, end: 100, startId: 1, color: "#FACC15" },
+  { id: "silver", n: "الفضي", r: "101-200", start: 101, end: 200, startId: 101, color: "#C0C0C0" },
+  { id: "gold", n: "الذهبي", r: "201-300", start: 201, end: 300, startId: 201, color: "#F59E0B" },
+  { id: "platinum", n: "البلاتيني", r: "301-400", start: 301, end: 400, startId: 301, color: "#38BDF8" },
+  { id: "legendary", n: "أسطوري", r: "401-500", start: 401, end: 500, startId: 401, color: "#A855F7" },
+];
+
+const BASE_LEVELS = [
   { lvl: 1, req: 0, daily: 600, hourly: 25.0 },
   { lvl: 2, req: 116, daily: 690, hourly: 28.8 },
   { lvl: 3, req: 533, daily: 854, hourly: 35.6 },
@@ -17,6 +25,27 @@ const LEVELS = [
   { lvl: 6, req: 3999, daily: 1602, hourly: 66.8 },
   { lvl: 7, req: 5972, daily: 1918, hourly: 79.9 },
 ];
+
+const getLevelData = (lvl: number) => {
+  const base = BASE_LEVELS.find(x=>x.lvl===lvl);
+  if(base) return base;
+  let lastReq = 5972;
+  let lastDaily = 1918;
+  for(let i=8; i<=lvl; i++){
+    let reqMult = 1.18;
+    if(i>100) reqMult = 1.22;
+    if(i>200) reqMult = 1.28;
+    if(i>300) reqMult = 1.35;
+    lastReq = Math.floor(lastReq * reqMult);
+    let dailyMult = 1.06;
+    if(i>100) dailyMult = 1.045;
+    if(i>200) dailyMult = 1.03;
+    if(i>300) dailyMult = 1.02;
+    if(i>400) dailyMult = 1.015;
+    lastDaily = Math.floor(lastDaily * dailyMult);
+  }
+  return { lvl, req: lastReq, daily: lastDaily, hourly: +(lastDaily/24).toFixed(1) };
+};
 
 export default function Page() {
   const [balance, setBalance] = useState(0);
@@ -27,13 +56,13 @@ export default function Page() {
   const [lang, setLang] = useState("ar");
   const [showLang, setShowLang] = useState(false);
   const [lastMine, setLastMine] = useState(0);
+  const [selectedTier, setSelectedTier] = useState(TIERS[0]);
   const t = TRANSLATIONS[lang];
 
-  const getReq = (l: number) => LEVELS.find(x=>x.lvl===l)?.req ?? Math.floor(5972*Math.pow(1.4,l-7));
-  const getDaily = (l: number) => LEVELS.find(x=>x.lvl===l)?.daily ?? Math.floor(1918*Math.pow(1.22,l-7));
-  const getHourly = (l: number) => LEVELS.find(x=>x.lvl===l)?.hourly ?? +(getDaily(l)/24).toFixed(1);
+  const getReq = (l: number) => getLevelData(l).req;
+  const getDaily = (l: number) => getLevelData(l).daily;
+  const getHourly = (l: number) => getLevelData(l).hourly;
 
-  // تحميل + حساب التعدين وهو مقفول
   useEffect(()=>{
     const wb = localStorage.getItem("ankh_wallet"); if(wb) setWalletBalance(Number(wb));
     const lv = localStorage.getItem("ankh_level"); if(lv) setLevel(Number(lv));
@@ -46,17 +75,14 @@ export default function Page() {
       setLastMine(last);
       const elapsedHours = (now - last) / 3600000;
       if(elapsedHours < 24){
-        // يعدن وهو مقفول
         const currentHourly = getHourly(Number(lv)||1);
         const offlineEarned = Math.min(currentHourly * 24, currentHourly * elapsedHours);
         setBalance(Number(lb||0) + offlineEarned);
       } else {
-        // عدى 24 ساعة يقف عند الحد الاقصى 24 ساعة
         const currentHourly = getHourly(Number(lv)||1);
         setBalance(Number(lb||0) + currentHourly * 24);
       }
     } else {
-      // اول دخول يبدأ 0
       setBalance(0);
       setLastMine(now);
       localStorage.setItem("ankh_last_mine", String(now));
@@ -64,7 +90,6 @@ export default function Page() {
     const savedLang = localStorage.getItem("ankh_lang"); if(savedLang) setLang(savedLang);
   },[]);
 
-  // تعدين كل ثانية
   useEffect(()=>{
     const interval = setInterval(()=>{
       if(Date.now() - lastMine < 86400000){
@@ -102,7 +127,6 @@ export default function Page() {
   return (
     <div style={{minHeight:"100vh", background:"#08080C", color:"#fff", paddingBottom:90, direction: lang==="ar" ? "rtl" : "ltr", fontFamily:"sans-serif"}}>
       
-      {/* HEADER مع لغات شغالة */}
       <div style={{padding:"12px 16px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0F0F14", position:"relative"}}>
         <div style={{display:"flex", gap:8, alignItems:"center"}}>
           <div style={{width:38, height:38, borderRadius:10, background:"linear-gradient(180deg,#FACC15,#854D0E)", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #FACC15", color:"#000", fontWeight:900}}>☥</div>
@@ -122,9 +146,9 @@ export default function Page() {
         <div style={{background:"#1A1A1A", border:"1px solid #333", borderRadius:20, padding:"6px 12px", fontSize:11, display:"flex", gap:6}}><span>{t.profile}</span><span style={{color:"#FACC15"}}>{t.smallLevel} {level}</span></div>
       </div>
 
-      {(view==="main" || tab==="home") && (
+      {(view==="main") && (
         <>
-          <div style={{margin:"0 12px", height:90, borderRadius:16, background:"linear-gradient(90deg, #1A1500, #1A1A2A)", border:"1px solid #2A2A1A", position:"relative", overflow:"hidden", padding:12}}>
+          <div style={{margin:"0 12px", height:90, borderRadius:16, background:"linear-gradient(90deg, #1A1500, #1A1A2A)", border:"1px solid #2A2A1A", padding:12}}>
             <div style={{fontSize:20, fontWeight:900}}>{t.mining}</div><div style={{fontSize:11, color:"#FACC15", marginTop:2}}>{t.subtitle}</div><div style={{fontSize:10, color:"#666", marginTop:6}}>Web3 الرسمي</div>
           </div>
 
@@ -169,14 +193,12 @@ export default function Page() {
             <div style={{width:70, height:70, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:16, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, fontSize:32, border:"2px solid #FACC15", color:"#000"}}>{level}</div>
             <div style={{textAlign:"left"}}><div style={{fontSize:11, color:"#888"}}>{t.yourTier}</div><div style={{fontWeight:900, color:"#FACC15"}}>البرونزي</div><div style={{fontSize:11, color:"#888", marginTop:8}}>{t.walletBal}</div><div style={{fontWeight:900}}>ANKH {walletBalance.toFixed(0)}</div></div>
           </div>
-          <button onClick={()=>setView("levels")} style={{margin:"10px 12px", width:"calc(100% - 24px)", background:"linear-gradient(90deg,#A855F7,#38BDF8)", padding:12, borderRadius:12, border:"none", color:"#fff", fontWeight:900}}>🔍 {t.browse}</button>
+          <button onClick={()=>{setSelectedTier(TIERS[0]); setView("levels")}} style={{margin:"10px 12px", width:"calc(100% - 24px)", background:"linear-gradient(90deg,#A855F7,#38BDF8)", padding:12, borderRadius:12, border:"none", color:"#fff", fontWeight:900}}>🔍 {t.browse}</button>
           <div style={{margin:"16px 12px 0", display:"flex", flexDirection:"column", gap:8}}>
             <div style={{fontWeight:800, textAlign:"right"}}>{t.progress}</div>
-            {[
-              {n:"البرونزي", r:"100-1", id:1}, {n:"الفضي", r:"200-101", id:101}, {n:"الذهبي", r:"300-201", id:201}, {n:"البلاتيني", r:"400-301", id:301}, {n:"أسطوري", r:"500-401", id:401},
-            ].map(d=>(
-              <div key={d.id} onClick={()=>setView("levels")} style={{background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between", cursor:"pointer"}}>
-                <div style={{display:"flex", gap:10}}><div style={{width:40, height:40, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, color:"#000"}}>{d.id}</div><div><div style={{fontWeight:800}}>{d.n}</div><div style={{fontSize:10, color:"#888"}}>المستويات {d.r}</div><div style={{fontSize:10, color:"#38BDF8"}}>عرض المستويات</div></div></div><span>›</span>
+            {TIERS.map(d=>(
+              <div key={d.id} onClick={()=>{setSelectedTier(d); setView("levels")}} style={{background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between", cursor:"pointer"}}>
+                <div style={{display:"flex", gap:10}}><div style={{width:40, height:40, background:`linear-gradient(180deg,${d.color},#000)`, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, color:d.id==="silver"?"#000":"#fff", border:`1px solid ${d.color}`}}>{d.startId}</div><div><div style={{fontWeight:800}}>{d.n}</div><div style={{fontSize:10, color:"#888"}}>المستويات {d.r}</div><div style={{fontSize:10, color:"#38BDF8"}}>عرض المستويات</div></div></div><span>›</span>
               </div>
             ))}
           </div>
@@ -187,21 +209,28 @@ export default function Page() {
         <>
           <div style={{padding:16, display:"flex", gap:10, alignItems:"center"}}>
             <button onClick={()=>setView("tiers")} style={{background:"#1A1A1A", width:36, height:36, borderRadius:20, border:"1px solid #333", color:"#fff", fontSize:18}}>‹</button>
-            <div style={{textAlign:"center", flex:1}}><div style={{fontWeight:900}}>{t.levelsTitle}</div><div style={{fontSize:11, color:"#FACC15"}}>{t.levelsSub}</div></div>
+            <div style={{textAlign:"center", flex:1}}><div style={{fontWeight:900}}>{selectedTier.n} - مستويات {selectedTier.r}</div><div style={{fontSize:11, color:selectedTier.color}}>استكشف {selectedTier.r} - ANKH</div></div>
             <div style={{width:36}}></div>
           </div>
+
+          <div style={{display:"flex", gap:8, overflowX:"auto", padding:"0 12px 10px"}}>
+            {TIERS.map(tier=>(
+              <button key={tier.id} onClick={()=>setSelectedTier(tier)} style={{minWidth:75, background: selectedTier.id===tier.id ? tier.color : "#12121A", borderRadius:10, padding:8, border:`1px solid ${tier.color}`, color: selectedTier.id===tier.id ? (tier.id==="silver"?"#000":"#fff") : "#fff", fontSize:11, fontWeight:800}}>
+                {tier.n}<div style={{fontSize:9}}>{tier.r}</div>
+              </button>
+            ))}
+          </div>
+
           <div style={{margin:"0 12px", background:"#12121A", borderRadius:12, overflow:"hidden", border:"1px solid #222", maxHeight:600, overflowY:"auto"}}>
             <div style={{display:"flex", justifyContent:"space-between", fontSize:10, color:"#888", padding:10, borderBottom:"1px solid #222", background:"#0A0A0A", position:"sticky", top:0}}><span>{t.small}</span><span>{t.reqWallet}</span><span>{t.perDay}</span></div>
-            {Array.from({length:500}, (_,i)=>{
-              const lvl = i+1;
-              const req = getReq(lvl);
-              const dailyL = getDaily(lvl);
-              const hourlyL = getHourly(lvl);
+            {Array.from({length: selectedTier.end - selectedTier.start + 1}, (_,i)=>{
+              const lvl = selectedTier.start + i;
+              const data = getLevelData(lvl);
               return (
                 <div key={lvl} style={{display:"flex", justifyContent:"space-between", padding:"10px", borderBottom:"1px solid #222", background: lvl===level?"rgba(250,204,21,0.1)":"transparent"}}>
-                  <div style={{display:"flex", gap:8, alignItems:"center"}}><div style={{width:26, height:26, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:900, color:"#000"}}>{lvl}</div><span style={{fontSize:12}}>{lvl}</span></div>
-                  <div style={{fontSize:12}}>{req.toLocaleString()} <span style={{fontSize:9, color:"#888"}}>ANKH</span></div>
-                  <div style={{fontSize:12, color:"#FACC15", textAlign:"center"}}>{dailyL.toLocaleString()}<div style={{fontSize:9, color:"#888"}}>{hourlyL}/h</div></div>
+                  <div style={{display:"flex", gap:8, alignItems:"center"}}><div style={{width:26, height:26, background:`linear-gradient(180deg,${selectedTier.color},#000)`, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:900, color:selectedTier.id==="silver"?"#000":"#fff"}}>{lvl}</div><span style={{fontSize:12}}>{lvl}</span></div>
+                  <div style={{fontSize:12}}>{data.req.toLocaleString()} <span style={{fontSize:9, color:"#888"}}>ANKH</span></div>
+                  <div style={{fontSize:12, color:selectedTier.color, textAlign:"center"}}>{data.daily.toLocaleString()}<div style={{fontSize:9, color:"#888"}}>{data.hourly}/h</div></div>
                 </div>
               )
             })}
@@ -209,7 +238,6 @@ export default function Page() {
         </>
       )}
 
-      {/* 6 خانات شغالة */}
       <div style={{position:"fixed", bottom:0, left:0, right:0, background:"#0F0F14", borderTop:"1px solid #222", display:"flex", justifyContent:"space-around", padding:"8px 0"}}>
         {[
           {id:"home", n:t.main, ic:"🏠"},
