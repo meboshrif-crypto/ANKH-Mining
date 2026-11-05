@@ -61,8 +61,6 @@ function AnkhInner() {
   const [inviteCode, setInviteCode] = useState("7956189802");
   const [friends, setFriends] = useState<any[]>([]);
   const [referralEarnings, setReferralEarnings] = useState(0);
-
-  // === WALLET TAB NEW STATES - من غير ما نبوظ القديم ===
   const [walletView, setWalletView] = useState<"main"|"withdraw">("main");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
@@ -94,7 +92,6 @@ function AnkhInner() {
     if(savedFriends){ try{ setFriends(JSON.parse(savedFriends)); }catch{} }
     const refEarn = localStorage.getItem("ankh_ref_earn");
     if(refEarn) setReferralEarnings(Number(refEarn));
-
     const wc = localStorage.getItem("ankh_wallet_created");
     if(wc){ setWalletCreatedAt(Number(wc)); } else { localStorage.setItem("ankh_wallet_created", String(now)); setWalletCreatedAt(now); }
     const wds = localStorage.getItem("ankh_withdrawals"); if(wds){ try{ setWithdrawals(JSON.parse(wds)); }catch{} }
@@ -118,8 +115,6 @@ function AnkhInner() {
   };
   const changeLang = (l:string)=>{ setLang(l); localStorage.setItem("ankh_lang", l); setShowLang(false); }
   const chartPoints = [0, 15, 30, 25, 45, 60, 55, 80, 95, 85, 100];
-
-  // === WALLET LOGIC ===
   const walletAgeDays = Math.floor((Date.now() - walletCreatedAt) / (1000*60*60*24));
   const requiredReserve = withdrawAmount ? Number(withdrawAmount) * 0.25 : 0;
   const withdrawFee = withdrawAmount ? Number(withdrawAmount) * 0.05 : 0;
@@ -259,9 +254,6 @@ function AnkhInner() {
           <div style={{margin:"12px 12px", background:"#12121a", borderRadius:14, border:"1px solid #222"}}>
             <div style={{padding:12, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
               <div style={{fontWeight:800, fontSize:13}}>النشاط الأخير</div>
-              <div style={{display:"flex", gap:6}}>
-                {["الكل","المستلم","المرسل"].map(ti=> <span key={ti} style={{fontSize:10, padding:"4px 8px", borderRadius:12, background: ti==="الكل"?"#a855f7":"#1a1a1a", border:"1px solid #333"}}>{ti}</span>)}
-              </div>
             </div>
             {withdrawals.length===0 ? (
               <div style={{textAlign:"center", padding:30, color:"#666"}}>
@@ -379,7 +371,6 @@ function AnkhInner() {
               <button onClick={()=>{const link=`https://t.me/ankhcoinbot?startapp=ref_${inviteCode}`; navigator.clipboard.writeText(link); alert("تم نسخ الرابط!");}} style={{background:"#151525", border:"1px solid #2a2a4a", borderRadius:12, padding:12, color:"#c0c0e0", fontWeight:700, fontSize:12, display:"flex", gap:6, justifyContent:"center"}}>انسخ الرابط <span>📋</span></button>
               <button onClick={()=>{const link=`https://t.me/ankhcoinbot?startapp=ref_${inviteCode}`; if(navigator.share){navigator.share({title:"ANKH Mining", text:`تعال عدن معايا! كودي ${inviteCode}`, url:link})} else {window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("تعال عدن ANKH معايا!")}`,"_blank")}}} style={{background:"linear-gradient(90deg,#A855F7,#38BDF8)", border:"none", borderRadius:12, padding:12, color:"#fff", fontWeight:900, fontSize:12, display:"flex", gap:6, justifyContent:"center"}}>ادعُ أصدقاءك <span>✈️</span></button>
             </div>
-            <div style={{fontSize:10, color:"#666", marginTop:10, textAlign:"right"}}>يتخطى الأصدقاء النشطون بما لا يقل عن {116} ANKH.</div>
           </div>
         </div>
       )}
