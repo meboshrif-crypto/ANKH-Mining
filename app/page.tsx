@@ -57,6 +57,9 @@ function AnkhInner() {
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
   const isConnected = !!wallet;
+  const [inviteCode, setInviteCode] = useState("7956189802");
+  const [friends, setFriends] = useState<any[]>([]);
+  const [referralEarnings, setReferralEarnings] = useState(0);
   const t = TRANSLATIONS[lang];
 
   const getReq = (l: number) => getLevelData(l).req;
@@ -76,6 +79,12 @@ function AnkhInner() {
       setBalance(Number(lb||0) + offlineEarned);
     } else { setBalance(0); setLastMine(now); localStorage.setItem("ankh_last_mine", String(now)); }
     const savedLang = localStorage.getItem("ankh_lang"); if(savedLang) setLang(savedLang);
+    const code = localStorage.getItem("ankh_invite_code");
+    if(code){ setInviteCode(code); } else { const newCode = Math.floor(1000000000 + Math.random()*9000000000).toString(); localStorage.setItem("ankh_invite_code", newCode); setInviteCode(newCode); }
+    const savedFriends = localStorage.getItem("ankh_friends");
+    if(savedFriends){ try{ setFriends(JSON.parse(savedFriends)); }catch{} }
+    const refEarn = localStorage.getItem("ankh_ref_earn");
+    if(refEarn) setReferralEarnings(Number(refEarn));
   },[]);
 
   useEffect(()=>{
@@ -145,6 +154,78 @@ function AnkhInner() {
         </>
       )}
 
+      {view==="main" && tab==="friends" && (
+        <div style={{padding:"0 0 20px", background:"#0A0A12"}}>
+          <div style={{position:"relative", height:220, overflow:"hidden", background:"linear-gradient(180deg,#1a1033 0%, #0f0a1a 100%)", borderBottom:"1px solid #222"}}>
+            <div style={{position:"absolute", inset:0, background:"radial-gradient(ellipse at center top, rgba(168,85,247,0.3), transparent 60%), radial-gradient(ellipse at bottom, rgba(56,189,248,0.2), transparent)"}}></div>
+            <div style={{position:"absolute", top:20, left:"50%", transform:"translateX(-50%)", width:140, height:140, borderRadius:"50%", background:"radial-gradient(circle, #a855f7 0%, #1a1033 70%)", boxShadow:"0 0 60px rgba(168,85,247,0.6)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:60}}>☥</div>
+            <div style={{position:"absolute", bottom:16, left:16, right:16, display:"flex", justifyContent:"space-between", alignItems:"flex-end"}}>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:24, fontWeight:900, lineHeight:1.1}}>ادعُ<br/>واكسب</div>
+                <div style={{fontSize:10, color:"#a0a0c0", marginTop:4}}>كون فريقك، تقدموا معاً.</div>
+              </div>
+              <div style={{textAlign:"left"}}>
+                <div style={{display:"flex", gap:6, alignItems:"center"}}><span style={{fontSize:11, color:"#c0c0e0"}}>من تعدين أصدقائك النشطين</span><span style={{fontSize:38, fontWeight:900, color:"#FACC15", lineHeight:1}}>5%</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8, padding:"12px 12px 0"}}>
+            <div style={{background:"linear-gradient(180deg,#151525,#0f0f1a)", borderRadius:12, padding:10, border:"1px solid #222", textAlign:"center"}}>
+              <div style={{fontSize:10, color:"#888", display:"flex", gap:4, justifyContent:"center"}}>الأصدقاء المدعوون <span>👥</span></div>
+              <div style={{fontSize:20, fontWeight:900, color:"#FACC15", marginTop:4}}>{friends.length}</div>
+            </div>
+            <div style={{background:"linear-gradient(180deg,#151525,#0f0f1a)", borderRadius:12, padding:10, border:"1px solid #222", textAlign:"center"}}>
+              <div style={{fontSize:10, color:"#888", display:"flex", gap:4, justifyContent:"center"}}>يعدنون الآن <span>👤</span></div>
+              <div style={{fontSize:20, fontWeight:900, color:"#22c55e", marginTop:4}}>0</div>
+            </div>
+            <div style={{background:"linear-gradient(180deg,#151525,#0f0f1a)", borderRadius:12, padding:10, border:"1px solid #222", textAlign:"center"}}>
+              <div style={{fontSize:10, color:"#888", display:"flex", gap:4, justifyContent:"center"}}>المكتسب <span>🗄️</span></div>
+              <div style={{fontSize:18, fontWeight:900, color:"#A855F7", marginTop:2}}>{referralEarnings.toFixed(2)}<div style={{fontSize:9, color:"#666"}}>ANKH</div></div>
+            </div>
+          </div>
+
+          <div style={{margin:"12px 12px 0", background:"#151525", borderRadius:12, padding:12, border:"1px solid #222", display:"flex", justifyContent:"center", gap:6, fontSize:12, color:"#888"}}>
+            سجل العمولات <span style={{width:18, height:18, borderRadius:10, background:"#222", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10}}>🕒</span>
+          </div>
+
+          <div style={{margin:"12px 12px 0", background:"linear-gradient(180deg,#1a1a2e,#12121f)", borderRadius:16, padding:14, border:"1px solid #2a2a4a"}}>
+            <div style={{fontSize:13, fontWeight:900, textAlign:"right", marginBottom:10}}>رابط دعوتك</div>
+            <div style={{background:"#0A0A14", borderRadius:10, padding:12, border:"1px solid #2a2a4a", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+              <div style={{fontSize:11, color:"#8a8ab0", direction:"ltr", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>https://t.me/ankhcoinbot?startapp=ref_{inviteCode}</div>
+              <div style={{minWidth:28, height:28, background:"#1a1a2e", borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #333", marginLeft:8}}>📋</div>
+            </div>
+            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:12}}>
+              <button onClick={()=>{const link=`https://t.me/ankhcoinbot?startapp=ref_${inviteCode}`; navigator.clipboard.writeText(link); alert("تم نسخ الرابط!");}} style={{background:"#151525", border:"1px solid #2a2a4a", borderRadius:12, padding:12, color:"#c0c0e0", fontWeight:700, fontSize:12, display:"flex", gap:6, justifyContent:"center"}}>انسخ الرابط <span>📋</span></button>
+              <button onClick={()=>{const link=`https://t.me/ankhcoinbot?startapp=ref_${inviteCode}`; if(navigator.share){navigator.share({title:"ANKH Mining", text:`تعال عدن معايا! كودي ${inviteCode}`, url:link})} else {window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("تعال عدن ANKH معايا!")}`,"_blank")}}} style={{background:"linear-gradient(90deg,#A855F7,#38BDF8)", border:"none", borderRadius:12, padding:12, color:"#fff", fontWeight:900, fontSize:12, display:"flex", gap:6, justifyContent:"center"}}>ادعُ أصدقاءك <span>✈️</span></button>
+            </div>
+            <div style={{fontSize:10, color:"#666", marginTop:10, textAlign:"right"}}>يتخطى الأصدقاء النشطون بما لا يقل عن {116} ANKH.</div>
+          </div>
+
+          <div style={{margin:"16px 12px 0"}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+              <div style={{fontSize:12, color:"#666"}}>0</div>
+              <div style={{fontSize:13, fontWeight:800, display:"flex", gap:6}}>فريقك <span>👥</span></div>
+            </div>
+            <div style={{marginTop:10, background:"#151525", borderRadius:12, padding:12, border:"1px solid #222", fontSize:11, color:"#8a8ab0", lineHeight:1.6, textAlign:"right", display:"flex", gap:8}}>
+              <span>تُضاف العمولات تلقائياً إلى رصيدك في التعدين عندما يستلم الشخص النشط الذي دعوته ANKH الذي عدنّه. لا تحتاج إلى استلامها بشكل منفصل.</span>
+              <span style={{minWidth:20, height:20, borderRadius:10, background:"#222", display:"flex", alignItems:"center", justifyContent:"center"}}>ℹ️</span>
+            </div>
+            {friends.length===0 ? (
+              <div style={{marginTop:20, textAlign:"center", padding:30}}>
+                <div style={{width:60, height:60, margin:"0 auto", borderRadius:30, background:"#151525", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, color:"#555"}}>👥</div>
+                <div style={{fontSize:12, color:"#666", marginTop:12}}>يبدأ فريقك بدعوة.</div>
+              </div>
+            ) : friends.map((f,i)=>(
+              <div key={i} style={{marginTop:8, background:"#151525", borderRadius:12, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between"}}>
+                <div style={{color:"#22c55e", fontSize:12, fontWeight:700}}>+{f.earned} ANKH</div>
+                <div style={{display:"flex", gap:8}}><div style={{textAlign:"right"}}><div style={{fontSize:12, fontWeight:700}}>{f.name}</div><div style={{fontSize:10, color:"#666"}}>Lv.{f.level}</div></div><div style={{width:36, height:36, borderRadius:20, background:"linear-gradient(180deg,#A855F7,#38BDF8)", display:"flex", alignItems:"center", justifyContent:"center"}}>{f.name[0]}</div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {view==="mining" && (
         <>
           <div style={{padding:"12px 16px", display:"flex", gap:10, alignItems:"center"}}>
@@ -202,12 +283,10 @@ function AnkhInner() {
                 <div style={{fontSize:26, fontWeight:900, marginTop:8}}>TON {ankhPrice.toFixed(6)}</div>
               </div>
             </div>
-
             <div style={{display:"flex", gap:8, marginTop:12}}>
               <button onClick={()=>setMarketTab("history")} style={{flex:1, background: marketTab==="history" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border:"1px solid #222", borderRadius:12, padding:12, color: marketTab==="history" ? "#fff" : "#666", fontWeight:900}}>السجل</button>
               <button onClick={()=>setMarketTab("buy")} style={{flex:1, background: marketTab==="buy" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border: marketTab==="buy" ? "none" : "1px solid #222", borderRadius:12, padding:12, color: marketTab==="buy" ? "#fff" : "#666", fontWeight:900}}>شراء</button>
             </div>
-
             {marketTab==="history" && (
               <div style={{marginTop:10, background:"#12121A", borderRadius:14, padding:20, border:"1px solid #222", textAlign:"center"}}>
                 <div style={{fontSize:40}}>📋</div>
@@ -220,7 +299,6 @@ function AnkhInner() {
                 ))}
               </div>
             )}
-
             {marketTab==="buy" && (
               <div style={{marginTop:10, background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222"}}>
                 <div style={{fontSize:11, color:"#888", textAlign:"right"}}>تدفع</div>
