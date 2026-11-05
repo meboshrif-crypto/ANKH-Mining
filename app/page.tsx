@@ -29,8 +29,7 @@ const BASE_LEVELS = [
 const getLevelData = (lvl: number) => {
   const base = BASE_LEVELS.find(x=>x.lvl===lvl);
   if(base) return base;
-  let lastReq = 5972;
-  let lastDaily = 1918;
+  let lastReq = 5972; let lastDaily = 1918;
   for(let i=8; i<=lvl; i++){
     let reqMult = 1.18; if(i>100) reqMult = 1.22; if(i>200) reqMult = 1.28; if(i>300) reqMult = 1.35;
     lastReq = Math.floor(lastReq * reqMult);
@@ -54,6 +53,8 @@ export default function Page() {
   const [showConnect, setShowConnect] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [ankhPrice] = useState(0.01815);
+  const [marketTab, setMarketTab] = useState<"buy" | "history">("buy");
+  const [txHistory, setTxHistory] = useState<any[]>([]);
   const t = TRANSLATIONS[lang];
 
   const getReq = (l: number) => getLevelData(l).req;
@@ -64,34 +65,19 @@ export default function Page() {
   useEffect(()=>{
     const wb = localStorage.getItem("ankh_wallet"); if(wb) setWalletBalance(Number(wb));
     const lv = localStorage.getItem("ankh_level"); if(lv) setLevel(Number(lv));
-    const lm = localStorage.getItem("ankh_last_mine"); 
-    const lb = localStorage.getItem("ankh_bal");
-    const now = Date.now();
-    if(lm){
-      const last = Number(lm); setLastMine(last);
-      const elapsedHours = (now - last) / 3600000;
-      const currentHourly = getHourly(Number(lv)||1);
-      const offlineEarned = Math.min(currentHourly * 24, currentHourly * (elapsedHours<24 ? elapsedHours : 24));
-      setBalance(Number(lb||0) + offlineEarned);
-    } else {
-      setBalance(0); setLastMine(now); localStorage.setItem("ankh_last_mine", String(now));
-    }
+    const lm = localStorage.getItem("ankh_last_mine"); const lb = localStorage.getItem("ankh_bal"); const now = Date.now();
+    if(lm){ const last = Number(lm); setLastMine(last); const elapsedHours = (now - last) / 3600000; const currentHourly = getHourly(Number(lv)||1); const offlineEarned = Math.min(currentHourly * 24, currentHourly * (elapsedHours<24 ? elapsedHours : 24)); setBalance(Number(lb||0) + offlineEarned); }
+    else { setBalance(0); setLastMine(now); localStorage.setItem("ankh_last_mine", String(now)); }
     const savedLang = localStorage.getItem("ankh_lang"); if(savedLang) setLang(savedLang);
+    const conn = localStorage.getItem("ankh_connected"); if(conn==="1") setIsConnected(true);
   },[]);
 
   useEffect(()=>{
-    const interval = setInterval(()=>{
-      if(Date.now() - lastMine < 86400000){
-        setBalance(b=>{ const newB = b + (getHourly(level)/3600); localStorage.setItem("ankh_bal", String(newB)); return newB; });
-      }
-    },1000);
+    const interval = setInterval(()=>{ if(Date.now() - lastMine < 86400000){ setBalance(b=>{ const newB = b + (getHourly(level)/3600); localStorage.setItem("ankh_bal", String(newB)); return newB; }); } },1000);
     return ()=>clearInterval(interval);
   },[lastMine, level]);
 
-  const daily = getDaily(level);
-  const hourly = getHourly(level);
-  const nextReq = getReq(level+1);
-  const progress = Math.min(100, (walletBalance / (nextReq||1))*100);
+  const daily = getDaily(level); const hourly = getHourly(level); const nextReq = getReq(level+1); const progress = Math.min(100, (walletBalance / (nextReq||1))*100);
 
   const handleClaim = () => {
     if(balance<=0) return;
@@ -200,49 +186,103 @@ export default function Page() {
       {view==="market" && (
         <>
           <div style={{padding:"12px 16px"}}>
-            <div style={{height:120, borderRadius:16, background:"linear-gradient(180deg, #1A0A2E, #0F0F1A)", border:"1px solid #333", padding:12}}>
-              <div style={{display:"flex", justifyContent:"space-between"}}><div style={{fontSize:22, fontWeight:900}}>السوق</div><div style={{fontSize:10, color:"#FACC15"}}>تداول ANKH على TON</div></div>
-              <div style={{marginTop:10, background:"rgba(0,0,0,0.5)", borderRadius:10, padding:10, border:"1px solid #222"}}>
-                <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}><span onClick={()=>window.open("https://app.ston.fi","_blank")} style={{color:"#FACC15", cursor:"pointer"}}>↗ STON.fi</span><span>ANKH / TON ⇄</span></div>
-                <div style={{fontSize:24, fontWeight:900, marginTop:6}}>{ankhPrice.toFixed(6)} <span style={{fontSize:12, color:"#888"}}>TON</span></div>
-                <div style={{fontSize:10, color:"#666", marginTop:4}}>سعر تجريبي لحين السيولة</div>
+            <div style={{borderRadius:16, background:"linear-gradient(180deg, #1A0A2E, #0F0F1A)", border:"1px solid #333", padding:12}}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                <div style={{fontSize:22, fontWeight:900}}>السوق</div>
+                <div style={{fontSize:11, color:"#FACC15", background:"rgba(250,204,21,0.1)", border:"1px solid #FACC15", padding:"4px 10px", borderRadius:20}}>ANKH / TON ⇄</div>
+              </div>
+              <div style={{marginTop:12, background:"rgba(0,0,0,0.5)", borderRadius:12, padding:12, border:"1px solid #222"}}>
+                <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}>
+                  <span onClick={()=>window.open("https://app.ston.fi","_blank")} style={{color:"#FACC15", cursor:"pointer", fontWeight:700}}>↗ STON.fi</span>
+                  <span style={{color:"#888"}}>TON Price</span>
+                </div>
+                <div style={{fontSize:26, fontWeight:900, marginTop:8}}>TON {ankhPrice.toFixed(6)}</div>
               </div>
             </div>
-            <div style={{display:"flex", gap:8, marginTop:10}}><button style={{flex:1, background:"#12121A", border:"1px solid #222", borderRadius:10, padding:10, color:"#666"}}>السجل</button><button style={{flex:1, background:"linear-gradient(90deg,#A855F7,#38BDF8)", border:"none", borderRadius:10, padding:10, color:"#fff", fontWeight:900}}>شراء</button></div>
-            <div style={{marginTop:10, background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222"}}>
-              <div style={{fontSize:10, color:"#888", textAlign:"right"}}>تدفع</div>
-              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0A0A0A", borderRadius:10, padding:10, border:"1px solid #222", marginTop:6}}>
-                <input type="number" min="1" value={tonAmount} onChange={(e)=>{if(Number(e.target.value)>=1 || e.target.value==="") setTonAmount(e.target.value)}} style={{background:"none", border:"none", color:"#fff", fontSize:22, fontWeight:900, width:100, outline:"none"}} />
-                <div style={{display:"flex", gap:8, alignItems:"center"}}><span style={{color:"#FACC15", fontWeight:800}}>TON</span><button onClick={()=>setTonAmount("1")} style={{background:"#1A1A3A", border:"1px solid #FACC15", color:"#FACC15", borderRadius:6, padding:"4px 8px", fontSize:10}}>MAX</button></div>
-              </div>
-              <div style={{fontSize:10, color:"#666", marginTop:6, textAlign:"right"}}>المتاح: {isConnected ? "TON 5.20" : "TON 0.0000"} {Number(tonAmount)<1 && tonAmount!=="" && <span style={{color:"#ef4444"}}> • اقل كمية 1 TON</span>}</div>
-              <div style={{display:"flex", justifyContent:"center", margin:"12px 0"}}><div style={{width:32, height:32, background:"#1A1A1A", borderRadius:20, display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #333"}}>↕</div></div>
-              <div style={{fontSize:10, color:"#888", textAlign:"right"}}>تستلم ≈</div>
-              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0A0A0A", borderRadius:10, padding:10, border:"1px solid #222", marginTop:6}}>
-                <div style={{fontSize:22, fontWeight:900, color:"#5EE9FF"}}>{ankhAmount.toFixed(8)}</div><div style={{color:"#A855F7", fontWeight:800}}>ANKH</div>
-              </div>
-              <div style={{marginTop:10, background:"#0A0A0A", borderRadius:10, padding:10, border:"1px solid #222"}}>
-                <div style={{display:"flex", justifyContent:"space-between", fontSize:11}}><span style={{color:"#888"}}>رسوم الخدمة</span><span>TON 0.05</span></div>
-                <div style={{display:"flex", justifyContent:"space-between", fontSize:11, marginTop:6}}><span style={{color:"#888"}}>الإنزلاق السعري</span><span>0.5%</span></div>
-                <div style={{display:"flex", justifyContent:"space-between", fontSize:12, marginTop:8, fontWeight:900}}><span style={{color:"#FACC15"}}>المبادلة ورسوم التطبيق</span><span style={{color:"#FACC15"}}>TON {(Number(tonAmount||0)+0.05).toFixed(2)}</span></div>
-              </div>
-              <button onClick={()=>{if(Number(tonAmount)>=1) alert("سيتم شراء "+ankhAmount.toFixed(2)+" ANKH")}} disabled={Number(tonAmount)<1} style={{marginTop:12, width:"100%", background: Number(tonAmount)>=1 ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#222", padding:14, borderRadius:12, border:"none", color:"#fff", fontWeight:900}}>↗ راجع الشراء</button>
-              <button onClick={()=>setShowConnect(true)} style={{marginTop:8, width:"100%", background:"#1A1A1A", padding:12, borderRadius:12, border:"1px solid #333", color:"#fff"}}>📋 {isConnected ? "محفظة مربوطة ✓" : "ربط المحفظة"}</button>
-              <button onClick={()=>window.open("https://app.ston.fi/swap?ft=TON&tt=ANKH","_blank")} style={{marginTop:8, width:"100%", background:"#1A1A1A", padding:12, borderRadius:12, border:"1px solid #333", color:"#fff"}}>↗ افتح STON.fi</button>
+
+            <div style={{display:"flex", gap:8, marginTop:12}}>
+              <button onClick={()=>setMarketTab("history")} style={{flex:1, background: marketTab==="history" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border:"1px solid #222", borderRadius:12, padding:12, color: marketTab==="history" ? "#fff" : "#666", fontWeight:900}}>السجل</button>
+              <button onClick={()=>setMarketTab("buy")} style={{flex:1, background: marketTab==="buy" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border: marketTab==="buy" ? "none" : "1px solid #222", borderRadius:12, padding:12, color: marketTab==="buy" ? "#fff" : "#666", fontWeight:900}}>شراء</button>
             </div>
+
+            {marketTab==="history" && (
+              <div style={{marginTop:10, background:"#12121A", borderRadius:14, padding:20, border:"1px solid #222", textAlign:"center"}}>
+                <div style={{fontSize:40}}>📋</div>
+                <div style={{fontWeight:800, marginTop:10}}>لا يوجد سجل بعد</div>
+                <div style={{fontSize:11, color:"#888", marginTop:6, lineHeight:1.5}}>لما تشتري أو تبيع ANKH هيظهر هنا السجل بتاعك<br/>البيع والشراء متاح على STON.fi</div>
+                {txHistory.map((tx,i)=>(
+                  <div key={i} style={{marginTop:10, background:"#0A0A0A", borderRadius:10, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between"}}>
+                    <span style={{color:"#22c55e", fontWeight:700}}>+{tx.amount} ANKH</span><span style={{fontSize:11, color:"#888"}}>{tx.date}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {marketTab==="buy" && (
+              <div style={{marginTop:10, background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222"}}>
+                <div style={{fontSize:11, color:"#888", textAlign:"right"}}>تدفع</div>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #333", marginTop:6}}>
+                  <input type="number" min="1" value={tonAmount} onChange={(e)=>{if(Number(e.target.value)>=1 || e.target.value==="") setTonAmount(e.target.value)}} style={{background:"none", border:"none", color:"#fff", fontSize:22, fontWeight:900, width:120, outline:"none"}} />
+                  <div style={{display:"flex", gap:8, alignItems:"center"}}>
+                    <span style={{color:"#FACC15", fontWeight:800, fontSize:14}}>TON</span>
+                    <button onClick={()=>setTonAmount("1")} style={{background:"rgba(250,204,21,0.15)", border:"1px solid #FACC15", color:"#FACC15", borderRadius:8, padding:"5px 10px", fontSize:11, fontWeight:800}}>MAX</button>
+                  </div>
+                </div>
+                <div style={{fontSize:11, color:"#666", marginTop:8, textAlign:"right"}}>المتاح: {isConnected ? "TON 5.20" : "TON 0.0000"} {Number(tonAmount)<1 && tonAmount!=="" && <span style={{color:"#ef4444"}}> • اقل كمية 1 TON</span>}</div>
+                <div style={{display:"flex", justifyContent:"center", margin:"14px 0"}}><div style={{width:36, height:36, background:"#1A1A1A", borderRadius:20, display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #333", fontSize:16}}>↕</div></div>
+                <div style={{fontSize:11, color:"#888", textAlign:"right"}}>تستلم ≈</div>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #333", marginTop:6}}>
+                  <div style={{fontSize:20, fontWeight:900, color:"#5EE9FF"}}>{tonAmount==="" ? "0.00000000" : ankhAmount.toFixed(8)}</div>
+                  <div style={{color:"#A855F7", fontWeight:900, fontSize:14}}>ANKH</div>
+                </div>
+                <div style={{marginTop:12, background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #222"}}>
+                  <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}><span style={{color:"#888"}}>رسوم الخدمة</span><span>TON 0.05</span></div>
+                  <div style={{display:"flex", justifyContent:"space-between", fontSize:12, marginTop:8}}><span style={{color:"#888"}}>الإنزلاق السعري</span><span>0.5%</span></div>
+                  <div style={{display:"flex", justifyContent:"space-between", fontSize:13, marginTop:10, fontWeight:900}}><span style={{color:"#FACC15"}}>المبادلة ورسوم التطبيق</span><span style={{color:"#FACC15"}}>TON {(Number(tonAmount||0)+0.05).toFixed(2)}</span></div>
+                </div>
+                <button onClick={()=>{if(Number(tonAmount)>=1){const newTx={amount:ankhAmount.toFixed(2), date:"الآن - "+new Date().toLocaleTimeString()}; setTxHistory([newTx, ...txHistory]); alert("تم إنشاء طلب شراء "+ankhAmount.toFixed(2)+" ANKH");}}} disabled={Number(tonAmount)<1} style={{marginTop:14, width:"100%", background: Number(tonAmount)>=1 ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#222", padding:14, borderRadius:12, border:"none", color:"#fff", fontWeight:900, fontSize:14}}>↗ راجع الشراء</button>
+                <button onClick={()=>setShowConnect(true)} style={{marginTop:10, width:"100%", background:"#1A1A1A", padding:13, borderRadius:12, border:"1px solid #333", color:"#fff", fontWeight:700}}>📋 {isConnected ? "محفظة مربوطة ✓" : "ربط المحفظة"}</button>
+                <button onClick={()=>window.open("https://app.ston.fi","_blank")} style={{marginTop:10, width:"100%", background:"#1A1A1A", padding:13, borderRadius:12, border:"1px solid #333", color:"#fff", fontWeight:700}}>↗ افتح STON.fi</button>
+              </div>
+            )}
           </div>
+
           {showConnect && (
-            <div style={{position:"fixed", top:0, left:0, right:0, bottom:0, background:"rgba(0,0,0,0.8)", zIndex:100, display:"flex", alignItems:"flex-end"}}>
-              <div style={{width:"100%", background:"#12121A", borderRadius:"20px 20px 0 0", padding:16, border:"1px solid #333"}}>
-                <div style={{display:"flex", justifyContent:"space-between"}}><div style={{width:32, height:32, background:"#1A1A1A", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center"}}>◫</div><button onClick={()=>setShowConnect(false)} style={{width:32, height:32, background:"#1A1A1A", borderRadius:20, border:"none", color:"#fff"}}>✕</button></div>
-                <div style={{textAlign:"center", marginTop:10}}><div style={{fontSize:20, fontWeight:900}}>Connect your TON wallet</div><div style={{fontSize:12, color:"#666", marginTop:4}}>Use Wallet in Telegram or choose other application</div></div>
-                <button onClick={()=>{setIsConnected(true); setShowConnect(false);}} style={{marginTop:16, width:"100%", background:"#0098EA", padding:14, borderRadius:12, border:"none", color:"#fff", fontWeight:800}}>Connect Wallet in Telegram</button>
-                <div style={{textAlign:"center", fontSize:12, color:"#666", marginTop:16}}>Choose other application</div>
-                <div style={{display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:12, marginTop:16, textAlign:"center"}}>
-                  <div onClick={()=>{window.open("https://app.tonkeeper.com/ton-connect","_blank"); setIsConnected(true); setShowConnect(false)}} style={{cursor:"pointer"}}><div style={{width:60, height:60, background:"#0A0A0A", borderRadius:14, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #222"}}>✈️</div><div style={{fontSize:11, marginTop:6}}>Telegram</div></div>
-                  <div onClick={()=>{window.open("https://my.tt/","_blank"); setIsConnected(true); setShowConnect(false)}} style={{cursor:"pointer"}}><div style={{width:60, height:60, background:"#0A0A0A", borderRadius:14, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #222"}}>♦️</div><div style={{fontSize:11, marginTop:6}}>Gram</div></div>
-                  <div onClick={()=>{window.open("https://app.tonkeeper.com/","_blank"); setIsConnected(true); setShowConnect(false)}} style={{cursor:"pointer"}}><div style={{width:60, height:60, background:"#0A0A0A", borderRadius:14, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #222"}}>🔷</div><div style={{fontSize:11, marginTop:6}}>Keeper</div></div>
-                  <div><div style={{width:60, height:60, background:"#0A0A0A", borderRadius:14, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #222"}}>◫</div><div style={{fontSize:11, marginTop:6}}>View all</div></div>
+            <div style={{position:"fixed", top:0, left:0, right:0, bottom:0, background:"rgba(0,0,0,0.85)", zIndex:100, display:"flex", alignItems:"flex-end"}}>
+              <div style={{width:"100%", background:"#0F0F14", borderRadius:"24px 24px 0 0", padding:"16px 16px 30px", borderTop:"1px solid #333"}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                  <div style={{width:36, height:36, background:"#1A1A1A", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", color:"#666", border:"1px solid #222"}}>◫</div>
+                  <button onClick={()=>setShowConnect(false)} style={{width:36, height:36, background:"#1A1A1A", borderRadius:20, border:"1px solid #222", color:"#fff", fontSize:16}}>✕</button>
+                </div>
+                <div style={{textAlign:"center", marginTop:16}}>
+                  <div style={{fontSize:22, fontWeight:900}}>Connect your TON wallet</div>
+                  <div style={{fontSize:13, color:"#888", marginTop:8, lineHeight:1.4}}>Use Wallet in Telegram or choose<br/>other application</div>
+                </div>
+                <button onClick={()=>{setIsConnected(true); localStorage.setItem("ankh_connected","1"); setShowConnect(false);}} style={{marginTop:20, width:"100%", background:"#0098EA", padding:16, borderRadius:14, border:"none", color:"#fff", fontWeight:900, fontSize:15}}>Connect Wallet in Telegram</button>
+                <div style={{textAlign:"center", fontSize:13, color:"#666", marginTop:20, fontWeight:600}}>Choose other application</div>
+                <div style={{display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:16, marginTop:18, textAlign:"center"}}>
+                  <div onClick={()=>{window.open("ton://","_blank"); setTimeout(()=>{setIsConnected(true); localStorage.setItem("ankh_connected","1"); setShowConnect(false);}, 1000)}} style={{cursor:"pointer"}}>
+                    <div style={{width:64, height:64, background:"#15151F", borderRadius:16, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #222", fontSize:28}}>✈️</div>
+                    <div style={{fontSize:12, marginTop:8, color:"#fff"}}>Telegram</div>
+                  </div>
+                  <div onClick={()=>{window.open("https://my.tt/","_blank"); setTimeout(()=>{setIsConnected(true); localStorage.setItem("ankh_connected","1"); setShowConnect(false);}, 1000)}} style={{cursor:"pointer"}}>
+                    <div style={{width:64, height:64, background:"#15151F", borderRadius:16, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #222"}}><div style={{width:20, height:20, background:"#FF3B30", transform:"rotate(45deg)", borderRadius:4}}></div></div>
+                    <div style={{fontSize:12, marginTop:8, color:"#fff"}}>Gram Wallet</div>
+                  </div>
+                  <div onClick={()=>{window.open("https://app.tonkeeper.com/ton-connect","_blank"); setTimeout(()=>{setIsConnected(true); localStorage.setItem("ankh_connected","1"); setShowConnect(false);}, 1500)}} style={{cursor:"pointer"}}>
+                    <div style={{width:64, height:64, background:"#15151F", borderRadius:16, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #222", fontSize:26}}>💎</div>
+                    <div style={{fontSize:12, marginTop:8, color:"#fff"}}>Tonkeeper</div>
+                  </div>
+                  <div style={{cursor:"pointer"}}>
+                    <div style={{width:64, height:64, background:"#15151F", borderRadius:16, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #222"}}>
+                      <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:4}}><div style={{width:10, height:10, background:"#fff", borderRadius:3}}></div><div style={{width:10, height:10, background:"#fff", borderRadius:3}}></div><div style={{width:10, height:10, background:"#fff", borderRadius:3}}></div><div style={{width:10, height:10, background:"#fff", borderRadius:3}}></div></div>
+                    </div>
+                    <div style={{fontSize:12, marginTop:8, color:"#fff", lineHeight:1.1}}>View all<br/>wallets</div>
+                  </div>
+                </div>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:30}}>
+                  <div style={{width:36, height:36, background:"#1A1A1A", borderRadius:20, display:"flex", alignItems:"center", justifyContent:"center", color:"#666", border:"1px solid #222", fontSize:18}}>? </div>
+                  <div style={{display:"flex", alignItems:"center", gap:8, color:"#0098EA", fontWeight:800, fontSize:14}}><span style={{width:28, height:28, background:"#0098EA", borderRadius:20, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:12}}>▼</span> TON Connect</div>
                 </div>
               </div>
             </div>
