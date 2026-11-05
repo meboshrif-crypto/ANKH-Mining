@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect } from "react";
 import { TonConnectUIProvider, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
@@ -67,7 +68,6 @@ function AnkhInner() {
   const [walletCreatedAt, setWalletCreatedAt] = useState<number>(Date.now());
   const [onChainAnkh, setOnChainAnkh] = useState(0);
   const [isVerifiedHuman, setIsVerifiedHuman] = useState(false);
-  const [showLevels, setShowLevels] = useState(false);
 
   const t = TRANSLATIONS[lang];
   const getReq = (l: number) => getLevelData(l).req;
@@ -105,12 +105,7 @@ function AnkhInner() {
     return ()=>clearInterval(interval);
   },[lastMine, level]);
 
-  const daily = getDaily(level); 
-  const hourly = getHourly(level); 
-  const nextReq = getReq(level+1); 
-  const progress = Math.min(100, (walletBalance / (nextReq||1))*100);
-  const needForNext = Math.max(0, nextReq - walletBalance);
-
+  const daily = getDaily(level); const hourly = getHourly(level); const nextReq = getReq(level+1); const progress = Math.min(100, (walletBalance / (nextReq||1))*100);
   const handleClaim = () => {
     if(balance<=0) return;
     const newW = walletBalance + balance;
@@ -119,7 +114,6 @@ function AnkhInner() {
     localStorage.setItem("ankh_last_mine", String(now)); localStorage.setItem("ankh_bal", "0");
     let nl=level; while(newW>=getReq(nl+1) && nl<500) nl++; setLevel(nl); localStorage.setItem("ankh_level", String(nl));
   };
-
   const changeLang = (l:string)=>{ setLang(l); localStorage.setItem("ankh_lang", l); setShowLang(false); }
   const chartPoints = [0, 15, 30, 25, 45, 60, 55, 80, 95, 85, 100];
   const walletAgeDays = Math.floor((Date.now() - walletCreatedAt) / (1000*60*60*24));
@@ -221,69 +215,6 @@ function AnkhInner() {
             <div style={{display:"flex", justifyContent:"space-between", fontSize:11}}><span>ANKH {walletBalance.toFixed(0)} / {nextReq}</span><span>{t.nextLevel} {level+1}</span></div>
             <div style={{height:4, background:"#222", borderRadius:10, marginTop:8}}><div style={{width:`${progress}%`, height:"100%", background:"linear-gradient(90deg,#FACC15,#22c55e)"}}></div></div>
           </div>
-
-          {/* === الحتة اللي رجعت === */}
-          <div style={{margin:"10px 12px 0", background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222"}}>
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-              <div>
-                <div style={{fontWeight:800, fontSize:13}}>{t.chartTitle} 📈</div>
-                <div style={{fontSize:10, color:"#888", marginTop:2}}>{t.chartSub}</div>
-              </div>
-              <div style={{fontSize:10, color:"#FACC15", background:"rgba(250,204,21,0.1)", border:"1px solid #FACC15", padding:"4px 8px", borderRadius:20}}>
-                Lv.{level} • {hourly}/h
-              </div>
-            </div>
-
-            <div style={{marginTop:12, height:80, display:"flex", alignItems:"flex-end", gap:4, padding:"0 4px"}}>
-              {chartPoints.map((h,i)=>{
-                const isCurrent = i===Math.min(10, Math.floor(level/50));
-                return (
-                  <div key={i} style={{flex:1, height:`${h}%`, background: isCurrent ? "linear-gradient(180deg,#FACC15,#EAB308)" : "linear-gradient(180deg,#333,#222)", borderRadius:"4px 4px 0 0", border: isCurrent ? "1px solid #FACC15" : "none"}}></div>
-                )
-              })}
-            </div>
-
-            <div style={{marginTop:10, background:"#0A0A0A", borderRadius:10, padding:10, border:"1px solid #222", textAlign:"center"}}>
-              <div style={{fontSize:10, color:"#888"}}>
-                ⚠️ ملاحظة: العملات الموجودة في البوت لا تؤثر على المستوى - فقط العملات الموجودة في المحفظة بعد الضغط على استلام هي التي يتم احتسابها لرفع المستوى
-              </div>
-              <div style={{marginTop:8, display:"flex", justifyContent:"space-between", fontSize:11}}>
-                <span style={{color:"#888"}}>باقي {needForNext.toFixed(0)} ANKH للوصول لليفل {level+1}</span>
-                <span style={{color:"#22c55e"}}>مؤهل للسحب: {walletBalance>=10000 ? "✅" : "❌"}</span>
-              </div>
-            </div>
-
-            <button onClick={()=>setShowLevels(!showLevels)} style={{marginTop:10, width:"100%", background:"#0A0A0A", border:"1px solid #FACC15", borderRadius:10, padding:12, color:"#FACC15", fontSize:12, fontWeight:800}}>
-              {showLevels ? "اخفاء المستويات ▲" : "عرض المستويات 1-500 + سرعة التعدين ▼"}
-            </button>
-
-            {showLevels && (
-              <div style={{marginTop:10, maxHeight:400, overflowY:"auto", border:"1px solid #222", borderRadius:10, background:"#08080C"}}>
-                <div style={{display:"flex", justifyContent:"space-between", fontSize:10, color:"#888", padding:"10px", borderBottom:"1px solid #222", background:"#0A0A0A", position:"sticky", top:0, zIndex:2}}>
-                  <span>المستوى</span><span>المطلوب</span><span>في اليوم</span><span>في الساعة</span>
-                </div>
-                {Array.from({length: 100}, (_,i)=>{
-                  const lvl = i+1; 
-                  const data = getLevelData(lvl);
-                  const isCurrentLevel = lvl===level;
-                  return (
-                    <div key={lvl} style={{display:"flex", justifyContent:"space-between", padding:"10px", borderBottom:"1px solid #1a1a1a", fontSize:11, background: isCurrentLevel ? "rgba(250,204,21,0.15)" : "transparent", borderRight: isCurrentLevel ? "2px solid #FACC15" : "none"}}>
-                      <span style={{color: isCurrentLevel ? "#FACC15" : "#fff", fontWeight: isCurrentLevel ? 900 : 400}}>
-                        Lv.{lvl} {isCurrentLevel ? "← انت" : ""}
-                      </span>
-                      <span>{data.req.toLocaleString()}</span>
-                      <span style={{color:"#22c55e"}}>{data.daily.toLocaleString()}</span>
-                      <span style={{color:"#38BDF8"}}>{data.hourly}</span>
-                    </div>
-                  )
-                })}
-                <div onClick={()=>{setView("tiers");}} style={{padding:12, textAlign:"center", background:"#1A1A1A", cursor:"pointer", color:"#A855F7", fontWeight:800, fontSize:12}}>
-                  عرض كل المستويات 1-500 عبر الدوريات →
-                </div>
-              </div>
-            )}
-          </div>
-          {/* === نهاية الحتة اللي رجعت === */}
         </>
       )}
 
@@ -345,10 +276,12 @@ function AnkhInner() {
             <button onClick={()=>setWalletView("main")} style={{width:32, height:32, borderRadius:20, background:"#1a1a1a", border:"1px solid #333", color:"#fff"}}>←</button>
             <div><div style={{fontWeight:900}}>سحب ANKH</div><div style={{fontSize:10, color:"#888"}}>انقل مكافآتك الى محفظتك - على البلوكتشين</div></div>
           </div>
+
           <div style={{margin:"8px 12px", background:"#12121a", borderRadius:12, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between"}}>
             <span style={{fontSize:11, color:"#888"}}>حالة المحفظة</span>
             <span style={{fontSize:11, color: isConnected ? "#22c55e" : "#ef4444", direction:"ltr"}}>{isConnected ? `✅ ${wallet?.account.address.slice(0,10)}...${wallet?.account.address.slice(-6)} - ${walletAgeDays} يوم` : "❌ غير متصلة - اربط محفظتك"}</span>
           </div>
+
           <div style={{margin:"8px 12px", background:"#12121a", borderRadius:14, padding:14, border:"1px solid #333"}}>
             <div style={{fontSize:11, color:"#888"}}>رصيدك في التطبيق المتاح للسحب</div>
             <div style={{fontSize:28, fontWeight:900, marginTop:4}}>{walletBalance.toFixed(2)} <span style={{fontSize:14, color:"#FACC15"}}>ANKH</span></div>
@@ -361,6 +294,7 @@ function AnkhInner() {
             </div>
             <div style={{fontSize:10, color:"#888", marginTop:6}}>الحد الادنى 10,000 ANKH</div>
           </div>
+
           <div style={{margin:"8px 12px", background:"linear-gradient(180deg,#1a1500,#12121a)", borderRadius:14, padding:12, border:"1px solid #FACC15"}}>
             <div style={{fontSize:11, color:"#888"}}>الرصيد المطلوب الاحتفاظ به في محفظتك المربوطة (على البلوكتشين)</div>
             <div style={{fontSize:18, fontWeight:900, color:"#a855f7", marginTop:4}}>{requiredReserve.toLocaleString()} ANKH</div>
@@ -371,6 +305,7 @@ function AnkhInner() {
               {hasOnChainReserve ? `✅ عندك ${onChainAnkh} ANKH على البلوكتشين - كافي للسحب` : `⚠️ رصيدك على البلوكتشين ${onChainAnkh} - محتاج ${requiredReserve.toLocaleString()} ANKH في نفس المحفظة المربوطة اعلاه`}
             </div>
           </div>
+
           <div style={{margin:"8px 12px", display:"grid", gap:8}}>
             <div style={{background:"#12121a", borderRadius:12, padding:12, border:`1px solid ${isVerifiedHuman ? "#22c55e" : "#a855f7"}`, display:"flex", gap:10, alignItems:"center"}}>
               <div style={{width:28, height:28, borderRadius:20, background:"#1a1a1a", border:"1px solid #333", display:"flex", alignItems:"center", justifyContent:"center"}}>ℹ️</div>
@@ -382,6 +317,7 @@ function AnkhInner() {
               <div style={{fontSize:11, color: isAgeOk ? "#22c55e" : "#ef4444"}}>عمر المحفظة {walletAgeDays} يوم - {isAgeOk ? "✅ مؤهل للسحب" : "❌ يلزم 30 يوم او Premium او تداول STON.fi"}</div>
             </div>
           </div>
+
           <div style={{margin:"8px 12px", background:"#12121a", borderRadius:14, padding:12, border:"1px solid #333"}}>
             <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}><span style={{color:"#888"}}>المبلغ المطلوب</span><span>{withdrawAmount || 0} ANKH</span></div>
             <div style={{display:"flex", justifyContent:"space-between", fontSize:12, marginTop:8}}><span style={{color:"#888"}}>رسوم الخدمة - 5%</span><span style={{color:"#ef4444"}}>-{withdrawFee.toFixed(0)} ANKH</span></div>
@@ -389,10 +325,112 @@ function AnkhInner() {
             <div style={{display:"flex", justifyContent:"space-between", fontSize:11, marginTop:12, color:"#888"}}><span>وقت المعالجة</span><span>1-24 ساعة ⏱️</span></div>
             <div style={{display:"flex", justifyContent:"space-between", fontSize:10, marginTop:6, color:"#666"}}><span>رسوم الشبكة</span><span>0.05 TON</span></div>
           </div>
+
           <div style={{margin:"12px"}}>
             <button onClick={handleWithdraw} style={{width:"100%", background: "linear-gradient(90deg,#a855f7,#38bdf8)", padding:14, borderRadius:12, border:"none", color:"#fff", fontWeight:900}}>⚡ تأكيد السحب</button>
             <div style={{fontSize:10, color:"#888", textAlign:"center", marginTop:8}}>راجع جميع التفاصيل قبل التأكيد - عنوانك المربوط هو اللي هيستلم</div>
           </div>
+        </div>
+      )}
+
+      {view==="main" && tab==="friends" && (
+        <div style={{padding:"0 0 20px", background:"#0A0A12"}}>
+          <div style={{position:"relative", height:220, overflow:"hidden", background:"linear-gradient(180deg,#1a1033 0%, #0f0a1a 100%)", borderBottom:"1px solid #222"}}>
+            <div style={{position:"absolute", inset:0, background:"radial-gradient(ellipse at center top, rgba(168,85,247,0.3), transparent 60%), radial-gradient(ellipse at bottom, rgba(56,189,248,0.2), transparent)"}}></div>
+            <div style={{position:"absolute", top:20, left:"50%", transform:"translateX(-50%)", width:140, height:140, borderRadius:"50%", background:"radial-gradient(circle, #a855f7 0%, #1a1033 70%)", boxShadow:"0 0 60px rgba(168,85,247,0.6)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:60}}>☥</div>
+            <div style={{position:"absolute", bottom:16, left:16, right:16, display:"flex", justifyContent:"space-between", alignItems:"flex-end"}}>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:24, fontWeight:900, lineHeight:1.1}}>ادعُ<br/>واكسب</div>
+                <div style={{fontSize:10, color:"#a0a0c0", marginTop:4}}>كون فريقك، تقدموا معاً.</div>
+              </div>
+              <div style={{textAlign:"left"}}>
+                <div style={{display:"flex", gap:6, alignItems:"center"}}><span style={{fontSize:11, color:"#c0c0e0"}}>من تعدين أصدقائك النشطين</span><span style={{fontSize:38, fontWeight:900, color:"#FACC15", lineHeight:1}}>5%</span></div>
+              </div>
+            </div>
+          </div>
+          <div style={{display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8, padding:"12px 12px 0"}}>
+            <div style={{background:"linear-gradient(180deg,#151525,#0f0f1a)", borderRadius:12, padding:10, border:"1px solid #222", textAlign:"center"}}>
+              <div style={{fontSize:10, color:"#888", display:"flex", gap:4, justifyContent:"center"}}>الأصدقاء المدعوون <span>👥</span></div>
+              <div style={{fontSize:20, fontWeight:900, color:"#FACC15", marginTop:4}}>{friends.length}</div>
+            </div>
+            <div style={{background:"linear-gradient(180deg,#151525,#0f0f1a)", borderRadius:12, padding:10, border:"1px solid #222", textAlign:"center"}}>
+              <div style={{fontSize:10, color:"#888", display:"flex", gap:4, justifyContent:"center"}}>يعدنون الآن <span>👤</span></div>
+              <div style={{fontSize:20, fontWeight:900, color:"#22c55e", marginTop:4}}>0</div>
+            </div>
+            <div style={{background:"linear-gradient(180deg,#151525,#0f0f1a)", borderRadius:12, padding:10, border:"1px solid #222", textAlign:"center"}}>
+              <div style={{fontSize:10, color:"#888", display:"flex", gap:4, justifyContent:"center"}}>المكتسب <span>🗄️</span></div>
+              <div style={{fontSize:18, fontWeight:900, color:"#A855F7", marginTop:2}}>{referralEarnings.toFixed(2)}<div style={{fontSize:9, color:"#666"}}>ANKH</div></div>
+            </div>
+          </div>
+          <div style={{margin:"12px 12px 0", background:"#151525", borderRadius:12, padding:12, border:"1px solid #222", display:"flex", justifyContent:"center", gap:6, fontSize:12, color:"#888"}}>
+            سجل العمولات <span style={{width:18, height:18, borderRadius:10, background:"#222", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10}}>🕒</span>
+          </div>
+          <div style={{margin:"12px 12px 0", background:"linear-gradient(180deg,#1a1a2e,#12121f)", borderRadius:16, padding:14, border:"1px solid #2a2a4a"}}>
+            <div style={{fontSize:13, fontWeight:900, textAlign:"right", marginBottom:10}}>رابط دعوتك</div>
+            <div style={{background:"#0A0A14", borderRadius:10, padding:12, border:"1px solid #2a2a4a", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+              <div style={{fontSize:11, color:"#8a8ab0", direction:"ltr", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>https://t.me/ankhcoinbot?startapp=ref_{inviteCode}</div>
+              <div style={{minWidth:28, height:28, background:"#1a1a2e", borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #333", marginLeft:8}}>📋</div>
+            </div>
+            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:12}}>
+              <button onClick={()=>{const link=`https://t.me/ankhcoinbot?startapp=ref_${inviteCode}`; navigator.clipboard.writeText(link); alert("تم نسخ الرابط!");}} style={{background:"#151525", border:"1px solid #2a2a4a", borderRadius:12, padding:12, color:"#c0c0e0", fontWeight:700, fontSize:12, display:"flex", gap:6, justifyContent:"center"}}>انسخ الرابط <span>📋</span></button>
+              <button onClick={()=>{const link=`https://t.me/ankhcoinbot?startapp=ref_${inviteCode}`; if(navigator.share){navigator.share({title:"ANKH Mining", text:`تعال عدن معايا! كودي ${inviteCode}`, url:link})} else {window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("تعال عدن ANKH معايا!")}`,"_blank")}}} style={{background:"linear-gradient(90deg,#A855F7,#38BDF8)", border:"none", borderRadius:12, padding:12, color:"#fff", fontWeight:900, fontSize:12, display:"flex", gap:6, justifyContent:"center"}}>ادعُ أصدقاءك <span>✈️</span></button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {view==="mining" && (
+        <>
+          <div style={{padding:"12px 16px", display:"flex", gap:10, alignItems:"center"}}>
+            <button onClick={()=>{setView("main"); setTab("home")}} style={{background:"#1A1A1A", width:36, height:36, borderRadius:20, border:"1px solid #333", color:"#fff"}}>‹</button>
+            <div style={{fontWeight:900}}>التعدين - ANKH</div>
+          </div>
+          <div style={{margin:"0 12px", background:"linear-gradient(180deg, #1E1A2E 0%, #0F0F1A 100%)", borderRadius:18, padding:12, border:"1px solid #2A2A4A"}}>
+            <div style={{display:"flex", justifyContent:"space-between"}}>
+              <div style={{background:"rgba(250,204,21,0.15)", border:"1px solid #FACC15", padding:"4px 10px", borderRadius:12, fontSize:11, color:"#FACC15"}}>⚡ x1.00</div>
+              <div style={{textAlign:"left"}}><div style={{fontSize:12, fontWeight:800}}>{t.active}</div><div style={{fontSize:10, color:"#22c55e"}}>{t.working} ●</div></div>
+            </div>
+            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:12}}>
+              <div style={{background:"#0A0A0A", borderRadius:10, padding:8, textAlign:"center", border:"1px solid #222"}}><div style={{fontSize:10, color:"#888"}}>المعدن</div><div style={{fontWeight:900, color:"#5EE9FF", fontSize:18}}>{balance.toFixed(2)}</div><div style={{fontSize:9, color:"#666"}}>ANKH</div></div>
+              <div style={{background:"#0A0A0A", borderRadius:10, padding:8, textAlign:"center", border:"1px solid #222"}}><div style={{fontSize:10, color:"#888"}}>في الساعة</div><div style={{fontWeight:900, color:"#FACC15", fontSize:18}}>{hourly}</div><div style={{fontSize:9, color:"#666"}}>ANKH/h</div></div>
+            </div>
+            <button onClick={handleClaim} style={{marginTop:10, width:"100%", background: balance>0 ? "linear-gradient(90deg, #FACC15, #EAB308)" : "#222", padding:12, borderRadius:12, border:"none", color: balance>0 ? "#000" : "#666", fontWeight:900}}>{t.claim} ⚡</button>
+          </div>
+        </>
+      )}
+
+      {view==="market" && (
+        <div style={{padding:"12px 16px"}}>
+          <div style={{borderRadius:16, background:"linear-gradient(180deg, #1A0A2E, #0F0F1A)", border:"1px solid #333", padding:12}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+              <div style={{fontSize:22, fontWeight:900}}>السوق</div>
+              <div style={{fontSize:11, color:"#FACC15", background:"rgba(250,204,21,0.1)", border:"1px solid #FACC15", padding:"4px 10px", borderRadius:20}}>ANKH / TON ⇄</div>
+            </div>
+            <div style={{marginTop:12, background:"rgba(0,0,0,0.5)", borderRadius:12, padding:12, border:"1px solid #222"}}>
+              <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}>
+                <span style={{color:"#FACC15"}}>↗ STON.fi</span>
+                <span style={{color:"#888"}}>{isConnected ? wallet?.account.address.slice(0,6)+"..."+wallet?.account.address.slice(-4) : "TON Price"}</span>
+              </div>
+              <div style={{fontSize:26, fontWeight:900, marginTop:8}}>TON {ankhPrice.toFixed(6)}</div>
+            </div>
+          </div>
+          <div style={{display:"flex", gap:8, marginTop:12}}>
+            <button onClick={()=>setMarketTab("history")} style={{flex:1, background: marketTab==="history" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border:"1px solid #222", borderRadius:12, padding:12, color: marketTab==="history" ? "#fff" : "#666", fontWeight:900}}>السجل</button>
+            <button onClick={()=>setMarketTab("buy")} style={{flex:1, background: marketTab==="buy" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border:"1px solid #222", borderRadius:12, padding:12, color: marketTab==="buy" ? "#fff" : "#666", fontWeight:900}}>شراء</button>
+          </div>
+          {marketTab==="buy" && (
+            <div style={{marginTop:10, background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222"}}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #333", marginTop:6}}>
+                <input type="number" inputMode="decimal" value={tonAmount} onChange={(e)=>{if(Number(e.target.value)>=1 || e.target.value==="") setTonAmount(e.target.value)}} style={{background:"none", border:"none", color:"#fff", fontSize:16, fontWeight:900, width:120, outline:"none"}} />
+                <span style={{color:"#FACC15", fontWeight:800}}>TON</span>
+              </div>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #333", marginTop:12}}>
+                <div style={{fontSize:20, fontWeight:900, color:"#5EE9FF"}}>{tonAmount==="" ? "0.00000000" : ankhAmount.toFixed(8)}</div>
+                <div style={{color:"#A855F7", fontWeight:900}}>ANKH</div>
+              </div>
+              <button onClick={()=>tonConnectUI.openModal()} style={{marginTop:14, width:"100%", background:"linear-gradient(90deg,#A855F7,#38BDF8)", padding:14, borderRadius:12, border:"none", color:"#fff", fontWeight:900}}>📋 ربط المحفظة</button>
+            </div>
+          )}
         </div>
       )}
 
