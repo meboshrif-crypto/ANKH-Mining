@@ -2,7 +2,13 @@
 import { useState, useEffect } from "react";
 export const dynamic = "force-dynamic";
 
-const LEVELS_DATA = [
+const TRANSLATIONS: any = {
+  ar: { mining: "ANKH Mining", subtitle: "عدن لتصنع المجد بنفسك", balance: "الرصيد المعدن", active: "التعدين النشط", working: "يعمل الآن", ready: "جاهز للجمع!", claim: "استلم ANKH", perHour: "في الساعة", daily: "يوميا", boost: "تعزيز", tier: "الدوري", nextLevel: "المستوى التالي:", keep: "احتفظ بـ", toReach: "في محفظتك للوصول الى المستوي", profile: "الملف الشخصي", smallLevel: "مستوي الصغير", tiersTitle: "الدوريات والمستويات", tiersSub: "احتفظ بـ ANKH , افتح الفصل التالي", yourTier: "دوريك", walletBal: "الرصيد في المحفظة", browse: "تصفح المستويات", progress: "تقدم الدوريات", levelsTitle: "مستويات التعدين", levelsSub: "استكشف 500 مستوى عبر خمس دوريات - ANKH", small: "مستوى الصغير", reqWallet: "الرصيد في المحفظة", perDay: "ANKH / اليوم", main: "الرئيسية", miningTab: "التعدين", station: "المحطة", market: "السوق", friends: "الأصدقاء", wallet: "المحفظة" },
+  en: { mining: "ANKH Mining", subtitle: "Mine to build your own glory", balance: "Mined Balance", active: "Active Mining", working: "Working Now", ready: "Ready to Claim!", claim: "Claim ANKH", perHour: "Per Hour", daily: "Daily", boost: "Boost", tier: "Tier", nextLevel: "Next Level:", keep: "Keep", toReach: "in wallet to reach level", profile: "Profile", smallLevel: "Small Level", tiersTitle: "Tiers & Levels", tiersSub: "Hold ANKH, unlock next chapter", yourTier: "Your Tier", walletBal: "Wallet Balance", browse: "Browse Levels", progress: "Tiers Progress", levelsTitle: "Mining Levels", levelsSub: "Explore 500 levels - ANKH", small: "Level", reqWallet: "Wallet Required", perDay: "ANKH / Day", main: "Home", miningTab: "Mining", station: "Station", market: "Market", friends: "Friends", wallet: "Wallet" },
+  ru: { mining: "ANKH Mining", subtitle: "Майни, чтобы создать славу", balance: "Добытый баланс", active: "Активный майнинг", working: "Работает", ready: "Готово!", claim: "Получить ANKH", perHour: "В час", daily: "В день", boost: "Буст", tier: "Лига", nextLevel: "След. уровень:", keep: "Держи", toReach: "в кошельке для уровня", profile: "Профиль", smallLevel: "Мал. уровень", tiersTitle: "Лиги и уровни", tiersSub: "Держи ANKH, открой главу", yourTier: "Твоя лига", walletBal: "Баланс", browse: "Уровни", progress: "Прогресс", levelsTitle: "Уровни майнинга", levelsSub: "500 уровней - ANKH", small: "Ур.", reqWallet: "Нужно", perDay: "ANKH / День", main: "Главная", miningTab: "Майнинг", station: "Станция", market: "Рынок", friends: "Друзья", wallet: "Кошелек" },
+};
+
+const LEVELS = [
   { lvl: 1, req: 0, daily: 600, hourly: 25.0 },
   { lvl: 2, req: 116, daily: 690, hourly: 28.8 },
   { lvl: 3, req: 533, daily: 854, hourly: 35.6 },
@@ -13,131 +19,163 @@ const LEVELS_DATA = [
 ];
 
 export default function Page() {
-  const [balance, setBalance] = useState(3.2620);
+  const [balance, setBalance] = useState(0);
   const [walletBalance, setWalletBalance] = useState(0);
   const [level, setLevel] = useState(1);
   const [view, setView] = useState<"main" | "tiers" | "levels">("main");
-  const [mining, setMining] = useState(false);
+  const [tab, setTab] = useState("home");
+  const [lang, setLang] = useState("ar");
+  const [showLang, setShowLang] = useState(false);
+  const [lastMine, setLastMine] = useState(0);
+  const t = TRANSLATIONS[lang];
 
-  const getReq = (l: number) => LEVELS_DATA.find(x=>x.lvl===l)?.req ?? Math.floor(5972*Math.pow(1.5,l-7));
-  const getDaily = (l: number) => LEVELS_DATA.find(x=>x.lvl===l)?.daily ?? Math.floor(1918*Math.pow(1.25,l-7));
-  const getHourly = (l: number) => LEVELS_DATA.find(x=>x.lvl===l)?.hourly ?? +(getDaily(l)/24).toFixed(1);
+  const getReq = (l: number) => LEVELS.find(x=>x.lvl===l)?.req ?? Math.floor(5972*Math.pow(1.4,l-7));
+  const getDaily = (l: number) => LEVELS.find(x=>x.lvl===l)?.daily ?? Math.floor(1918*Math.pow(1.22,l-7));
+  const getHourly = (l: number) => LEVELS.find(x=>x.lvl===l)?.hourly ?? +(getDaily(l)/24).toFixed(1);
 
+  // تحميل + حساب التعدين وهو مقفول
   useEffect(()=>{
     const wb = localStorage.getItem("ankh_wallet"); if(wb) setWalletBalance(Number(wb));
     const lv = localStorage.getItem("ankh_level"); if(lv) setLevel(Number(lv));
+    const lm = localStorage.getItem("ankh_last_mine"); 
+    const lb = localStorage.getItem("ankh_bal");
+    const now = Date.now();
+    
+    if(lm){
+      const last = Number(lm);
+      setLastMine(last);
+      const elapsedHours = (now - last) / 3600000;
+      if(elapsedHours < 24){
+        // يعدن وهو مقفول
+        const currentHourly = getHourly(Number(lv)||1);
+        const offlineEarned = Math.min(currentHourly * 24, currentHourly * elapsedHours);
+        setBalance(Number(lb||0) + offlineEarned);
+      } else {
+        // عدى 24 ساعة يقف عند الحد الاقصى 24 ساعة
+        const currentHourly = getHourly(Number(lv)||1);
+        setBalance(Number(lb||0) + currentHourly * 24);
+      }
+    } else {
+      // اول دخول يبدأ 0
+      setBalance(0);
+      setLastMine(now);
+      localStorage.setItem("ankh_last_mine", String(now));
+    }
+    const savedLang = localStorage.getItem("ankh_lang"); if(savedLang) setLang(savedLang);
   },[]);
+
+  // تعدين كل ثانية
+  useEffect(()=>{
+    const interval = setInterval(()=>{
+      if(Date.now() - lastMine < 86400000){
+        setBalance(b=>{
+          const newB = b + (getHourly(level)/3600);
+          localStorage.setItem("ankh_bal", String(newB));
+          return newB;
+        });
+      }
+    },1000);
+    return ()=>clearInterval(interval);
+  },[lastMine, level]);
 
   const daily = getDaily(level);
   const hourly = getHourly(level);
   const nextReq = getReq(level+1);
   const progress = Math.min(100, (walletBalance / (nextReq||1))*100);
+  const is24hOver = Date.now() - lastMine >= 86400000;
 
-  const claim = () => {
+  const handleClaim = () => {
     if(balance<=0) return;
     const newW = walletBalance + balance;
     setWalletBalance(newW);
     localStorage.setItem("ankh_wallet", String(newW));
     setBalance(0);
+    const now = Date.now();
+    setLastMine(now);
+    localStorage.setItem("ankh_last_mine", String(now));
+    localStorage.setItem("ankh_bal", "0");
     let nl=level; while(newW>=getReq(nl+1) && nl<500) nl++; setLevel(nl); localStorage.setItem("ankh_level", String(nl));
   };
 
+  const changeLang = (l:string)=>{ setLang(l); localStorage.setItem("ankh_lang", l); setShowLang(false); }
+
   return (
-    <div style={{minHeight:"100vh", background:"#08080C", color:"#fff", paddingBottom:90, direction:"rtl", fontFamily:"sans-serif"}}>
+    <div style={{minHeight:"100vh", background:"#08080C", color:"#fff", paddingBottom:90, direction: lang==="ar" ? "rtl" : "ltr", fontFamily:"sans-serif"}}>
       
-      {/* HEADER - زي Rifty */}
-      <div style={{padding:"12px 16px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0F0F14"}}>
-        <div style={{width:38, height:38, borderRadius:20, background:"#1A1A1A", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #333"}}>✕</div>
-        <div style={{textAlign:"center"}}><div style={{fontWeight:800, fontSize:16}}>ANKH Mining</div><div style={{fontSize:11, color:"#888"}}>mini app</div></div>
-        <div style={{width:38, height:38, borderRadius:20, background:"#1A1A1A", border:"1px solid #333"}}>⋯</div>
+      {/* HEADER مع لغات شغالة */}
+      <div style={{padding:"12px 16px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0F0F14", position:"relative"}}>
+        <div style={{display:"flex", gap:8, alignItems:"center"}}>
+          <div style={{width:38, height:38, borderRadius:10, background:"linear-gradient(180deg,#FACC15,#854D0E)", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #FACC15", color:"#000", fontWeight:900}}>☥</div>
+          <span style={{fontWeight:900}}>ANKH</span>
+          <div style={{position:"relative"}}>
+            <button onClick={()=>setShowLang(!showLang)} style={{background:"#1A1A1A", border:"1px solid #333", borderRadius:20, padding:"6px 12px", fontSize:11, color:"#fff"}}>{lang.toUpperCase()} {lang==="ar"?"🇪🇬":lang==="en"?"🇺🇸":"🇷🇺"} ▾</button>
+            {showLang && (
+              <div style={{position:"absolute", top:35, left:0, background:"#1A1A1A", border:"1px solid #333", borderRadius:10, zIndex:50, overflow:"hidden"}}>
+                <div onClick={()=>changeLang("ar")} style={{padding:"8px 16px", fontSize:12, cursor:"pointer", background: lang==="ar"?"#222":"transparent"}}>AR 🇪🇬 عربي</div>
+                <div onClick={()=>changeLang("en")} style={{padding:"8px 16px", fontSize:12, cursor:"pointer", background: lang==="en"?"#222":"transparent"}}>EN 🇺🇸 English</div>
+                <div onClick={()=>changeLang("ru")} style={{padding:"8px 16px", fontSize:12, cursor:"pointer", background: lang==="ru"?"#222":"transparent"}}>RU 🇷🇺 Русский</div>
+              </div>
+            )}
+          </div>
+          <div style={{background:"#1A1A1A", border:"1px solid #333", borderRadius:20, padding:"6px 10px", fontSize:12}}>🔔</div>
+        </div>
+        <div style={{background:"#1A1A1A", border:"1px solid #333", borderRadius:20, padding:"6px 12px", fontSize:11, display:"flex", gap:6}}><span>{t.profile}</span><span style={{color:"#FACC15"}}>{t.smallLevel} {level}</span></div>
       </div>
 
-      {view==="main" && (
+      {(view==="main" || tab==="home") && (
         <>
-          {/* TOP BAR */}
-          <div style={{padding:"10px 12px", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-            <div style={{display:"flex", gap:8, alignItems:"center"}}>
-              <div style={{background:"#1A1A1A", border:"1px solid #333", borderRadius:20, padding:"6px 12px", fontSize:11, display:"flex", gap:6}}><span>الملف الشخصي</span><span style={{color:"#FACC15"}}>مستوي الصغير {level}</span></div>
-              <div style={{background:"#1A1A1A", border:"1px solid #333", borderRadius:20, padding:"6px 10px", fontSize:12}}>🔔</div>
-              <div style={{background:"#1A1A1A", border:"1px solid #333", borderRadius:20, padding:"6px 10px", fontSize:11}}>AR ▾ 🇪🇬</div>
-            </div>
-            <div style={{display:"flex", gap:6, alignItems:"center", fontWeight:900}}><span>ANKH</span><span style={{width:24, height:24, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center", color:"#000"}}>☥</span></div>
-          </div>
-
           <div style={{margin:"0 12px", height:90, borderRadius:16, background:"linear-gradient(90deg, #1A1500, #1A1A2A)", border:"1px solid #2A2A1A", position:"relative", overflow:"hidden", padding:12}}>
-            <div style={{position:"absolute", right:0, top:0, width:"60%", height:"100%", background:"radial-gradient(ellipse, rgba(250,204,21,0.15), transparent)", pointerEvents:"none"}}></div>
-            <div style={{fontSize:20, fontWeight:900}}>ANKH Mining</div><div style={{fontSize:11, color:"#888"}}>تطبيق Web3 الرسمي</div><div style={{fontSize:10, color:"#666", marginTop:6}}>من اين - قطر - استكشف</div>
+            <div style={{fontSize:20, fontWeight:900}}>{t.mining}</div><div style={{fontSize:11, color:"#FACC15", marginTop:2}}>{t.subtitle}</div><div style={{fontSize:10, color:"#666", marginTop:6}}>Web3 الرسمي</div>
           </div>
 
-          {/* الرصيد المعدن */}
           <div style={{margin:"10px 12px 0", background:"#14141A", borderRadius:14, padding:10, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-            <div style={{fontSize:11, color:"#888"}}>الرصيد المعدن</div>
-            <div style={{display:"flex", gap:8, alignItems:"center"}}><span style={{fontWeight:900, fontSize:18}}>{walletBalance.toFixed(4)} ANKH</span><span style={{fontSize:11, color:"#888"}}>{">"}</span><div style={{width:28, height:28, background:"#1A1A1A", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center"}}>🗄️</div></div>
+            <div style={{fontSize:11, color:"#888"}}>{t.balance}</div>
+            <div style={{display:"flex", gap:8, alignItems:"center"}}><span style={{fontWeight:900, fontSize:18}}>ANKH {walletBalance.toFixed(4)}</span><span style={{fontSize:11, color:"#888"}}>{"<"}</span><div style={{width:28, height:28, background:"#1A1A1A", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center"}}>🗄️</div></div>
           </div>
 
-          {/* التعدين النشط - الكارت الكبير */}
-          <div style={{margin:"10px 12px 0", background:"linear-gradient(180deg, #1E1A2E 0%, #0F0F1A 100%)", borderRadius:18, padding:12, border:"1px solid #2A2A4A", position:"relative", overflow:"hidden"}}>
+          <div style={{margin:"10px 12px 0", background:"linear-gradient(180deg, #1E1A2E 0%, #0F0F1A 100%)", borderRadius:18, padding:12, border:"1px solid #2A2A4A"}}>
             <div style={{display:"flex", justifyContent:"space-between"}}>
               <div style={{background:"rgba(250,204,21,0.15)", border:"1px solid #FACC15", padding:"4px 10px", borderRadius:12, fontSize:11, color:"#FACC15"}}>⚡ x1.00</div>
-              <div style={{textAlign:"left"}}><div style={{fontSize:12, fontWeight:800}}>التعدين النشط</div><div style={{fontSize:10, color:"#22c55e"}}>يعمل الآن ●</div></div>
+              <div style={{textAlign:"left"}}><div style={{fontSize:12, fontWeight:800}}>{t.active}</div><div style={{fontSize:10, color: is24hOver ? "#ef4444" : "#22c55e"}}>{is24hOver ? "توقف - اعمل استلام" : `${t.working} ●`}</div></div>
             </div>
-            <div style={{fontSize:32, fontWeight:900, color:"#5EE9FF", marginTop:14, textShadow:"0 0 20px rgba(94,233,255,0.4)"}}>+{balance.toFixed(4)} <span style={{fontSize:14}}>ANKH</span></div>
-            <div style={{fontSize:10, color:"#888", textAlign:"left", marginTop:4}}>⏱ جاهز للجمع!</div>
-            <button onClick={()=>setMining(true)} style={{marginTop:10, width:"100%", background:"linear-gradient(90deg, #A855F7, #38BDF8)", padding:12, borderRadius:12, border:"none", color:"#fff", fontWeight:900}}>استلم ANKH ⚡</button>
+            <div style={{fontSize:32, fontWeight:900, color:"#5EE9FF", marginTop:14}}>+{balance.toFixed(4)} <span style={{fontSize:14}}>ANKH</span></div>
+            <div style={{fontSize:10, color:"#888", textAlign:"left", marginTop:4}}>{is24hOver ? "⏸ اكتملت 24 ساعة - استلم" : `⏱ ${t.ready}`}</div>
+            <button onClick={handleClaim} style={{marginTop:10, width:"100%", background: balance>0 ? "linear-gradient(90deg, #A855F7, #38BDF8)" : "#222", padding:12, borderRadius:12, border:"none", color: balance>0 ? "#fff" : "#666", fontWeight:900}}>{t.claim} ⚡ {balance>0 ? `(${balance.toFixed(2)})` : ""}</button>
           </div>
 
-          {/* 4 كروت الاحصائيات */}
           <div style={{display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:6, margin:"10px 12px 0"}}>
-            <div style={{background:"#12121A", borderRadius:12, padding:8, textAlign:"center", border:"1px solid #222"}}><div style={{fontSize:9, color:"#888"}}>في الساعة ⚡</div><div style={{fontWeight:900, color:"#FACC15", marginTop:4}}>25.0</div><div style={{fontSize:9, color:"#666"}}>ANKH/h</div></div>
-            <div style={{background:"#12121A", borderRadius:12, padding:8, textAlign:"center", border:"1px solid #222"}}><div style={{fontSize:9, color:"#888"}}>يوميا 📅</div><div style={{fontWeight:900, color:"#22c55e", marginTop:4}}>{daily}~</div><div style={{fontSize:9, color:"#666"}}>ANKH/day</div></div>
-            <div style={{background:"#12121A", borderRadius:12, padding:8, textAlign:"center", border:"1px solid #222"}}><div style={{fontSize:9, color:"#888"}}>تعزيز 🚀</div><div style={{fontWeight:900, color:"#FACC15", marginTop:4}}>1.00x</div><div style={{fontSize:9, color:"#666"}}>المضاعف</div></div>
-            <div style={{background:"#1A1500", borderRadius:12, padding:8, textAlign:"center", border:"1px solid #FACC15"}}><div style={{fontSize:9, color:"#888"}}>الدوري 🛡️</div><div style={{fontWeight:900, color:"#FACC15", marginTop:4}}>برونزي</div><div style={{fontSize:9, color:"#666"}}>Lv.{level}</div></div>
+            <div style={{background:"#12121A", borderRadius:12, padding:8, textAlign:"center", border:"1px solid #222"}}><div style={{fontSize:9, color:"#888"}}>{t.perHour} ⚡</div><div style={{fontWeight:900, color:"#FACC15", marginTop:4}}>{hourly}</div><div style={{fontSize:9, color:"#666"}}>ANKH/h</div></div>
+            <div style={{background:"#12121A", borderRadius:12, padding:8, textAlign:"center", border:"1px solid #222"}}><div style={{fontSize:9, color:"#888"}}>{t.daily} 📅</div><div style={{fontWeight:900, color:"#22c55e", marginTop:4}}>{daily}~</div><div style={{fontSize:9, color:"#666"}}>ANKH/day</div></div>
+            <div style={{background:"#12121A", borderRadius:12, padding:8, textAlign:"center", border:"1px solid #222"}}><div style={{fontSize:9, color:"#888"}}>{t.boost} 🚀</div><div style={{fontWeight:900, color:"#FACC15", marginTop:4}}>1.00x</div><div style={{fontSize:9, color:"#666"}}>المضاعف</div></div>
+            <div style={{background:"#1A1500", borderRadius:12, padding:8, textAlign:"center", border:"1px solid #FACC15"}}><div style={{fontSize:9, color:"#888"}}>{t.tier} 🛡️</div><div style={{fontWeight:900, color:"#FACC15", marginTop:4}}>برونزي</div><div style={{fontSize:9, color:"#666"}}>Lv.{level}</div></div>
           </div>
 
-          {/* الخط الاخضر - البروجريس */}
-          <div onClick={()=>setView("tiers")} style={{margin:"10px 12px 0", background:"#12121A", borderRadius:12, padding:10, border:"1px solid #222", cursor:"pointer"}}>
-            <div style={{display:"flex", justifyContent:"space-between", fontSize:11}}><span style={{color:"#888"}}>ANKH {walletBalance.toFixed(0)} / {nextReq}</span><span style={{display:"flex", gap:6, alignItems:"center"}}><span>المستوى التالي: {level+1}</span><span style={{width:28, height:28, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, color:"#000", border:"1px solid #FACC15"}}>{level}</span></span></div>
+          <div onClick={()=>{setView("tiers"); setTab("mining")}} style={{margin:"10px 12px 0", background:"#12121A", borderRadius:12, padding:10, border:"1px solid #222", cursor:"pointer"}}>
+            <div style={{display:"flex", justifyContent:"space-between", fontSize:11}}><span style={{color:"#888"}}>ANKH {walletBalance.toFixed(0)} / {nextReq}</span><span style={{display:"flex", gap:6, alignItems:"center"}}><span>{t.nextLevel} {level+1}</span><span style={{width:28, height:28, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, color:"#000", border:"1px solid #FACC15"}}>{level}</span></span></div>
             <div style={{height:4, background:"#222", borderRadius:10, marginTop:8, overflow:"hidden"}}><div style={{width:`${progress}%`, height:"100%", background:"linear-gradient(90deg,#FACC15,#22c55e)"}}></div></div>
-            <div style={{fontSize:10, color:"#888", marginTop:6}}>احتفظ بـ {nextReq} ANKH في محفظتك للوصول الى المستوي {level+1}</div>
-          </div>
-
-          {/* الكروت اللي تحت - مركز المهام etc */}
-          <div style={{margin:"10px 12px 0", display:"flex", flexDirection:"column", gap:8}}>
-            <div style={{background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-              <div style={{display:"flex", gap:10, alignItems:"center"}}><div style={{width:36, height:36, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center"}}>★</div><div><div style={{fontWeight:800, fontSize:13}}>مركز المهام</div><div style={{fontSize:10, color:"#888"}}>أكمل المهام وانضم الى المجتمع لكسب ANKH.</div></div></div><span style={{color:"#666"}}>›</span>
-            </div>
-            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}}>
-              <div style={{background:"#12121A", borderRadius:14, padding:10, border:"1px solid #222"}}><div style={{fontSize:12, fontWeight:800}}>محطة ANKH</div><div style={{fontSize:9, color:"#888", marginTop:4}}>ابنِ وحرّر قوة التعدين لديك</div><div style={{fontSize:10, color:"#FACC15", marginTop:6}}>افتح المحطة ›</div></div>
-              <div style={{background:"#12121A", borderRadius:14, padding:10, border:"1px solid #222"}}><div style={{fontSize:12, fontWeight:800}}>صناديق ANKH</div><div style={{fontSize:9, color:"#888", marginTop:4}}>احصل على وحدات وفك ألغاز وتبرعات فورية</div><div style={{fontSize:10, color:"#FACC15", marginTop:6}}>افتح الصناديق ›</div></div>
-            </div>
-            <div style={{background:"#12121A", borderRadius:14, padding:10, border:"1px solid #222", display:"flex", justifyContent:"space-between"}}>
-              <div><div style={{fontSize:12, fontWeight:800}}>ادع واكسب</div><div style={{fontSize:9, color:"#888"}}>وسّع مجتمع ANKH واكسب حتى %25 من معين اصدقائك.</div></div>
-              <div style={{background:"rgba(250,204,21,0.15)", border:"1px solid #FACC15", padding:"6px 10px", borderRadius:20, fontSize:10, color:"#FACC15", height:"fit-content"}}>ادع الآن 👥</div>
-            </div>
+            <div style={{fontSize:10, color:"#888", marginTop:6}}>{t.keep} {nextReq} ANKH {t.toReach} {level+1}</div>
           </div>
         </>
       )}
 
       {view==="tiers" && (
         <>
-          <div style={{padding:16, textAlign:"center"}}><div style={{fontSize:22, fontWeight:900}}>الدوريات والمستويات</div><div style={{fontSize:11, color:"#888"}}>احتفظ بـ ANKH , افتح الفصل التالي</div></div>
-          <div style={{margin:"0 12px", background:"#12121A", borderRadius:16, padding:14, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-            <div style={{width:70, height:70, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:16, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, fontSize:32, border:"2px solid #FACC15", color:"#000"}}>1</div>
-            <div style={{textAlign:"left"}}><div style={{fontSize:11, color:"#888"}}>دوريك</div><div style={{fontWeight:900, color:"#FACC15"}}>البرونزي</div><div style={{fontSize:11, color:"#888", marginTop:8}}>الرصيد في المحفظة</div><div style={{fontWeight:900}}>ANKH {walletBalance.toFixed(0)}</div></div>
+          <div style={{padding:16, display:"flex", gap:10, alignItems:"center"}}>
+            <button onClick={()=>{setView("main"); setTab("home")}} style={{background:"#1A1A1A", width:36, height:36, borderRadius:20, border:"1px solid #333", color:"#fff", fontSize:18}}>‹</button>
+            <div style={{textAlign:"center", flex:1}}><div style={{fontSize:20, fontWeight:900}}>{t.tiersTitle}</div><div style={{fontSize:11, color:"#888"}}>{t.tiersSub}</div></div>
+            <div style={{width:36}}></div>
           </div>
-          <div style={{margin:"10px 12px", background:"#12121A", borderRadius:12, padding:10, border:"1px solid #222", display:"flex", justifyContent:"space-between", fontSize:11}}><span>ANKH {walletBalance.toFixed(0)} / {nextReq}</span><span>المستوى التالي: {level+1}</span></div>
-          {/* الخط الازرق */}
-          <button onClick={()=>setView("levels")} style={{margin:"0 12px", width:"calc(100% - 24px)", background:"linear-gradient(90deg,#A855F7,#38BDF8)", padding:12, borderRadius:12, border:"none", color:"#fff", fontWeight:900}}>🔍 تصفح المستويات</button>
+          <div style={{margin:"0 12px", background:"#12121A", borderRadius:16, padding:14, border:"1px solid #222", display:"flex", justifyContent:"space-between"}}>
+            <div style={{width:70, height:70, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:16, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, fontSize:32, border:"2px solid #FACC15", color:"#000"}}>{level}</div>
+            <div style={{textAlign:"left"}}><div style={{fontSize:11, color:"#888"}}>{t.yourTier}</div><div style={{fontWeight:900, color:"#FACC15"}}>البرونزي</div><div style={{fontSize:11, color:"#888", marginTop:8}}>{t.walletBal}</div><div style={{fontWeight:900}}>ANKH {walletBalance.toFixed(0)}</div></div>
+          </div>
+          <button onClick={()=>setView("levels")} style={{margin:"10px 12px", width:"calc(100% - 24px)", background:"linear-gradient(90deg,#A855F7,#38BDF8)", padding:12, borderRadius:12, border:"none", color:"#fff", fontWeight:900}}>🔍 {t.browse}</button>
           <div style={{margin:"16px 12px 0", display:"flex", flexDirection:"column", gap:8}}>
-            <div style={{fontWeight:800, textAlign:"right"}}>تقدّم الدوريات</div>
+            <div style={{fontWeight:800, textAlign:"right"}}>{t.progress}</div>
             {[
-              {n:"البرونزي", r:"100-1", id:1},
-              {n:"الفضي", r:"200-101", id:101},
-              {n:"الذهبي", r:"300-201", id:201},
-              {n:"البلاتيني", r:"400-301", id:301},
-              {n:"أسطوري", r:"500-401", id:401},
+              {n:"البرونزي", r:"100-1", id:1}, {n:"الفضي", r:"200-101", id:101}, {n:"الذهبي", r:"300-201", id:201}, {n:"البلاتيني", r:"400-301", id:301}, {n:"أسطوري", r:"500-401", id:401},
             ].map(d=>(
-              <div key={d.id} style={{background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between"}}>
+              <div key={d.id} onClick={()=>setView("levels")} style={{background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between", cursor:"pointer"}}>
                 <div style={{display:"flex", gap:10}}><div style={{width:40, height:40, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, color:"#000"}}>{d.id}</div><div><div style={{fontWeight:800}}>{d.n}</div><div style={{fontSize:10, color:"#888"}}>المستويات {d.r}</div><div style={{fontSize:10, color:"#38BDF8"}}>عرض المستويات</div></div></div><span>›</span>
               </div>
             ))}
@@ -147,23 +185,23 @@ export default function Page() {
 
       {view==="levels" && (
         <>
-          <div style={{padding:16, display:"flex", gap:10, alignItems:"center"}}><button onClick={()=>setView("tiers")} style={{background:"#1A1A1A", width:32, height:32, borderRadius:20, border:"1px solid #333"}}>‹</button><div><div style={{fontWeight:900}}>مستويات التعدين</div><div style={{fontSize:11, color:"#888"}}>استكشف 500 مستوى عبر خمس دوريات - ANKH</div></div></div>
-          <div style={{display:"flex", gap:8, overflowX:"auto", padding:"0 12px"}}>
-            {[
-              {n:"البرونزي", r:"100-1"}, {n:"الفضي", r:"200-101"}, {n:"الذهبي", r:"300-201"}, {n:"البلاتيني", r:"400-301"}, {n:"أسطوري", r:"500-401"}
-            ].map((d,i)=>(
-              <div key={i} style={{minWidth:80, background:"#12121A", borderRadius:12, padding:8, textAlign:"center", border:"1px solid #FACC15"}}><div style={{width:32, height:32, margin:"0 auto", background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, color:"#000"}}>{d.r.split("-")[0]}</div><div style={{fontSize:10, marginTop:4}}>{d.n}</div><div style={{fontSize:9, color:"#888"}}>{d.r}</div></div>
-            ))}
+          <div style={{padding:16, display:"flex", gap:10, alignItems:"center"}}>
+            <button onClick={()=>setView("tiers")} style={{background:"#1A1A1A", width:36, height:36, borderRadius:20, border:"1px solid #333", color:"#fff", fontSize:18}}>‹</button>
+            <div style={{textAlign:"center", flex:1}}><div style={{fontWeight:900}}>{t.levelsTitle}</div><div style={{fontSize:11, color:"#FACC15"}}>{t.levelsSub}</div></div>
+            <div style={{width:36}}></div>
           </div>
-          <div style={{margin:12, background:"#12121A", borderRadius:12, overflow:"hidden", border:"1px solid #222"}}>
-            <div style={{display:"flex", justifyContent:"space-between", fontSize:10, color:"#888", padding:10, borderBottom:"1px solid #222", background:"#0A0A0A"}}><span>مستوى الصغير</span><span>الرصيد في المحفظة</span><span>ANKH / اليوم</span></div>
-            {Array.from({length:7}, (_,i)=>{
-              const lvl = LEVELS_DATA[i];
+          <div style={{margin:"0 12px", background:"#12121A", borderRadius:12, overflow:"hidden", border:"1px solid #222", maxHeight:600, overflowY:"auto"}}>
+            <div style={{display:"flex", justifyContent:"space-between", fontSize:10, color:"#888", padding:10, borderBottom:"1px solid #222", background:"#0A0A0A", position:"sticky", top:0}}><span>{t.small}</span><span>{t.reqWallet}</span><span>{t.perDay}</span></div>
+            {Array.from({length:500}, (_,i)=>{
+              const lvl = i+1;
+              const req = getReq(lvl);
+              const dailyL = getDaily(lvl);
+              const hourlyL = getHourly(lvl);
               return (
-                <div key={lvl.lvl} style={{display:"flex", justifyContent:"space-between", padding:"12px 10px", borderBottom:"1px solid #222", background: lvl.lvl===level?"rgba(250,204,21,0.1)":"transparent"}}>
-                  <div style={{display:"flex", gap:8, alignItems:"center"}}><div style={{width:28, height:28, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:900, color:"#000"}}>{lvl.lvl}</div></div>
-                  <div style={{fontSize:13, textAlign:"center"}}>{lvl.req} <span style={{fontSize:9, color:"#888"}}>ANKH</span></div>
-                  <div style={{fontSize:13, color:"#FACC15", textAlign:"center"}}>{lvl.daily}<div style={{fontSize:10, color:"#888"}}>{lvl.hourly}/h</div></div>
+                <div key={lvl} style={{display:"flex", justifyContent:"space-between", padding:"10px", borderBottom:"1px solid #222", background: lvl===level?"rgba(250,204,21,0.1)":"transparent"}}>
+                  <div style={{display:"flex", gap:8, alignItems:"center"}}><div style={{width:26, height:26, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:900, color:"#000"}}>{lvl}</div><span style={{fontSize:12}}>{lvl}</span></div>
+                  <div style={{fontSize:12}}>{req.toLocaleString()} <span style={{fontSize:9, color:"#888"}}>ANKH</span></div>
+                  <div style={{fontSize:12, color:"#FACC15", textAlign:"center"}}>{dailyL.toLocaleString()}<div style={{fontSize:9, color:"#888"}}>{hourlyL}/h</div></div>
                 </div>
               )
             })}
@@ -171,19 +209,19 @@ export default function Page() {
         </>
       )}
 
-      {/* 6 خانات تحت */}
+      {/* 6 خانات شغالة */}
       <div style={{position:"fixed", bottom:0, left:0, right:0, background:"#0F0F14", borderTop:"1px solid #222", display:"flex", justifyContent:"space-around", padding:"8px 0"}}>
         {[
-          {n:"الرئيسية", ic:"🏠", a:true},
-          {n:"التعدين", ic:"⛏️", a:view!=="main"},
-          {n:"المحطة", ic:"🏛️", a:false},
-          {n:"السوق", ic:"⇄", a:false},
-          {n:"الأصدقاء", ic:"👥", a:false},
-          {n:"المحفظة", ic:"🗄️", a:false},
+          {id:"home", n:t.main, ic:"🏠"},
+          {id:"mining", n:t.miningTab, ic:"⛏️"},
+          {id:"station", n:t.station, ic:"🏛️"},
+          {id:"market", n:t.market, ic:"⇄"},
+          {id:"friends", n:t.friends, ic:"👥"},
+          {id:"wallet", n:t.wallet, ic:"🗄️"},
         ].map(d=>(
-          <div key={d.n} style={{display:"flex", flexDirection:"column", alignItems:"center", color: d.a || view!=="main" && d.n==="التعدين" ? "#FACC15" : "#666"}}>
+          <button key={d.id} onClick={()=>{ if(d.id==="home"){ setView("main"); setTab("home"); } if(d.id==="mining"){ setView("main"); setTab("mining"); } }} style={{background:"none", border:"none", display:"flex", flexDirection:"column", alignItems:"center", color: tab===d.id || (view==="main" && d.id==="home") ? "#FACC15" : "#666"}}>
             <span style={{fontSize:18}}>{d.ic}</span><span style={{fontSize:9, marginTop:2}}>{d.n}</span>
-          </div>
+          </button>
         ))}
       </div>
     </div>
