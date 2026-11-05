@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-export const dynamic = "force-dynamic";
 import { TonConnectUIProvider, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 
 const TREASURY_WALLET = "UQBpa_tNmxOcfzdVWQm_9oJVvhZ673Y9rVbpDHi8WPXj4r3Y";
@@ -68,7 +67,7 @@ function AnkhInner() {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [walletCreatedAt, setWalletCreatedAt] = useState<number>(Date.now());
-  const [onChainAnkh, setOnChainAnkh] = useState(0); // رصيد ANKH اللي في محفظته هو اللي ربطها (على البلوكتشين)
+  const [onChainAnkh, setOnChainAnkh] = useState(0);
   const [isVerifiedHuman, setIsVerifiedHuman] = useState(false);
 
   const t = TRANSLATIONS[lang];
@@ -96,7 +95,6 @@ function AnkhInner() {
     const refEarn = localStorage.getItem("ankh_ref_earn");
     if(refEarn) setReferralEarnings(Number(refEarn));
 
-    // Wallet extra init
     const wc = localStorage.getItem("ankh_wallet_created");
     if(wc){ setWalletCreatedAt(Number(wc)); } else { localStorage.setItem("ankh_wallet_created", String(now)); setWalletCreatedAt(now); }
     const wds = localStorage.getItem("ankh_withdrawals"); if(wds){ try{ setWithdrawals(JSON.parse(wds)); }catch{} }
@@ -224,7 +222,6 @@ function AnkhInner() {
         </>
       )}
 
-      {/* ===== خانة المحفظة الجديدة - كل الشروط ===== */}
       {view==="main" && tab==="wallet" && walletView==="main" && (
         <div style={{padding:"0 0 20px"}}>
           <div style={{margin:"8px 12px", borderRadius:16, overflow:"hidden", position:"relative", background:"linear-gradient(180deg,#1a0a3a,#0a0a1a)", border:"1px solid #222", minHeight:140}}>
@@ -243,9 +240,8 @@ function AnkhInner() {
               ):(
                 <div style={{marginTop:10, fontSize:10, background:"rgba(34,197,94,0.1)", border:"1px solid #22c55e", borderRadius:8, padding:6, textAlign:"center", color:"#22c55e"}}>✅ متصلة - عمرها {walletAgeDays} يوم {isVerifiedHuman ? " - موثقة ✅" : " - غير موثقة"}</div>
               )}
-              {/* محاكاة رصيد البلوكتشين للتجربة - شيله بعدين */}
               <div style={{marginTop:8, display:"flex", gap:6}}>
-                <input type="number" placeholder="محاكاة رصيد البلوكتشين ANKH" value={onChainAnkh} onChange={e=>{ setOnChainAnkh(Number(e.target.value)); localStorage.setItem("ankh_onchain", e.target.value); }} style={{flex:1, background:"#0a0a0a", border:"1px solid #333", borderRadius:8, padding:6, color:"#fff", fontSize:10}}/>
+                <input type="number" placeholder="محاكاة رصيد البلوكتشين ANKH للتجربة" value={onChainAnkh} onChange={e=>{ setOnChainAnkh(Number(e.target.value)); localStorage.setItem("ankh_onchain", e.target.value); }} style={{flex:1, background:"#0a0a0a", border:"1px solid #333", borderRadius:8, padding:6, color:"#fff", fontSize:10}}/>
               </div>
             </div>
           </div>
@@ -309,16 +305,9 @@ function AnkhInner() {
           <div style={{margin:"8px 12px", background:"linear-gradient(180deg,#1a1500,#12121a)", borderRadius:14, padding:12, border:"1px solid #FACC15"}}>
             <div style={{fontSize:11, color:"#888"}}>الرصيد المطلوب الاحتفاظ به في محفظتك المربوطة (على البلوكتشين)</div>
             <div style={{fontSize:16, fontWeight:900, color:"#a855f7", marginTop:4}}>{requiredReserve.toLocaleString()} ANKH</div>
-            <div style={{fontSize:10, color:"#888", marginTop:4}}>لازم يكون في محفظتك {TREASURY_WALLET.slice(0,6)}... فيها المبلغ ده</div>
             <div style={{fontSize:10, color: hasOnChainReserve ? "#22c55e" : "#ef4444", marginTop:6, background: hasOnChainReserve ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", padding:6, borderRadius:6, border:`1px solid ${hasOnChainReserve ? "#22c55e" : "#ef4444"}`}}>
               {hasOnChainReserve ? `✅ عندك ${onChainAnkh} ANKH على البلوكتشين - كافي` : `⚠️ رصيدك على البلوكتشين ${onChainAnkh} - محتاج ${requiredReserve.toLocaleString()} - اشتري من السوق`}
             </div>
-          </div>
-
-          <div style={{margin:"8px 12px", background:"#12121a", borderRadius:12, padding:12, border:"1px solid #222"}}>
-            <div style={{display:"flex", justifyContent:"space-between", fontSize:12, padding:"8px 0", borderBottom:"1px solid #222"}}><span style={{color:"#888"}}>رصيد التطبيق</span><span>{walletBalance.toFixed(0)}</span></div>
-            <div style={{display:"flex", justifyContent:"space-between", fontSize:12, padding:"8px 0"}}><span style={{color:"#888"}}>رصيد البلوكتشين المربوط</span><span style={{color: hasOnChainReserve ? "#22c55e" : "#ef4444"}}>{onChainAnkh}</span></div>
-            <div style={{fontSize:10, color:"#888", lineHeight:1.5, marginTop:8}}>احتفظ بـ 25% من مبلغ السحب في محفظتك المتصلة على البلوكتشين. رصيد التطبيق لا يحتسب. احتفظ به حتى تتم معالجة طلبك.</div>
           </div>
 
           <div style={{margin:"8px 12px", display:"grid", gap:8}}>
@@ -363,7 +352,6 @@ function AnkhInner() {
               </div>
             </div>
           </div>
-
           <div style={{display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8, padding:"12px 12px 0"}}>
             <div style={{background:"linear-gradient(180deg,#151525,#0f0f1a)", borderRadius:12, padding:10, border:"1px solid #222", textAlign:"center"}}>
               <div style={{fontSize:10, color:"#888", display:"flex", gap:4, justifyContent:"center"}}>الأصدقاء المدعوون <span>👥</span></div>
@@ -378,11 +366,9 @@ function AnkhInner() {
               <div style={{fontSize:18, fontWeight:900, color:"#A855F7", marginTop:2}}>{referralEarnings.toFixed(2)}<div style={{fontSize:9, color:"#666"}}>ANKH</div></div>
             </div>
           </div>
-
           <div style={{margin:"12px 12px 0", background:"#151525", borderRadius:12, padding:12, border:"1px solid #222", display:"flex", justifyContent:"center", gap:6, fontSize:12, color:"#888"}}>
             سجل العمولات <span style={{width:18, height:18, borderRadius:10, background:"#222", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10}}>🕒</span>
           </div>
-
           <div style={{margin:"12px 12px 0", background:"linear-gradient(180deg,#1a1a2e,#12121f)", borderRadius:16, padding:14, border:"1px solid #2a2a4a"}}>
             <div style={{fontSize:13, fontWeight:900, textAlign:"right", marginBottom:10}}>رابط دعوتك</div>
             <div style={{background:"#0A0A14", borderRadius:10, padding:12, border:"1px solid #2a2a4a", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
@@ -394,28 +380,6 @@ function AnkhInner() {
               <button onClick={()=>{const link=`https://t.me/ankhcoinbot?startapp=ref_${inviteCode}`; if(navigator.share){navigator.share({title:"ANKH Mining", text:`تعال عدن معايا! كودي ${inviteCode}`, url:link})} else {window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("تعال عدن ANKH معايا!")}`,"_blank")}}} style={{background:"linear-gradient(90deg,#A855F7,#38BDF8)", border:"none", borderRadius:12, padding:12, color:"#fff", fontWeight:900, fontSize:12, display:"flex", gap:6, justifyContent:"center"}}>ادعُ أصدقاءك <span>✈️</span></button>
             </div>
             <div style={{fontSize:10, color:"#666", marginTop:10, textAlign:"right"}}>يتخطى الأصدقاء النشطون بما لا يقل عن {116} ANKH.</div>
-          </div>
-
-          <div style={{margin:"16px 12px 0"}}>
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-              <div style={{fontSize:12, color:"#666"}}>0</div>
-              <div style={{fontSize:13, fontWeight:800, display:"flex", gap:6}}>فريقك <span>👥</span></div>
-            </div>
-            <div style={{marginTop:10, background:"#151525", borderRadius:12, padding:12, border:"1px solid #222", fontSize:11, color:"#8a8ab0", lineHeight:1.6, textAlign:"right", display:"flex", gap:8}}>
-              <span>تُضاف العمولات تلقائياً إلى رصيدك في التعدين عندما يستلم الشخص النشط الذي دعوته ANKH الذي عدنّه. لا تحتاج إلى استلامها بشكل منفصل.</span>
-              <span style={{minWidth:20, height:20, borderRadius:10, background:"#222", display:"flex", alignItems:"center", justifyContent:"center"}}>ℹ️</span>
-            </div>
-            {friends.length===0 ? (
-              <div style={{marginTop:20, textAlign:"center", padding:30}}>
-                <div style={{width:60, height:60, margin:"0 auto", borderRadius:30, background:"#151525", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, color:"#555"}}>👥</div>
-                <div style={{fontSize:12, color:"#666", marginTop:12}}>يبدأ فريقك بدعوة.</div>
-              </div>
-            ) : friends.map((f,i)=>(
-              <div key={i} style={{marginTop:8, background:"#151525", borderRadius:12, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between"}}>
-                <div style={{color:"#22c55e", fontSize:12, fontWeight:700}}>+{f.earned} ANKH</div>
-                <div style={{display:"flex", gap:8}}><div style={{textAlign:"right"}}><div style={{fontSize:12, fontWeight:700}}>{f.name}</div><div style={{fontSize:10, color:"#666"}}>Lv.{f.level}</div></div><div style={{width:36, height:36, borderRadius:20, background:"linear-gradient(180deg,#A855F7,#38BDF8)", display:"flex", alignItems:"center", justifyContent:"center"}}>{f.name[0]}</div></div>
-              </div>
-            ))}
           </div>
         </div>
       )}
@@ -450,100 +414,60 @@ function AnkhInner() {
                 return <div key={i} style={{flex:1, height:`${h}%`, background: isCurrent ? "linear-gradient(180deg,#FACC15,#EAB308)" : "linear-gradient(180deg,#333,#222)", borderRadius:"4px 4px 0 0", border: isCurrent ? "1px solid #FACC15" : "none"}}></div>
               })}
             </div>
-            <div style={{display:"flex", justifyContent:"space-between", fontSize:9, color:"#666", marginTop:6}}><span>0 ANKH</span><span>احتفاظ ↑ إنتاج ↑</span><span>{nextReq} ANKH</span></div>
-            <div style={{marginTop:8, background:"#0A0A0A", borderRadius:8, padding:8, border:"1px solid #222", display:"flex", justifyContent:"space-between", fontSize:10}}><span style={{color:"#888"}}>لو بعت ANKH، الإنتاج يقل</span><span style={{color:"#22c55e"}}>لو احتفظت، الإنتاج يزيد +{(level*0.5).toFixed(1)}%</span></div>
           </div>
           <div onClick={()=>setView("tiers")} style={{margin:"10px 12px 0", background:"#12121A", borderRadius:12, padding:10, border:"1px solid #222", cursor:"pointer"}}>
-            <div style={{display:"flex", justifyContent:"space-between", fontSize:11}}><span>ANKH {walletBalance.toFixed(0)} / {nextReq}</span><span style={{display:"flex", gap:6, alignItems:"center"}}><span>{t.nextLevel} {level+1}</span><span style={{width:28, height:28, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, color:"#000"}}>{level}</span></span></div>
+            <div style={{display:"flex", justifyContent:"space-between", fontSize:11}}><span>ANKH {walletBalance.toFixed(0)} / {nextReq}</span><span>{t.nextLevel} {level+1}</span></div>
             <div style={{height:4, background:"#222", borderRadius:10, marginTop:8}}><div style={{width:`${progress}%`, height:"100%", background:"linear-gradient(90deg,#FACC15,#22c55e)"}}></div></div>
-            <div style={{fontSize:10, color:"#888", marginTop:6}}>{t.keep} {nextReq} ANKH {t.toReach} {level+1}</div>
           </div>
         </>
       )}
 
       {view==="market" && (
-        <>
-          <div style={{padding:"12px 16px"}}>
-            <div style={{borderRadius:16, background:"linear-gradient(180deg, #1A0A2E, #0F0F1A)", border:"1px solid #333", padding:12}}>
-              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                <div style={{fontSize:22, fontWeight:900}}>السوق</div>
-                <div style={{fontSize:11, color:"#FACC15", background:"rgba(250,204,21,0.1)", border:"1px solid #FACC15", padding:"4px 10px", borderRadius:20}}>ANKH / TON ⇄</div>
-              </div>
-              <div style={{marginTop:12, background:"rgba(0,0,0,0.5)", borderRadius:12, padding:12, border:"1px solid #222"}}>
-                <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}>
-                  <span onClick={()=>window.open("https://app.ston.fi","_blank")} style={{color:"#FACC15", cursor:"pointer", fontWeight:700}}>↗ STON.fi</span>
-                  <span style={{color:"#888"}}>{isConnected ? wallet?.account.address.slice(0,6)+"..."+wallet?.account.address.slice(-4) : "TON Price"}</span>
-                </div>
-                <div style={{fontSize:26, fontWeight:900, marginTop:8}}>TON {ankhPrice.toFixed(6)}</div>
-              </div>
+        <div style={{padding:"12px 16px"}}>
+          <div style={{borderRadius:16, background:"linear-gradient(180deg, #1A0A2E, #0F0F1A)", border:"1px solid #333", padding:12}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+              <div style={{fontSize:22, fontWeight:900}}>السوق</div>
+              <div style={{fontSize:11, color:"#FACC15", background:"rgba(250,204,21,0.1)", border:"1px solid #FACC15", padding:"4px 10px", borderRadius:20}}>ANKH / TON ⇄</div>
             </div>
-            <div style={{display:"flex", gap:8, marginTop:12}}>
-              <button onClick={()=>setMarketTab("history")} style={{flex:1, background: marketTab==="history" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border:"1px solid #222", borderRadius:12, padding:12, color: marketTab==="history" ? "#fff" : "#666", fontWeight:900}}>السجل</button>
-              <button onClick={()=>setMarketTab("buy")} style={{flex:1, background: marketTab==="buy" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border: marketTab==="buy" ? "none" : "1px solid #222", borderRadius:12, padding:12, color: marketTab==="buy" ? "#fff" : "#666", fontWeight:900}}>شراء</button>
+            <div style={{marginTop:12, background:"rgba(0,0,0,0.5)", borderRadius:12, padding:12, border:"1px solid #222"}}>
+              <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}>
+                <span style={{color:"#FACC15"}}>↗ STON.fi</span>
+                <span style={{color:"#888"}}>{isConnected ? wallet?.account.address.slice(0,6)+"..."+wallet?.account.address.slice(-4) : "TON Price"}</span>
+              </div>
+              <div style={{fontSize:26, fontWeight:900, marginTop:8}}>TON {ankhPrice.toFixed(6)}</div>
             </div>
-            {marketTab==="history" && (
-              <div style={{marginTop:10, background:"#12121A", borderRadius:14, padding:20, border:"1px solid #222", textAlign:"center"}}>
-                <div style={{fontSize:40}}>📋</div>
-                <div style={{fontWeight:800, marginTop:10}}>لا يوجد سجل بعد</div>
-                <div style={{fontSize:11, color:"#888", marginTop:6, lineHeight:1.5}}>لما تشتري أو تبيع ANKH هيظهر هنا السجل بتاعك<br/>البيع والشراء متاح على STON.fi</div>
-                {txHistory.map((tx,i)=>(
-                  <div key={i} style={{marginTop:10, background:"#0A0A0A", borderRadius:10, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between"}}>
-                    <span style={{color:"#22c55e", fontWeight:700}}>+{tx.amount} ANKH</span><span style={{fontSize:11, color:"#888"}}>{tx.date}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {marketTab==="buy" && (
-              <div style={{marginTop:10, background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222"}}>
-                <div style={{fontSize:11, color:"#888", textAlign:"right"}}>تدفع</div>
-                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #333", marginTop:6}}>
-                  <input type="number" min="1" value={tonAmount} onChange={(e)=>{if(Number(e.target.value)>=1 || e.target.value==="") setTonAmount(e.target.value)}} style={{background:"none", border:"none", color:"#fff", fontSize:22, fontWeight:900, width:120, outline:"none"}} />
-                  <div style={{display:"flex", gap:8, alignItems:"center"}}>
-                    <span style={{color:"#FACC15", fontWeight:800, fontSize:14}}>TON</span>
-                    <button onClick={()=>setTonAmount("1")} style={{background:"rgba(250,204,21,0.15)", border:"1px solid #FACC15", color:"#FACC15", borderRadius:8, padding:"5px 10px", fontSize:11, fontWeight:800}}>MAX</button>
-                  </div>
-                </div>
-                <div style={{fontSize:11, color:"#666", marginTop:8, textAlign:"right"}}>المتاح: {isConnected ? "مربوط ✓ "+wallet?.account.address.slice(0,4) : "TON 0.0000"} {Number(tonAmount)<1 && tonAmount!=="" && <span style={{color:"#ef4444"}}> • اقل كمية 1 TON</span>}</div>
-                <div style={{display:"flex", justifyContent:"center", margin:"14px 0"}}><div style={{width:36, height:36, background:"#1A1A1A", borderRadius:20, display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid #333", fontSize:16}}>↕</div></div>
-                <div style={{fontSize:11, color:"#888", textAlign:"right"}}>تستلم ≈</div>
-                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #333", marginTop:6}}>
-                  <div style={{fontSize:20, fontWeight:900, color:"#5EE9FF"}}>{tonAmount==="" ? "0.00000000" : ankhAmount.toFixed(8)}</div>
-                  <div style={{color:"#A855F7", fontWeight:900, fontSize:14}}>ANKH</div>
-                </div>
-                <div style={{marginTop:12, background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #222"}}>
-                  <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}><span style={{color:"#888"}}>رسوم الخدمة</span><span>TON 0.05</span></div>
-                  <div style={{display:"flex", justifyContent:"space-between", fontSize:12, marginTop:8}}><span style={{color:"#888"}}>الإنزلاق السعري</span><span>0.5%</span></div>
-                  <div style={{display:"flex", justifyContent:"space-between", fontSize:13, marginTop:10, fontWeight:900}}><span style={{color:"#FACC15"}}>المبادلة ورسوم التطبيق</span><span style={{color:"#FACC15"}}>TON {(Number(tonAmount||0)+0.05).toFixed(2)}</span></div>
-                </div>
-                <button onClick={()=>{if(Number(tonAmount)>=1){const newTx={amount:ankhAmount.toFixed(2), date:"الآن - "+new Date().toLocaleTimeString()}; setTxHistory([newTx, ...txHistory]);}}} disabled={Number(tonAmount)<1} style={{marginTop:14, width:"100%", background: Number(tonAmount)>=1 ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#222", padding:14, borderRadius:12, border:"none", color:"#fff", fontWeight:900, fontSize:14}}>↗ راجع الشراء</button>
-                {isConnected ? (
-                  <button onClick={()=>tonConnectUI.disconnect()} style={{marginTop:10, width:"100%", background:"#1A1A1A", padding:13, borderRadius:12, border:"1px solid #ef4444", color:"#ef4444", fontWeight:700}}>✕ قطع {wallet?.account.address.slice(0,6)}...</button>
-                ) : (
-                  <button onClick={()=>tonConnectUI.openModal()} style={{marginTop:10, width:"100%", background:"linear-gradient(90deg,#0098EA,#A855F7)", padding:13, borderRadius:12, border:"none", color:"#fff", fontWeight:800}}>📋 ربط المحفظة</button>
-                )}
-                <button onClick={()=>window.open("https://app.ston.fi","_blank")} style={{marginTop:10, width:"100%", background:"#1A1A1A", padding:13, borderRadius:12, border:"1px solid #333", color:"#fff", fontWeight:700}}>↗ افتح STON.fi</button>
-              </div>
-            )}
           </div>
-        </>
+          <div style={{display:"flex", gap:8, marginTop:12}}>
+            <button onClick={()=>setMarketTab("history")} style={{flex:1, background: marketTab==="history" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border:"1px solid #222", borderRadius:12, padding:12, color: marketTab==="history" ? "#fff" : "#666", fontWeight:900}}>السجل</button>
+            <button onClick={()=>setMarketTab("buy")} style={{flex:1, background: marketTab==="buy" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border:"1px solid #222", borderRadius:12, padding:12, color: marketTab==="buy" ? "#fff" : "#666", fontWeight:900}}>شراء</button>
+          </div>
+          {marketTab==="buy" && (
+            <div style={{marginTop:10, background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222"}}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #333", marginTop:6}}>
+                <input type="number" min="1" value={tonAmount} onChange={(e)=>{if(Number(e.target.value)>=1 || e.target.value==="") setTonAmount(e.target.value)}} style={{background:"none", border:"none", color:"#fff", fontSize:22, fontWeight:900, width:120, outline:"none"}} />
+                <span style={{color:"#FACC15", fontWeight:800}}>TON</span>
+              </div>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #333", marginTop:12}}>
+                <div style={{fontSize:20, fontWeight:900, color:"#5EE9FF"}}>{tonAmount==="" ? "0.00000000" : ankhAmount.toFixed(8)}</div>
+                <div style={{color:"#A855F7", fontWeight:900}}>ANKH</div>
+              </div>
+              <button onClick={()=>tonConnectUI.openModal()} style={{marginTop:14, width:"100%", background:"linear-gradient(90deg,#A855F7,#38BDF8)", padding:14, borderRadius:12, border:"none", color:"#fff", fontWeight:900}}>📋 ربط المحفظة</button>
+            </div>
+          )}
+        </div>
       )}
 
       {view==="tiers" && (
         <>
           <div style={{padding:16, display:"flex", gap:10, alignItems:"center"}}>
-            <button onClick={()=>{setView(tab==="home"?"main":"mining");}} style={{background:"#1A1A1A", width:36, height:36, borderRadius:20, border:"1px solid #333", color:"#fff"}}>‹</button>
-            <div style={{textAlign:"center", flex:1}}><div style={{fontSize:20, fontWeight:900}}>{t.tiersTitle}</div><div style={{fontSize:11, color:"#888"}}>{t.tiersSub}</div></div>
+            <button onClick={()=>setView("main")} style={{background:"#1A1A1A", width:36, height:36, borderRadius:20, border:"1px solid #333", color:"#fff"}}>‹</button>
+            <div style={{textAlign:"center", flex:1}}><div style={{fontSize:20, fontWeight:900}}>{t.tiersTitle}</div></div>
             <div style={{width:36}}></div>
           </div>
-          <div style={{margin:"0 12px", background:"#12121A", borderRadius:16, padding:14, border:"1px solid #222", display:"flex", justifyContent:"space-between"}}>
-            <div style={{width:70, height:70, background:"linear-gradient(180deg,#FACC15,#854D0E)", borderRadius:16, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, fontSize:32, border:"2px solid #FACC15", color:"#000"}}>{level}</div>
-            <div style={{textAlign:"left"}}><div style={{fontSize:11, color:"#888"}}>{t.yourTier}</div><div style={{fontWeight:900, color:"#FACC15"}}>البرونزي</div><div style={{fontSize:11, color:"#888", marginTop:8}}>{t.walletBal}</div><div style={{fontWeight:900}}>ANKH {walletBalance.toFixed(0)}</div></div>
-          </div>
           <div style={{margin:"16px 12px 0", display:"flex", flexDirection:"column", gap:8}}>
-            <div style={{fontWeight:800, textAlign:"right"}}>{t.progress}</div>
             {TIERS.map(d=>(
               <div key={d.id} onClick={()=>{setSelectedTier(d); setView("levels")}} style={{background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between", cursor:"pointer"}}>
-                <div style={{display:"flex", gap:10}}><div style={{width:40, height:40, background:`linear-gradient(180deg,${d.color},#000)`, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, color:d.id==="silver"?"#000":"#fff", border:`1px solid ${d.color}`}}>{d.startId}</div><div><div style={{fontWeight:800}}>{d.n}</div><div style={{fontSize:10, color:"#888"}}>المستويات {d.r}</div></div></div><span>›</span>
+                <div style={{display:"flex", gap:10}}><div style={{width:40, height:40, background:`linear-gradient(180deg,${d.color},#000)`, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, color:"#fff", border:`1px solid ${d.color}`}}>{d.startId}</div><div><div style={{fontWeight:800}}>{d.n}</div><div style={{fontSize:10, color:"#888"}}>المستويات {d.r}</div></div></div><span>›</span>
               </div>
             ))}
           </div>
@@ -551,31 +475,17 @@ function AnkhInner() {
       )}
 
       {view==="levels" && (
-        <>
-          <div style={{padding:16, display:"flex", gap:10, alignItems:"center"}}>
-            <button onClick={()=>setView("tiers")} style={{background:"#1A1A1A", width:36, height:36, borderRadius:20, border:"1px solid #333", color:"#fff"}}>‹</button>
-            <div style={{textAlign:"center", flex:1}}><div style={{fontWeight:900}}>{selectedTier.n} - {selectedTier.r}</div><div style={{fontSize:11, color:selectedTier.color}}>استكشف {selectedTier.r} - ANKH</div></div>
-            <div style={{width:36}}></div>
-          </div>
-          <div style={{display:"flex", gap:8, overflowX:"auto", padding:"0 12px 10px"}}>
-            {TIERS.map(tier=>(
-              <button key={tier.id} onClick={()=>setSelectedTier(tier)} style={{minWidth:75, background: selectedTier.id===tier.id ? tier.color : "#12121A", borderRadius:10, padding:8, border:`1px solid ${tier.color}`, color: selectedTier.id===tier.id ? (tier.id==="silver"?"#000":"#fff") : "#fff", fontSize:11, fontWeight:800}}>{tier.n}<div style={{fontSize:9}}>{tier.r}</div></button>
-            ))}
-          </div>
-          <div style={{margin:"0 12px", background:"#12121A", borderRadius:12, overflow:"hidden", border:"1px solid #222", maxHeight:600, overflowY:"auto"}}>
-            <div style={{display:"flex", justifyContent:"space-between", fontSize:10, color:"#888", padding:10, borderBottom:"1px solid #222", background:"#0A0A0A", position:"sticky", top:0}}><span>{t.small}</span><span>{t.reqWallet}</span><span>{t.perDay}</span></div>
-            {Array.from({length: selectedTier.end - selectedTier.start + 1}, (_,i)=>{
-              const lvl = selectedTier.start + i; const data = getLevelData(lvl);
-              return (
-                <div key={lvl} style={{display:"flex", justifyContent:"space-between", padding:"10px", borderBottom:"1px solid #222", background: lvl===level?"rgba(250,204,21,0.1)":"transparent"}}>
-                  <div style={{display:"flex", gap:8, alignItems:"center"}}><div style={{width:26, height:26, background:`linear-gradient(180deg,${selectedTier.color},#000)`, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:900, color:selectedTier.id==="silver"?"#000":"#fff"}}>{lvl}</div><span style={{fontSize:12}}>{lvl}</span></div>
-                  <div style={{fontSize:12}}>{data.req.toLocaleString()} ANKH</div>
-                  <div style={{fontSize:12, color:selectedTier.color, textAlign:"center"}}>{data.daily.toLocaleString()}<div style={{fontSize:9, color:"#888"}}>{data.hourly}/h</div></div>
-                </div>
-              )
-            })}
-          </div>
-        </>
+        <div style={{margin:"0 12px", background:"#12121A", borderRadius:12, overflow:"hidden", border:"1px solid #222"}}>
+          <div style={{display:"flex", justifyContent:"space-between", fontSize:10, color:"#888", padding:10, borderBottom:"1px solid #222", background:"#0A0A0A"}}><span>{t.small}</span><span>{t.reqWallet}</span><span>{t.perDay}</span></div>
+          {Array.from({length: 20}, (_,i)=>{
+            const lvl = selectedTier.start + i; const data = getLevelData(lvl);
+            return (
+              <div key={lvl} style={{display:"flex", justifyContent:"space-between", padding:"10px", borderBottom:"1px solid #222"}}>
+                <span>{lvl}</span><span>{data.req.toLocaleString()} ANKH</span><span style={{color:selectedTier.color}}>{data.daily.toLocaleString()}</span>
+              </div>
+            )
+          })}
+        </div>
       )}
 
       <div style={{position:"fixed", bottom:0, left:0, right:0, background:"#0F0F14", borderTop:"1px solid #222", display:"flex", justifyContent:"space-around", padding:"8px 0"}}>
