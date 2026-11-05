@@ -247,7 +247,7 @@ function AnkhInner() {
                 {isConnected ? (
                   <button onClick={()=>tonConnectUI.disconnect()} style={{marginTop:10, width:"100%", background:"#1A1A1A", padding:13, borderRadius:12, border:"1px solid #ef4444", color:"#ef4444", fontWeight:700}}>✕ قطع {wallet?.account.address.slice(0,6)}...</button>
                 ) : (
-                  <button onClick={()=>tonConnectUI.openModal()} style={{marginTop:10, width:"100%", background:"linear-gradient(90deg,#0098EA,#A855F7)", padding:13, borderRadius:12, border:"none", color:"#fff", fontWeight:800}}>📋 ربط المحفظة الحقيقي - TON Connect</button>
+                  <button onClick={()=>tonConnectUI.openModal()} style={{marginTop:10, width:"100%", background:"linear-gradient(90deg,#0098EA,#A855F7)", padding:13, borderRadius:12, border:"none", color:"#fff", fontWeight:800}}>📋 ربط المحفظة</button>
                 )}
                 <button onClick={()=>window.open("https://app.ston.fi","_blank")} style={{marginTop:10, width:"100%", background:"#1A1A1A", padding:13, borderRadius:12, border:"1px solid #333", color:"#fff", fontWeight:700}}>↗ افتح STON.fi</button>
               </div>
