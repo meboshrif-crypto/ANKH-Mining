@@ -121,19 +121,25 @@ function AnkhInner() {
   const wallet = useTonWallet();
   const isConnected = !!wallet;
   const [inviteCode, setInviteCode] = useState("7956189802");
+  const [onChainAnkh, setOnChainAnkh] = useState(0);
   const [friends, setFriends] = useState<any[]>([]);
   const [referralEarnings, setReferralEarnings] = useState(0);
   const [walletView, setWalletView] = useState<"main"|"withdraw">("main");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [walletConnectedAt, setWalletConnectedAt] = useState<number>(0);
-  
+    useEffect(()=>{
+    let nl=1;
+    while(onChainAnkh >= getReq(nl+1) && nl < 500) nl++;
+    if(nl !== level){
+      setLevel(nl);
+      localStorage.setItem("ankh_level", String(nl));
+    }
+  },[onChainAnkh]);
   const [dailyStreak, setDailyStreak] = useState(0);
   const [lastDailyClaim, setLastDailyClaim] = useState(0);
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
   const [verifying, setVerifying] = useState<string | null>(null);
-
-  const [onChainAnkh, setOnChainAnkh] = useState(0);
   const [isVerifiedHuman, setIsVerifiedHuman] = useState(false);
   const [nowTick, setNowTick] = useState(Date.now());
 
@@ -241,8 +247,23 @@ function AnkhInner() {
       setBalance(Number(lb||0) + offlineEarned);
     } else { setBalance(0); setLastMine(now); localStorage.setItem("ankh_last_mine", String(now)); }
     const savedLang = localStorage.getItem("ankh_lang"); if(savedLang) setLang(savedLang);
-    const code = localStorage.getItem("ankh_invite_code");
-    if(code){ setInviteCode(code); } else { const newCode = Math.floor(1000000000 + Math.random()*9000000000).toString(); localStorage.setItem("ankh_invite_code", newCode); setInviteCode(newCode); }
+        const tg = (window as any).Telegram?.WebApp;
+    const tgUserId = tg?.initDataUnsafe?.user?.id?.toString();
+    const startParam = tg?.initDataUnsafe?.start_param || new URLSearchParams(window.location.search).get("startapp") || "";
+    if (startParam && startParam.startsWith("ref_")) {
+      const refCode = startParam.replace("ref_", "");
+      const existing = localStorage.getItem("ankh_referred");
+      if (!existing && refCode !== tgUserId) {
+        localStorage.setItem("ankh_referred", refCode);
+      }
+    }
+    if (tgUserId) {
+      setInviteCode(tgUserId);
+      localStorage.setItem("ankh_invite_code", tgUserId);
+    } else {
+      const code = localStorage.getItem("ankh_invite_code");
+      if(code){ setInviteCode(code); } else { const newCode = Math.floor(1000000000 + Math.random()*9000000000).toString(); localStorage.setItem("ankh_invite_code", newCode); setInviteCode(newCode); }
+    }
     const savedFriends = localStorage.getItem("ankh_friends");
     if(savedFriends){ try{ setFriends(JSON.parse(savedFriends)); }catch{} }
     const refEarn = localStorage.getItem("ankh_ref_earn");
@@ -270,14 +291,13 @@ function AnkhInner() {
     return ()=>clearInterval(interval);
   },[lastMine, level]);
 
-  const daily = getDaily(level); const hourly = getHourly(level); const nextReq = getReq(level+1); const progress = Math.min(100, (walletBalance / (nextReq||1))*100);
+  const daily = getDaily(level); const hourly = getHourly(level); const nextReq = getReq(level+1); const progress = Math.min(100, (onChainAnkh / (nextReq||1))*100);
   const handleClaim = () => {
     if(balance<=0) return;
     const newW = walletBalance + balance;
     setWalletBalance(newW); localStorage.setItem("ankh_wallet", String(newW));
     setBalance(0); const now = Date.now(); setLastMine(now);
     localStorage.setItem("ankh_last_mine", String(now)); localStorage.setItem("ankh_bal", "0");
-    let nl=level; while(newW>=getReq(nl+1) && nl<500) nl++; setLevel(nl); localStorage.setItem("ankh_level", String(nl));
   };
   const changeLang = (l:string)=>{ setLang(l); localStorage.setItem("ankh_lang", l); setShowLang(false); }
   
@@ -615,8 +635,23 @@ function AnkhInner() {
               <button onClick={()=>{const link=`https://t.me/ankhcoinbot?startapp=ref_${inviteCode}`; if(navigator.share){navigator.share({title:"ANKH Mining", text:`تعال عدن معايا! كودي ${inviteCode}`, url:link})} else {window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("تعال عدن ANKH معايا!")}`,"_blank")}}} style={{background:"linear-gradient(90deg,#A855F7,#38BDF8)", border:"none", borderRadius:12, padding:12, color:"#fff", fontWeight:900, fontSize:12, display:"flex", gap:6, justifyContent:"center"}}>ادعُ أصدقاءك <span>✈️</span></button>
             </div>
           </div>
-        </div>
-      )}
+                  <div style={{margin:"12px 12px 0", background:"#12121a", borderRadius:16, padding:12, border:"1px solid #222"}}>
+            <div style={{fontWeight:900, fontSize:13, marginBottom:10, color:"#fff"}}>👥 قائمة الأصدقاء ({(friends||[]).length})</div>
+            {(friends||[]).length===0 ? (
+              <div style={{textAlign:"center", padding:20, color:"#666", fontSize:12}}>لسه مفيش اصدقاء - ابعت رابط الدعوة لاصحابك</div>
+            ) : friends.map((f:any,i:number)=>(
+              <div key={i} style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 0", borderBottom:"1px solid #1a1a1a"}}>
+                <div style={{display:"flex", alignItems:"center", gap:8}}>
+                  <div style={{width:32, height:32, borderRadius:"50%", background:"#2a2a3a", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12}}>👤</div>
+                  <div>
+                    <div style={{fontSize:12, fontWeight:700, color:"#fff"}}>{f.name || `صديق ${i+1}`}</div>
+                    <div style={{fontSize:10, color:"#888"}}>Lv.{f.level||1}</div>
+                  </div>
+                </div>
+                <span style={{fontSize:11, color:"#22c55e", fontWeight:800}}>+{f.reward||0} ANKH</span>
+              </div>
+            ))}
+          </div>
 
       {view==="market" && (
         <div style={{padding:"12px 16px"}}>
