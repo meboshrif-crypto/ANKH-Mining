@@ -244,7 +244,7 @@ function AnkhInner() {
         }, 1000);
         return;
       }
-    const res = await fetch(`/api/verify`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: user.id, chatId: channelUsername }) });
+    const res = await fetch(`/api/verify`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: userId, chatId: channelUsername }) });
 const data = await res.json();
 if (data.ok) {
         if (!completedTasks.includes(taskId)) {
