@@ -1,4 +1,4 @@
-‏"use client";
+"use client";
 import { useState, useEffect } from "react";
 import { TonConnectUIProvider, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 
@@ -486,3 +486,5 @@ export default function Page(){
     <TonConnectUIProvider manifestUrl="https://ankh-mining.vercel.app/tonconnect-manifest.json">
       <AnkhInner />
     </TonConnectUIProvider>
+  )
+}
