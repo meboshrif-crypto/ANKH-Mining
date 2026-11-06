@@ -7,10 +7,11 @@ import {
 } from "@tonconnect/ui-react";
 
 const TREASURY_WALLET = "UQBpa_tNmxOcfzdVWQm_9oJVvhZ673Y9rVbpDHi8WPXj4r3Y";
+const JETTON_MASTER = "EQDes0vgBpN6DqPNxJ79hV2_B9wS6XZLXp_AFTjl9hrgI8bk";
 const MIN_WITHDRAW = 10000;
 const MIN_RESERVE = 2500;
 const REQUIRED_DAYS = 7;
-const STONFI_LINK = "https://app.ston.fi/swap?ft=TON&tt=ANKH";
+const STONFI_LINK = "https://app.ston.fi/swap?ft=TON&tt=EQDes0vgBpN6DqPNxJ79hV2_B9wS6XZLXp_AFTjl9hrgI8bk";
 const DAILY_REWARDS = [8, 12, 20, 32, 48, 68, 125];
 const STORAGE_VERSION = "v2_RESET";
 
