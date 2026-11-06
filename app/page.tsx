@@ -121,6 +121,26 @@ const [verifying, setVerifying] = useState(null);
 
   const t = TRANSLATIONS[lang];
   const getReq = (l: number) => getLevelData(l).req;
+  const handleDailyClaim = () => {
+    const now = Date.now();
+    if (lastDailyClaim && now - lastDailyClaim < 86400000) return;
+    const newStreak = now - (lastDailyClaim || 0) < 172800000 ? dailyStreak + 1 : 1;
+    setDailyStreak(newStreak);
+    setLastDailyClaim(now);
+    setOnChainAnkh((p:any) => p + 1000);
+  };
+  const handleVerifyTask = async (taskId: string) => {
+    setVerifying(taskId);
+    setTimeout(() => {
+      if (!completedTasks.includes(taskId)) {
+        setCompletedTasks((prev:any) => [...prev, taskId]);
+        setOnChainAnkh((p:any) => p + 5000);
+      }
+      setVerifying(null);
+    }, 1500);
+  };
+  const isTaskDone = (id: string) => completedTasks.includes(id);
+  const canClaimDaily = !lastDailyClaim || Date.now() - lastDailyClaim >= 86400000;
   const getDaily = (l: number) => getLevelData(l).daily;
   const getHourly = (l: number) => getLevelData(l).hourly;
   const ankhAmount = tonAmount ? (Number(tonAmount) / ankhPrice) : 0;
