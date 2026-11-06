@@ -338,47 +338,45 @@ function AnkhInner() {
 
       {/* === صفحة المهام الكاملة - بدون ايرور === */}
       {view==="tasks" && (
-        <div style={{padding:"12px 12px 20px"}}>
-          <div style={{display:"flex", gap:10, alignItems:"center", marginBottom:14}}>
-            <button onClick={()=>{setView("main"); setTab("home")}} style={{background:"#1A1A1A", width:36, height:36, borderRadius:20, border:"1px solid #333", color:"#fff"}}>‹</button>
-            <div><div style={{fontWeight:900, fontSize:18}}>مركز المهام 🎯</div><div style={{fontSize:11, color:"#888"}}>اكمل المهام واحصل على ANKH فورا في الرصيد المعدن</div></div>
-          </div>
+  <div style={{padding:"12px 12px 20px"}}>
+    <div style={{display:"flex", gap:10, alignItems:"center", marginBottom:14}}>
+      <button onClick={()=>{setView("main"); setTab("home")}} style={{background:"#1A1A1A", width:36, height:36, borderRadius:20, border:"1px solid #333", color:"#fff"}}>‹</button>
+      <div><div style={{fontWeight:900, fontSize:18}}>مركز المهام 🎯</div><div style={{fontSize:11, color:"#888"}}>الرصيد بيروح للمعدن فورا</div></div>
+    </div>
 
-          <div style={{display:"flex", flexDirection:"column", gap:10}}>
-            <div style={{background:"linear-gradient(180deg,#1A1500,#12121A)", padding:14, borderRadius:16, border:"1px solid #FACC15", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-              <div style={{display:"flex", gap:10, alignItems:"center"}}>
-                <div style={{width:46, height:46, borderRadius:12, background:"linear-gradient(180deg,#FACC15,#854D0E)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22}}>📅</div>
-                <div><div style={{fontWeight:900, fontSize:14}}>تسجيل الدخول اليومي 🔥 {dailyStreak} يوم</div><div style={{fontSize:11, color:"#aaa"}}>مكافأة +{DAILY_REWARDS[Math.min(dailyStreak, DAILY_REWARDS.length-1)]*100} ANKH - يعد 24 ساعة من الاستلام</div></div>
-              </div>
-              <button onClick={handleDailyClaim} disabled={!canClaimDaily} style={{background: canClaimDaily ? "#FACC15" : "#333", color: canClaimDaily ? "#000" : "#888", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900, fontSize:13}}>{canClaimDaily ? "استلم" : "تم ✓"}</button>
-            </div>
+    <div style={{display:"flex", flexDirection:"column", gap:10}}>
+      {/* تسجيل يومي */}
+      <div style={{background:"linear-gradient(180deg,#1A1500,#12121A)", padding:14, borderRadius:16, border:"1px solid #FACC15", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+        <div><div style={{fontWeight:900, fontSize:14}}>تسجيل يومي 🔥 {dailyStreak}</div><div style={{fontSize:11, color:"#aaa"}}>+1000 ANKH - كل 24 ساعة</div></div>
+        <button onClick={handleDailyClaim} disabled={!canClaimDaily} style={{background: canClaimDaily ? "#FACC15" : "#333", color:"#000", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900}}>{canClaimDaily ? "استلم" : "تم ✓"}</button>
+      </div>
 
-            <div style={{background:"#12121A", padding:14, borderRadius:16, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-              <div style={{display:"flex", gap:10, alignItems:"center"}}>
-                <div style={{width:46, height:46, borderRadius:12, background:"linear-gradient(180deg,#38BDF8,#0EA5E9)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22}}>📢</div>
-                <div><div style={{fontWeight:900, fontSize:14}}>اشتراك قناة الأخبار</div><div style={{fontSize:11, color:"#888"}}>+500 ANKH - لازم تشترك فعلا</div></div>
-              </div>
-              <button onClick={()=>handleVerifyTask("news", CHANNELS.news.link)} style={{background: isTaskDone("news") ? "#22c55e" : "#fff", color: isTaskDone("news") ? "#fff" : "#000", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900, fontSize:13}}>{isTaskDone("news") ? "تم ✓" : verifying==="news" ? "..." : "اذهب"}</button>
-            </div>
+      {/* قناة الاخبار - الرابط بتاعك */}
+      <div style={{background:"#12121A", padding:14, borderRadius:16, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+        <div><div style={{fontWeight:900, fontSize:14}}>قناة الأخبار 📢</div><div style={{fontSize:11, color:"#888"}}>+500 ANKH</div></div>
+        <button onClick={()=>handleVerifyTask("news", CHANNELS.news.link)} style={{background: isTaskDone("news") ? "#22c55e" : "#fff", color: isTaskDone("news") ? "#fff" : "#000", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900}}>{isTaskDone("news") ? "تم ✓" : verifying==="news" ? "..." : "اذهب"}</button>
+      </div>
 
-            <div style={{background:"#12121A", padding:14, borderRadius:16, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-              <div style={{display:"flex", gap:10, alignItems:"center"}}>
-                <div style={{width:46, height:46, borderRadius:12, background:"linear-gradient(180deg,#A855F7,#7C3AED)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22}}>💸</div>
-                <div><div style={{fontWeight:900, fontSize:14}}>اشتراك قناة السحب</div><div style={{fontSize:11, color:"#888"}}>+500 ANKH - لازم تشترك فعلا</div></div>
-              </div>
-              <button onClick={()=>handleVerifyTask("withdraw", CHANNELS.withdraw.link)} style={{background: isTaskDone("withdraw") ? "#22c55e" : "#fff", color: isTaskDone("withdraw") ? "#fff" : "#000", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900, fontSize:13}}>{isTaskDone("withdraw") ? "تم ✓" : verifying==="withdraw" ? "..." : "اذهب"}</button>
-            </div>
+      {/* قناة السحب - الرابط بتاعك */}
+      <div style={{background:"#12121A", padding:14, borderRadius:16, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+        <div><div style={{fontWeight:900, fontSize:14}}>قناة السحب 💸</div><div style={{fontSize:11, color:"#888"}}>+500 ANKH</div></div>
+        <button onClick={()=>handleVerifyTask("withdraw", CHANNELS.withdraw.link)} style={{background: isTaskDone("withdraw") ? "#22c55e" : "#fff", color: isTaskDone("withdraw") ? "#fff" : "#000", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900}}>{isTaskDone("withdraw") ? "تم ✓" : verifying==="withdraw" ? "..." : "اذهب"}</button>
+      </div>
 
-            <div style={{background:"#12121A", padding:14, borderRadius:16, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-              <div style={{display:"flex", gap:10, alignItems:"center"}}>
-                <div style={{width:46, height:46, borderRadius:12, background:"#000", border:"1px solid #333", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20}}>𝕏</div>
-                <div><div style={{fontWeight:900, fontSize:14}}>متابعة X (تويتر)</div><div style={{fontSize:11, color:"#888"}}>+5000 ANKH</div></div>
-              </div>
-              <button onClick={()=>handleVerifyTask("twitter", "https://x.com/")} style={{background: isTaskDone("twitter") ? "#22c55e" : "#fff", color: isTaskDone("twitter") ? "#fff" : "#000", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900, fontSize:13}}>{isTaskDone("twitter") ? "تم ✓" : verifying==="twitter" ? "..." : "اذهب"}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* دعوة صديقين - مستوى 2 */}
+      <div style={{background:"#12121A", padding:14, borderRadius:16, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+        <div><div style={{fontWeight:900, fontSize:14}}>ادع 2 أصدقاء 👥</div><div style={{fontSize:11, color:"#888"}}>+5000 ANKH - عندك {friends.length}/2</div></div>
+        <button onClick={()=>{ if(friends.length>=2) handleVerifyTask("invite2"); else {setView("main"); setTab("friends");} }} style={{background: isTaskDone("invite2") ? "#22c55e" : friends.length>=2 ? "#FACC15" : "#fff", color:"#000", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900}}>{isTaskDone("invite2") ? "تم ✓" : friends.length>=2 ? "استلم" : "اذهب"}</button>
+      </div>
+
+      {/* تويتر */}
+      <div style={{background:"#12121A", padding:14, borderRadius:16, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+        <div><div style={{fontWeight:900, fontSize:14}}>تابعنا على X</div><div style={{fontSize:11, color:"#888"}}>+5000 ANKH</div></div>
+        <button onClick={()=>handleVerifyTask("twitter", "https://x.com/")} style={{background: isTaskDone("twitter") ? "#22c55e" : "#fff", color: isTaskDone("twitter") ? "#fff" : "#000", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900}}>{isTaskDone("twitter") ? "تم ✓" : "اذهب"}</button>
+      </div>
+    </div>
+  </div>
+)}
 
       {view==="main" && tab==="wallet" && walletView==="main" && (
         <div style={{padding:"0 0 20px"}}>
