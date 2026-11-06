@@ -3,6 +3,9 @@ import { useState, useEffect } from "react";
 import { TonConnectUIProvider, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 
 const TREASURY_WALLET = "UQBpa_tNmxOcfzdVWQm_9oJVvhZ673Y9rVbpDHi8WPXj4r3Y";
+const MIN_WITHDRAW = 10000;
+const MIN_RESERVE = 2500;
+const REQUIRED_DAYS = 7;
 
 const TRANSLATIONS: any = {
   ar: { mining: "ANKH Mining", subtitle: "عدن لتصنع المجد بنفسك", balance: "الرصيد المعدن", active: "التعدين النشط", working: "يعمل الآن", ready: "جاهز للجمع!", claim: "استلم ANKH", perHour: "في الساعة", daily: "يوميا", boost: "تعزيز", tier: "الدوري", nextLevel: "المستوى التالي:", keep: "احتفظ بـ", toReach: "في محفظتك للوصول الى المستوي", profile: "الملف الشخصي", smallLevel: "مستوي الصغير", tiersTitle: "الدوريات والمستويات", tiersSub: "احتفظ بـ ANKH , افتح الفصل التالي", yourTier: "دوريك", walletBal: "الرصيد في المحفظة", browse: "تصفح المستويات", progress: "تقدم الدوريات", levelsTitle: "مستويات التعدين", levelsSub: "استكشف 500 مستوى عبر خمس دوريات - ANKH", small: "مستوى الصغير", reqWallet: "الرصيد في المحفظة", perDay: "ANKH / اليوم", main: "الرئيسية", miningTab: "التعدين", market: "السوق", friends: "الأصدقاء", wallet: "المحفظة", chartTitle: "إنتاج التعدين", chartSub: "الإنتاج يزيد مع احتفاظك بـ ANKH ويقل مع البيع" },
@@ -41,6 +44,12 @@ const getLevelData = (lvl: number) => {
   return { lvl, req: lastReq, daily: lastDaily, hourly: +(lastDaily/24).toFixed(1) };
 };
 
+function formatAddress(addr: string) {
+  if (!addr) return "";
+  if (addr.includes(":")) return addr.slice(0,6) + "..." + addr.slice(-6);
+  return addr.slice(0,6) + "..." + addr.slice(-6);
+}
+
 function AnkhInner() {
   const [balance, setBalance] = useState(0);
   const [walletBalance, setWalletBalance] = useState(0);
@@ -64,15 +73,18 @@ function AnkhInner() {
   const [walletView, setWalletView] = useState<"main"|"withdraw">("main");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
-  const [walletCreatedAt, setWalletCreatedAt] = useState<number>(Date.now());
+  const [walletConnectedAt, setWalletConnectedAt] = useState<number>(0);
   const [onChainAnkh, setOnChainAnkh] = useState(0);
   const [isVerifiedHuman, setIsVerifiedHuman] = useState(false);
+  const [nowTick, setNowTick] = useState(Date.now());
 
   const t = TRANSLATIONS[lang];
   const getReq = (l: number) => getLevelData(l).req;
   const getDaily = (l: number) => getLevelData(l).daily;
   const getHourly = (l: number) => getLevelData(l).hourly;
   const ankhAmount = tonAmount ? (Number(tonAmount) / ankhPrice) : 0;
+
+  useEffect(()=>{ const id=setInterval(()=>setNowTick(Date.now()), 60000); return ()=>clearInterval(id); },[]);
 
   useEffect(()=>{
     const wb = localStorage.getItem("ankh_wallet"); if(wb) setWalletBalance(Number(wb));
@@ -92,12 +104,20 @@ function AnkhInner() {
     if(savedFriends){ try{ setFriends(JSON.parse(savedFriends)); }catch{} }
     const refEarn = localStorage.getItem("ankh_ref_earn");
     if(refEarn) setReferralEarnings(Number(refEarn));
-    const wc = localStorage.getItem("ankh_wallet_created");
-    if(wc){ setWalletCreatedAt(Number(wc)); } else { localStorage.setItem("ankh_wallet_created", String(now)); setWalletCreatedAt(now); }
+    const wca = localStorage.getItem("ankh_wallet_connected_at");
+    if(wca) setWalletConnectedAt(Number(wca));
     const wds = localStorage.getItem("ankh_withdrawals"); if(wds){ try{ setWithdrawals(JSON.parse(wds)); }catch{} }
     const oc = localStorage.getItem("ankh_onchain"); if(oc) setOnChainAnkh(Number(oc));
     const vh = localStorage.getItem("ankh_verified"); if(vh==="1") setIsVerifiedHuman(true);
   },[]);
+
+  useEffect(()=>{
+    if(isConnected && !walletConnectedAt){
+      const now = Date.now();
+      localStorage.setItem("ankh_wallet_connected_at", String(now));
+      setWalletConnectedAt(now);
+    }
+  },[isConnected, walletConnectedAt]);
 
   useEffect(()=>{
     const interval = setInterval(()=>{ if(Date.now() - lastMine < 86400000){ setBalance(b=>{ const newB = b + (getHourly(level)/3600); localStorage.setItem("ankh_bal", String(newB)); return newB; }); } },1000);
@@ -114,15 +134,17 @@ function AnkhInner() {
     let nl=level; while(newW>=getReq(nl+1) && nl<500) nl++; setLevel(nl); localStorage.setItem("ankh_level", String(nl));
   };
   const changeLang = (l:string)=>{ setLang(l); localStorage.setItem("ankh_lang", l); setShowLang(false); }
-  const chartPoints = [0, 15, 30, 25, 45, 60, 55, 80, 95, 85, 100];
-  const walletAgeDays = Math.floor((Date.now() - walletCreatedAt) / (1000*60*60*24));
-  const requiredReserve = withdrawAmount ? Number(withdrawAmount) * 0.25 : 0;
+  
+  const connectedDays = walletConnectedAt ? Math.floor((nowTick - walletConnectedAt) / (1000*60*60*24)) : 0;
+  const displayDays = Math.min(connectedDays, REQUIRED_DAYS);
+  const isAgeOk = displayDays >= REQUIRED_DAYS;
+
+  const requiredReserve = withdrawAmount ? Math.max(MIN_RESERVE, Math.floor(Number(withdrawAmount) * 0.25)) : MIN_RESERVE;
   const withdrawFee = withdrawAmount ? Number(withdrawAmount) * 0.05 : 0;
   const willReceive = withdrawAmount ? Number(withdrawAmount) - withdrawFee : 0;
-  const hasMinAmount = Number(withdrawAmount) >= 10000;
+  const hasMinAmount = Number(withdrawAmount) >= MIN_WITHDRAW;
   const hasAppBalance = walletBalance >= Number(withdrawAmount);
   const hasOnChainReserve = onChainAnkh >= requiredReserve;
-  const isAgeOk = walletAgeDays >= 30;
 
   const handlePayHumanCheck = async () => {
     if(!isConnected){ tonConnectUI.openModal(); return; }
@@ -139,10 +161,10 @@ function AnkhInner() {
 
   const handleWithdraw = async () => {
     if(!isConnected) return alert("اربط المحفظة الاول!");
-    if(!hasMinAmount) return alert("الحد الأدنى للسحب 10,000 ANKH");
+    if(!hasMinAmount) return alert(`الحد الأدنى للسحب ${MIN_WITHDRAW.toLocaleString()} ANKH`);
     if(!hasAppBalance) return alert("رصيد التطبيق غير كافي");
     if(!hasOnChainReserve) return alert(`لازم يكون في محفظتك المربوطة ${requiredReserve.toLocaleString()} ANKH على البلوكتشين. رصيدك الحالي: ${onChainAnkh}`);
-    if(!isAgeOk) return alert(`المحفظة عمرها ${walletAgeDays} يوم - لازم 30 يوم او يكون معاك Telegram Premium او عملية على STON.fi`);
+    if(!isAgeOk) return alert(`عمر الربط ${displayDays} من ${REQUIRED_DAYS} أيام - لازم تكمل 7 أيام`);
     if(!isVerifiedHuman){
       if(!confirm("لازم التحقق من المحفظة أولاً بدفع 0.05 TON. موافق؟")) return;
       try{
@@ -228,12 +250,12 @@ function AnkhInner() {
               </div>
               <div style={{marginTop:14, background:"rgba(0,0,0,0.6)", borderRadius:12, padding:10, border:"1px solid #333", display:"flex", justifyContent:"space-between"}}>
                 <div><div style={{fontSize:10, color:"#888"}}>الرصيد على البلوكتشين</div><div style={{fontSize:20, fontWeight:900}}>{onChainAnkh.toFixed(2)} <span style={{fontSize:11, color:"#FACC15"}}>ANKH</span></div></div>
-                <div style={{background:"#111", borderRadius:20, padding:"6px 12px", border:"1px solid #333", fontSize:11, alignSelf:"center"}}>🔷 {isConnected ? wallet?.account.address.slice(0,6)+"..." : "غير متصلة"}</div>
+                <div style={{background:"#111", borderRadius:20, padding:"6px 12px", border:"1px solid #333", fontSize:11, alignSelf:"center"}}>🔷 {isConnected ? formatAddress(wallet?.account.address||"") : "غير متصلة"}</div>
               </div>
               {!isConnected ? (
                 <button onClick={()=>tonConnectUI.openModal()} style={{marginTop:10, width:"100%", background:"linear-gradient(90deg,#a855f7,#38bdf8)", padding:12, borderRadius:12, border:"none", color:"#fff", fontWeight:900}}>ربط المحفظة</button>
               ):(
-                <div style={{marginTop:10, fontSize:10, background:"rgba(34,197,94,0.1)", border:"1px solid #22c55e", borderRadius:8, padding:6, textAlign:"center", color:"#22c55e"}}>✅ متصلة - عمرها {walletAgeDays} يوم {isVerifiedHuman ? " - تم التحقق ✅" : ""}</div>
+                <div style={{marginTop:10, fontSize:10, background: isAgeOk ? "rgba(34,197,94,0.15)" : "rgba(250,204,21,0.15)", border:`1px solid ${isAgeOk ? "#22c55e" : "#FACC15"}`, borderRadius:8, padding:6, textAlign:"center", color: isAgeOk ? "#22c55e" : "#FACC15"}}>✅ متصلة - عمر الربط {displayDays} من {REQUIRED_DAYS} يوم {isVerifiedHuman ? " - تم التحقق ✅" : ""}</div>
               )}
               <div style={{marginTop:8, display:"flex", gap:6}}>
                 <input type="number" inputMode="numeric" placeholder="محاكاة رصيد البلوكتشين للتجربة" value={onChainAnkh} onChange={e=>{ setOnChainAnkh(Number(e.target.value)); localStorage.setItem("ankh_onchain", e.target.value); }} style={{flex:1, background:"#0a0a0a", border:"1px solid #333", borderRadius:8, padding:8, color:"#fff", fontSize:16}}/>
@@ -278,7 +300,7 @@ function AnkhInner() {
 
           <div style={{margin:"8px 12px", background:"#12121a", borderRadius:12, padding:12, border:"1px solid #222", display:"flex", justifyContent:"space-between"}}>
             <span style={{fontSize:11, color:"#888"}}>حالة المحفظة</span>
-            <span style={{fontSize:11, color: isConnected ? "#22c55e" : "#ef4444", direction:"ltr"}}>{isConnected ? `✅ ${wallet?.account.address.slice(0,10)}...${wallet?.account.address.slice(-6)} - ${walletAgeDays} يوم` : "❌ غير متصلة - اربط محفظتك"}</span>
+            <span style={{fontSize:11, color: isConnected ? "#22c55e" : "#ef4444", direction:"ltr"}}>{isConnected ? `✅ ${formatAddress(wallet?.account.address||"")} - ${displayDays} من ${REQUIRED_DAYS}` : "❌ غير متصلة - اربط محفظتك"}</span>
           </div>
 
           <div style={{margin:"8px 12px", background:"#12121a", borderRadius:14, padding:14, border:"1px solid #333"}}>
@@ -291,7 +313,7 @@ function AnkhInner() {
                 <button onClick={()=>setWithdrawAmount(String(Math.floor(walletBalance)))} style={{background:"#a855f7", border:"none", borderRadius:6, padding:"8px 12px", color:"#fff", fontSize:12, fontWeight:800}}>MAX</button>
               </div>
             </div>
-            <div style={{fontSize:10, color:"#888", marginTop:6}}>الحد الادنى 10,000 ANKH</div>
+            <div style={{fontSize:10, color:"#888", marginTop:6}}>الحد الادنى {MIN_WITHDRAW.toLocaleString()} ANKH</div>
           </div>
 
           <div style={{margin:"8px 12px", background:"linear-gradient(180deg,#1a1500,#12121a)", borderRadius:14, padding:12, border:"1px solid #FACC15"}}>
@@ -311,9 +333,12 @@ function AnkhInner() {
               <div style={{flex:1}}><div style={{fontSize:11, color:"#ccc"}}>التحقق من المحفظة أولاً - 0.05 TON</div><div style={{fontSize:9, color:"#888"}}>مرة واحدة فقط للتأمين</div></div>
               <button onClick={handlePayHumanCheck} style={{background: isVerifiedHuman ? "#22c55e" : "#a855f7", border:"none", borderRadius:8, padding:"8px 12px", color:"#fff", fontSize:11, fontWeight:800}}>{isVerifiedHuman ? "تم التحقق" : "ادفع 0.05"}</button>
             </div>
-            <div style={{background:"#12121a", borderRadius:12, padding:12, border:`1px solid ${isAgeOk ? "#22c55e" : "#ef4444"}`, display:"flex", gap:10, alignItems:"center"}}>
+            <div style={{background:"#12121a", borderRadius:12, padding:12, border:`1px solid ${isAgeOk ? "#22c55e" : "#FACC15"}`, display:"flex", gap:10, alignItems:"center"}}>
               <div style={{width:28, height:28, borderRadius:20, background:"#1a1a1a", border:"1px solid #333", display:"flex", alignItems:"center", justifyContent:"center"}}>⏱️</div>
-              <div style={{fontSize:11, color: isAgeOk ? "#22c55e" : "#ef4444"}}>عمر المحفظة {walletAgeDays} يوم - {isAgeOk ? "✅ مؤهل للسحب" : "❌ يلزم 30 يوم او Premium او تداول STON.fi"}</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:11, color: isAgeOk ? "#22c55e" : "#FACC15"}}>عمر المحفظة {displayDays} من {REQUIRED_DAYS} يوم {isAgeOk ? "✅ مؤهل للسحب" : "⏳"}</div>
+                <div style={{height:6, background:"#222", borderRadius:10, marginTop:6}}><div style={{width:`${(displayDays/REQUIRED_DAYS)*100}%`, height:"100%", background: isAgeOk ? "#22c55e" : "#FACC15", borderRadius:10}}></div></div>
+              </div>
             </div>
           </div>
 
@@ -408,7 +433,7 @@ function AnkhInner() {
             <div style={{marginTop:12, background:"rgba(0,0,0,0.5)", borderRadius:12, padding:12, border:"1px solid #222"}}>
               <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}>
                 <span style={{color:"#FACC15"}}>↗ STON.fi</span>
-                <span style={{color:"#888"}}>{isConnected ? wallet?.account.address.slice(0,6)+"..."+wallet?.account.address.slice(-4) : "TON Price"}</span>
+                <span style={{color:"#888"}}>{isConnected ? formatAddress(wallet?.account.address||"") : "TON Price"}</span>
               </div>
               <div style={{fontSize:26, fontWeight:900, marginTop:8}}>TON {ankhPrice.toFixed(6)}</div>
             </div>
