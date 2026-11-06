@@ -7,7 +7,6 @@ import {
 } from "@tonconnect/ui-react";
 
 const TREASURY_WALLET = "UQBpa_tNmxOcfzdVWQm_9oJVvhZ673Y9rVbpDHi8WPXj4r3Y";
-const JETTON_MASTER = "EQDes0vgBpN6DqPNxJ79hV2_B9wS6XZLXp_AFTjl9hrgI8bk";
 const MIN_WITHDRAW = 10000;
 const MIN_RESERVE = 2500;
 const REQUIRED_DAYS = 7;
