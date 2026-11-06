@@ -6,7 +6,7 @@ const TREASURY_WALLET = "UQBpa_tNmxOcfzdVWQm_9oJVvhZ673Y9rVbpDHi8WPXj4r3Y";
 const MIN_WITHDRAW = 10000;
 const MIN_RESERVE = 2500;
 const REQUIRED_DAYS = 7;
-
+const STONFI_LINK = "https://app.ston.fi/swap?ft=TON&tt=ANKH";
 const TRANSLATIONS: any = {
   ar: { mining: "ANKH Mining", subtitle: "عدن لتصنع المجد بنفسك", balance: "الرصيد المعدن", active: "التعدين النشط", working: "يعمل الآن", ready: "جاهز للجمع!", claim: "استلم ANKH", perHour: "في الساعة", daily: "يوميا", boost: "تعزيز", tier: "الدوري", nextLevel: "المستوى التالي:", keep: "احتفظ بـ", toReach: "في محفظتك للوصول الى المستوي", profile: "الملف الشخصي", smallLevel: "مستوي الصغير", tiersTitle: "الدوريات والمستويات", tiersSub: "احتفظ بـ ANKH , افتح الفصل التالي", yourTier: "دوريك", walletBal: "الرصيد في المحفظة", browse: "تصفح المستويات", progress: "تقدم الدوريات", levelsTitle: "مستويات التعدين", levelsSub: "استكشف 500 مستوى عبر خمس دوريات - ANKH", small: "مستوى الصغير", reqWallet: "الرصيد في المحفظة", perDay: "ANKH / اليوم", main: "الرئيسية", miningTab: "التعدين", market: "السوق", friends: "الأصدقاء", wallet: "المحفظة", chartTitle: "إنتاج التعدين", chartSub: "الإنتاج يزيد مع احتفاظك بـ ANKH ويقل مع البيع" },
   en: { mining: "ANKH Mining", subtitle: "Mine to build your own glory", balance: "Mined Balance", active: "Active Mining", working: "Working Now", ready: "Ready to Claim!", claim: "Claim ANKH", perHour: "Per Hour", daily: "Daily", boost: "Boost", tier: "Tier", nextLevel: "Next Level:", keep: "Keep", toReach: "in wallet to reach level", profile: "Profile", smallLevel: "Small Level", tiersTitle: "Tiers & Levels", tiersSub: "Hold ANKH, unlock next chapter", yourTier: "Your Tier", walletBal: "Wallet Balance", browse: "Browse Levels", progress: "Tiers Progress", levelsTitle: "Mining Levels", levelsSub: "Explore 500 levels - ANKH", small: "Level", reqWallet: "Wallet Required", perDay: "ANKH / Day", main: "Home", miningTab: "Mining", market: "Market", friends: "Friends", wallet: "Wallet", chartTitle: "Mining Production", chartSub: "Production rises with holding" },
@@ -44,10 +44,26 @@ const getLevelData = (lvl: number) => {
   return { lvl, req: lastReq, daily: lastDaily, hourly: +(lastDaily/24).toFixed(1) };
 };
 
+function rawToFriendly(raw: string): string {
+  if (!raw) return "";
+  if (!raw.includes(":")) return raw;
+  try {
+    const [wcStr, hex] = raw.split(":");
+    const wc = parseInt(wcStr);
+    const hash = new Uint8Array((hex.match(/.{1,2}/g) || []).map(b=>parseInt(b,16)));
+    const bytes = new Uint8Array(34);
+    bytes[0] = 0x11; bytes[1] = wc; bytes.set(hash, 2);
+    let crc = 0;
+    for (let i=0;i<34;i++){ crc ^= bytes[i] << 8; for(let j=0;j<8;j++){ if(crc & 0x8000) crc = ((crc<<1)^0x1021)&0xFFFF; else crc = (crc<<1)&0xFFFF; } }
+    const full = new Uint8Array(36); full.set(bytes,0); full[34]=(crc>>8)&0xFF; full[35]=crc&0xFF;
+    let bin=""; for(let i=0;i<full.length;i++) bin+=String.fromCharCode(full[i]);
+    return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_');
+  } catch { return raw; }
+}
 function formatAddress(addr: string) {
   if (!addr) return "";
-  if (addr.includes(":")) return addr.slice(0,6) + "..." + addr.slice(-6);
-  return addr.slice(0,6) + "..." + addr.slice(-6);
+  const f = rawToFriendly(addr);
+  return f.slice(0,6) + "..." + f.slice(-6);
 }
 
 function AnkhInner() {
@@ -188,7 +204,21 @@ function AnkhInner() {
       setWithdrawals(done); localStorage.setItem("ankh_withdrawals", JSON.stringify(done));
     }, 15000);
   };
-  
+    const handleMarketBuy = async () => {
+    if(!isConnected){ tonConnectUI.openModal(); return; }
+    if(Number(tonAmount) < 1) return alert("الحد الأدنى 1 TON");
+    try{
+      await tonConnectUI.sendTransaction({
+        validUntil: Math.floor(Date.now()/1000)+600,
+        messages: [{ address: TREASURY_WALLET, amount: (Number(tonAmount)*1e9).toString() }]
+      });
+      const bought = Number(tonAmount) / ankhPrice;
+      const newBal = walletBalance + bought;
+      setWalletBalance(newBal); localStorage.setItem("ankh_wallet", String(newBal));
+      alert(`تم الشراء ${bought.toFixed(2)} ANKH`);
+    }catch{ alert("فشل الشراء"); }
+  };
+
   return (
     <div style={{minHeight:"100vh", background:"#08080C", color:"#fff", paddingBottom:90, direction: lang==="ar" ? "rtl" : "ltr", fontFamily:"sans-serif"}}>
       <div style={{padding:"12px 16px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0F0F14"}}>
@@ -320,7 +350,7 @@ function AnkhInner() {
             <div style={{fontSize:11, color:"#888"}}>الرصيد المطلوب الاحتفاظ به في محفظتك المربوطة (على البلوكتشين)</div>
             <div style={{fontSize:18, fontWeight:900, color:"#a855f7", marginTop:4}}>{requiredReserve.toLocaleString()} ANKH</div>
             <div style={{fontSize:11, color:"#ccc", marginTop:6, direction:"ltr", background:"#0a0a0a", padding:8, borderRadius:8, border:"1px solid #222", wordBreak:"break-all"}}>
-              {isConnected ? wallet?.account.address : "اربط محفظتك لعرض عنوانك - UQ..."}
+              {isConnected ? rawToFriendly(wallet?.account.address||"") : "اربط محفظتك لعرض عنوانك - UQ..."}
             </div>
             <div style={{fontSize:10, color: hasOnChainReserve ? "#22c55e" : "#ef4444", marginTop:8, background: hasOnChainReserve ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", padding:8, borderRadius:6, border:`1px solid ${hasOnChainReserve ? "#22c55e" : "#ef4444"}`}}>
               {hasOnChainReserve ? `✅ عندك ${onChainAnkh} ANKH على البلوكتشين - كافي للسحب` : `⚠️ رصيدك على البلوكتشين ${onChainAnkh} - محتاج ${requiredReserve.toLocaleString()} ANKH في نفس المحفظة المربوطة اعلاه`}
@@ -424,39 +454,46 @@ function AnkhInner() {
       )}
 
       {view==="market" && (
-        <div style={{padding:"12px 16px"}}>
-          <div style={{borderRadius:16, background:"linear-gradient(180deg, #1A0A2E, #0F0F1A)", border:"1px solid #333", padding:12}}>
-            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-              <div style={{fontSize:22, fontWeight:900}}>السوق</div>
-              <div style={{fontSize:11, color:"#FACC15", background:"rgba(250,204,21,0.1)", border:"1px solid #FACC15", padding:"4px 10px", borderRadius:20}}>ANKH / TON ⇄</div>
-            </div>
-            <div style={{marginTop:12, background:"rgba(0,0,0,0.5)", borderRadius:12, padding:12, border:"1px solid #222"}}>
-              <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}>
-                <span style={{color:"#FACC15"}}>↗ STON.fi</span>
-                <span style={{color:"#888"}}>{isConnected ? formatAddress(wallet?.account.address||"") : "TON Price"}</span>
-              </div>
-              <div style={{fontSize:26, fontWeight:900, marginTop:8}}>TON {ankhPrice.toFixed(6)}</div>
-            </div>
-          </div>
-          <div style={{display:"flex", gap:8, marginTop:12}}>
-            <button onClick={()=>setMarketTab("history")} style={{flex:1, background: marketTab==="history" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border:"1px solid #222", borderRadius:12, padding:12, color: marketTab==="history" ? "#fff" : "#666", fontWeight:900}}>السجل</button>
-            <button onClick={()=>setMarketTab("buy")} style={{flex:1, background: marketTab==="buy" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border:"1px solid #222", borderRadius:12, padding:12, color: marketTab==="buy" ? "#fff" : "#666", fontWeight:900}}>شراء</button>
-          </div>
-          {marketTab==="buy" && (
-            <div style={{marginTop:10, background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222"}}>
-              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #333", marginTop:6}}>
-                <input type="number" inputMode="decimal" value={tonAmount} onChange={(e)=>{if(Number(e.target.value)>=1 || e.target.value==="") setTonAmount(e.target.value)}} style={{background:"none", border:"none", color:"#fff", fontSize:16, fontWeight:900, width:120, outline:"none"}} />
-                <span style={{color:"#FACC15", fontWeight:800}}>TON</span>
-              </div>
-              <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #333", marginTop:12}}>
-                <div style={{fontSize:20, fontWeight:900, color:"#5EE9FF"}}>{tonAmount==="" ? "0.00000000" : ankhAmount.toFixed(8)}</div>
-                <div style={{color:"#A855F7", fontWeight:900}}>ANKH</div>
-              </div>
-              <button onClick={()=>tonConnectUI.openModal()} style={{marginTop:14, width:"100%", background:"linear-gradient(90deg,#A855F7,#38BDF8)", padding:14, borderRadius:12, border:"none", color:"#fff", fontWeight:900}}>📋 ربط المحفظة</button>
-            </div>
-          )}
+  <div style={{padding:"12px 16px"}}>
+    <div style={{borderRadius:16, background:"linear-gradient(180deg, #1A0A2E, #0F0F1A)", border:"1px solid #333", padding:12}}>
+      <div style={{display:"flex", justifyContent:"space-between"}}>
+        <div style={{fontSize:22, fontWeight:900}}>السوق</div>
+        <div style={{fontSize:11, color:"#FACC15", border:"1px solid #FACC15", padding:"4px 10px", borderRadius:20}}>ANKH / TON ⇄</div>
+      </div>
+      <div style={{marginTop:12, background:"rgba(0,0,0,0.5)", borderRadius:12, padding:12, border:"1px solid #222"}}>
+        <div style={{display:"flex", justifyContent:"space-between", fontSize:12}}>
+          <a href={STONFI_LINK} target="_blank" style={{color:"#FACC15", fontWeight:800, textDecoration:"none"}}>↗ STON.fi - مبادلة فورية</a>
+          <span style={{color:"#888"}}>{isConnected ? formatAddress(wallet?.account.address||"") : "TON Price"}</span>
         </div>
-      )}
+        <div style={{fontSize:26, fontWeight:900, marginTop:8}}>TON {ankhPrice.toFixed(6)}</div>
+      </div>
+    </div>
+    <div style={{display:"flex", gap:8, marginTop:12}}>
+      <button onClick={()=>setMarketTab("history")} style={{flex:1, background: marketTab==="history" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border:"1px solid #222", borderRadius:12, padding:12, color:"#fff", fontWeight:900}}>السجل</button>
+      <button onClick={()=>setMarketTab("buy")} style={{flex:1, background: marketTab==="buy" ? "linear-gradient(90deg,#A855F7,#38BDF8)" : "#12121A", border:"1px solid #222", borderRadius:12, padding:12, color:"#fff", fontWeight:900}}>شراء</button>
+    </div>
+    {marketTab==="buy" && (
+      <div style={{marginTop:10, background:"#12121A", borderRadius:14, padding:12, border:"1px solid #222"}}>
+        <div style={{background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #333", display:"flex", justifyContent:"space-between"}}>
+          <input type="number" value={tonAmount} onChange={(e)=>{if(Number(e.target.value)>=1 || e.target.value==="") setTonAmount(e.target.value)}} style={{background:"none", border:"none", color:"#fff", fontSize:16, fontWeight:900, width:120, outline:"none"}} />
+          <span style={{color:"#FACC15", fontWeight:800}}>TON</span>
+        </div>
+        <div style={{background:"#0A0A0A", borderRadius:12, padding:12, border:"1px solid #333", marginTop:12, display:"flex", justifyContent:"space-between"}}>
+          <div style={{fontSize:20, fontWeight:900, color:"#5EE9FF"}}>{tonAmount==="" ? "0" : ankhAmount.toFixed(2)}</div>
+          <div style={{color:"#A855F7", fontWeight:900}}>ANKH</div>
+        </div>
+        {isConnected ? (
+          <>
+            <button onClick={handleMarketBuy} style={{marginTop:14, width:"100%", background:"linear-gradient(90deg,#A855F7,#38BDF8)", padding:14, borderRadius:12, border:"none", color:"#fff", fontWeight:900}}>💰 شراء {ankhAmount.toFixed(0)} ANKH</button>
+            <a href={STONFI_LINK} target="_blank" style={{marginTop:8, display:"block", textAlign:"center", background:"#1a1a1a", border:"1px solid #333", padding:12, borderRadius:12, color:"#FACC15", fontWeight:800, textDecoration:"none"}}>↗ فتح STON.fi</a>
+          </>
+        ) : (
+          <button onClick={()=>tonConnectUI.openModal()} style={{marginTop:14, width:"100%", background:"linear-gradient(90deg,#A855F7,#38BDF8)", padding:14, borderRadius:12, border:"none", color:"#fff", fontWeight:900}}>📋 ربط المحفظة للشراء</button>
+        )}
+      </div>
+    )}
+  </div>
+)}
 
       {view==="tiers" && (
         <>
