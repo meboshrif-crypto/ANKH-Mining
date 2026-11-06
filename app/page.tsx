@@ -368,7 +368,7 @@ function AnkhInner() {
     }catch{ alert("فشل الشراء"); }
   };
 
-  const activeFriends = (friends||[]).filter((f:any)=> (f.level||2) >=2).length;
+ const activeFriends = (friends||[]).filter((f:any)=> !!f);
 
   return (
     <div style={{minHeight:"100vh", background:"#08080C", color:"#fff", paddingBottom:90, direction: lang==="ar" ? "rtl" : "ltr", fontFamily:"sans-serif"}}>
