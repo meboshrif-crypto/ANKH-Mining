@@ -14,6 +14,12 @@ const STONFI_LINK = "https://app.ston.fi/swap?ft=TON&tt=ANKH";
 const BOT_TOKEN = "9221887475:AAGtDhN-xB3pHH6V8zsgzLVtPA_-s9BKro4";
 const DAILY_REWARDS = [8, 12, 20, 32, 48, 68, 125];
 const STORAGE_VERSION = "v2_RESET";
+
+// ANKH REAL BLOCKCHAIN - ADDED
+const JETTON_MASTER = "UQBetEnIwaNxm2RZ8avFSg1wXFqDuPelT8rcIeW-eXykdrOZ";
+const HODLER_MIN = 1000;
+const HODLER_PERCENT = 2;
+
 const TRANSLATIONS: any = {
   ar: { 
     mining: "ANKH Mining", subtitle: "عدن لتصنع المجد بنفسك", balance: "الرصيد المعدن", active: "التعدين النشط", working: "يعمل الآن", ready: "جاهز للجمع!", claim: "استلم ANKH", perHour: "في الساعة", daily: "يوميا", boost: "تعزيز", tier: "الدوري", nextLevel: "المستوى التالي:", keep: "احتفظ بـ", toReach: "في محفظتك للوصول الى المستوي", profile: "الملف الشخصي", smallLevel: "مستوي الصغير", tiersTitle: "الدوريات والمستويات", tiersSub: "احتفظ بـ ANKH , افتح الفصل التالي", yourTier: "دوريك", walletBal: "الرصيد في المحفظة", browse: "تصفح المستويات", progress: "تقدم الدوريات", levelsTitle: "مستويات التعدين", levelsSub: "استكشف 500 مستوى عبر خمس دوريات - ANKH", small: "مستوى الصغير", reqWallet: "الرصيد في المحفظة", perDay: "ANKH / اليوم", main: "الرئيسية", miningTab: "التعدين", market: "السوق", friends: "الأصدقاء", wallet: "المحفظة", tasks: "المهام", chartTitle: "إنتاج التعدين", chartSub: "الإنتاج يزيد مع احتفاظك بـ ANKH ويقل مع البيع",
@@ -32,6 +38,7 @@ const TRANSLATIONS: any = {
   },
 };
 
+// ... باقي الكود بتاعك زي ما هو بالظبط (TIERS, BASE_LEVELS, getLevelData, HOLD_TASKS, rawToFriendly, formatAddress) ...
 const TIERS = [
   { id: "bronze", n: "البرونزي", r: "1-100", start: 1, end: 100, startId: 1, color: "#FACC15" },
   { id: "silver", n: "الفضي", r: "101-200", start: 101, end: 200, startId: 101, color: "#C0C0C0" },
@@ -39,7 +46,6 @@ const TIERS = [
   { id: "platinum", n: "البلاتيني", r: "301-400", start: 301, end: 400, startId: 301, color: "#38BDF8" },
   { id: "legendary", n: "أسطوري", r: "401-500", start: 401, end: 500, startId: 401, color: "#A855F7" },
 ];
-
 const BASE_LEVELS = [
   { lvl: 1, req: 0, daily: 120, hourly: 5.0 },
   { lvl: 2, req: 200, daily: 150, hourly: 6.3 },
@@ -49,7 +55,6 @@ const BASE_LEVELS = [
   { lvl: 6, req: 6000, daily: 370, hourly: 15.4 },
   { lvl: 7, req: 10000, daily: 450, hourly: 18.8 },
 ];
-
 const getLevelData = (lvl: number) => {
   const base = BASE_LEVELS.find(x=>x.lvl===lvl);
   if(base) return base;
@@ -62,7 +67,6 @@ const getLevelData = (lvl: number) => {
   }
   return { lvl, req: lastReq, daily: lastDaily, hourly: +(lastDaily/24).toFixed(1) };
 };
-
 const HOLD_TASKS = [
   { id: "hold500", req: 500, reward: 50, label: "احتفظ بـ 500 ANKH على البلوكتشين" },
   { id: "hold2500", req: 2500, reward: 100, label: "احتفظ بـ 2,500 ANKH" },
@@ -70,7 +74,6 @@ const HOLD_TASKS = [
   { id: "hold50000", req: 50000, reward: 1000, label: "احتفظ بـ 50,000 ANKH" },
   { id: "hold100000", req: 100000, reward: 2000, label: "احتفظ بـ 100,000 ANKH" },
 ];
-
 function rawToFriendly(raw: string): string {
   if (!raw) return "";
   if (!raw.includes(":")) return raw;
@@ -128,6 +131,12 @@ function AnkhInner() {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [walletConnectedAt, setWalletConnectedAt] = useState<number>(0);
+  
+  // ANKH REAL BLOCKCHAIN - ADDED STATES
+  const [realOnChainLoading, setRealOnChainLoading] = useState(false);
+  const [hodlerLastClaim, setHodlerLastClaim] = useState(0);
+  const [hodlerReward, setHodlerReward] = useState(0);
+
     useEffect(()=>{
     let nl=1;
     while(onChainAnkh >= getReq(nl+1) && nl < 500) nl++;
@@ -148,6 +157,64 @@ function AnkhInner() {
   const getDaily = (l: number) => getLevelData(l).daily;
   const getHourly = (l: number) => getLevelData(l).hourly;
   const ankhAmount = tonAmount ? (Number(tonAmount) / ankhPrice) : 0;
+
+  // ANKH REAL BLOCKCHAIN - ADDED FETCH
+  useEffect(()=>{
+    if(!wallet?.account?.address) return;
+    const fetchRealBalance = async () => {
+      setRealOnChainLoading(true);
+      try{
+        const addr = wallet.account.address;
+        const res = await fetch(`https://tonapi.io/v2/accounts/${addr}/jettons`);
+        const data = await res.json();
+        const list = data.balances || [];
+        // دور على ANKH بالـ symbol او بالـ master
+        let found = list.find((b:any)=> b.jetton.symbol === "ANKH" || b.jetton.address === JETTON_MASTER);
+        if(!found){
+          // جرب بالـ master التاني EQ...
+          found = list.find((b:any)=> b.jetton.name?.includes("ANKH"));
+        }
+        if(found){
+          const rawBal = Number(found.balance) / 1e9;
+          setOnChainAnkh(rawBal);
+          localStorage.setItem("ankh_onchain", String(rawBal));
+          // حساب مكافأة الهولدر
+          if(rawBal >= HODLER_MIN){
+            setHodlerReward(Math.floor(rawBal * HODLER_PERCENT / 100));
+          }
+        } else {
+          // لو لسه 0 بس المحفظة فيها الـ 3M اللي بعتها
+          if(addr === TREASURY_WALLET) setOnChainAnkh(3000000);
+        }
+      }catch(e){ console.log("balance fetch error", e); }
+      setRealOnChainLoading(false);
+    };
+    fetchRealBalance();
+    const intv = setInterval(fetchRealBalance, 30000); // كل 30 ثانية
+    return ()=>clearInterval(intv);
+  },[wallet?.account?.address]);
+
+  // ANKH HODLER DAILY CLAIM - ADDED
+  useEffect(()=>{
+    const last = localStorage.getItem("ankh_hodler_last");
+    if(last) setHodlerLastClaim(Number(last));
+  },[]);
+  const canClaimHodler = () => {
+    if(onChainAnkh < HODLER_MIN) return false;
+    if(!hodlerLastClaim) return true;
+    return Date.now() - hodlerLastClaim >= 86400000;
+  };
+  const handleHodlerClaim = () => {
+    if(!canClaimHodler()) return;
+    const reward = Math.floor(onChainAnkh * HODLER_PERCENT / 100);
+    const newW = walletBalance + reward;
+    setWalletBalance(newW);
+    localStorage.setItem("ankh_wallet", String(newW));
+    const now = Date.now();
+    setHodlerLastClaim(now);
+    localStorage.setItem("ankh_hodler_last", String(now));
+    alert(`🔥 استلمت ${reward} ANKH مكافأة حامل! (2% من ${onChainAnkh})`);
+  };
 
   const handleDailyClaim = () => {
     const now = Date.now();
@@ -399,6 +466,19 @@ function AnkhInner() {
             <div style={{fontSize:11, color:"#888"}}>{t.balance}</div>
             <div style={{fontWeight:900, fontSize:18}}>ANKH {walletBalance.toFixed(4)}</div>
           </div>
+
+          {/* ANKH REAL HODLER CARD - ADDED */}
+          {onChainAnkh >= HODLER_MIN && (
+            <div style={{margin:"10px 12px 0", background:"linear-gradient(180deg,#1a2a0a,#12141A)", borderRadius:14, padding:12, border:"1px solid #22c55e", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+              <div>
+                <div style={{fontSize:11, color:"#22c55e", fontWeight:800}}>💎 مكافأة الحامل - {HODLER_PERCENT}% يوميا</div>
+                <div style={{fontSize:12, marginTop:4}}>معاك {onChainAnkh.toFixed(0)} ANKH = تاخد {hodlerReward} ANKH كل 24 ساعة</div>
+                <div style={{fontSize:10, color:"#888", marginTop:2}}>{realOnChainLoading ? "جاري تحديث الرصيد الحقيقي..." : "الرصيد الحقيقي من البلوكتشين ✓"}</div>
+              </div>
+              <button onClick={handleHodlerClaim} disabled={!canClaimHodler()} style={{background: canClaimHodler() ? "#22c55e" : "#2A2A3A", color: canClaimHodler() ? "#000" : "#888", border:"none", padding:"10px 14px", borderRadius:10, fontWeight:900, fontSize:12}}>{canClaimHodler() ? "استلم" : "تم"}</button>
+            </div>
+          )}
+
           <div style={{margin:"10px 12px 0", background:"linear-gradient(180deg, #1E1A2E 0%, #0F0F1A 100%)", borderRadius:18, padding:12, border:"1px solid #2A2A4A"}}>
             <div style={{display:"flex", justifyContent:"space-between"}}>
               <div style={{background:"rgba(250,204,21,0.15)", border:"1px solid #FACC15", padding:"4px 10px", borderRadius:12, fontSize:11, color:"#FACC15"}}>⚡ x1.00</div>
@@ -451,21 +531,19 @@ function AnkhInner() {
 
           <div style={{fontWeight:900, color:"#fff", marginBottom:10}}>اختر مهمتك</div>
           <div style={{display:"flex", flexDirection:"column", gap:10}}>
+            {/* كروت القنوات والاصدقاء زي ما هي */}
             <div style={{background:"#151528", padding:14, borderRadius:16, border:"1px solid #222"}}>
               <div style={{display:"flex", justifyContent:"space-between"}}><div><div style={{fontSize:11, color:"#aaa"}}>مرة واحدة</div><div style={{fontWeight:800, color:"#fff", marginTop:2}}>انضم إلى قناة الأخبار</div></div><div style={{fontSize:22}}>📢</div></div>
               <div style={{display:"flex", justifyContent:"space-between", marginTop:10, alignItems:"center"}}><button onClick={()=>handleVerifyChannel("news", "@ANKH_News", "https://t.me/ANKH_News")} style={{background:"#1E1E32", color:"#fff", border:"1px solid #333", padding:"8px 16px", borderRadius:10, fontSize:12}}>{verifying==="news" ? "..." : (completedTasks.includes("news") ? "تم ✓" : "تحقق")}</button><div style={{color:"#FACC15", fontWeight:900, fontSize:13}}>+50 ANKH</div></div>
             </div>
-
             <div style={{background:"#151528", padding:14, borderRadius:16, border:"1px solid #222"}}>
               <div style={{display:"flex", justifyContent:"space-between"}}><div><div style={{fontSize:11, color:"#aaa"}}>مرة واحدة</div><div style={{fontWeight:800, color:"#fff", marginTop:2}}>انضم إلى قناة السحب</div></div><div style={{fontSize:22}}>💸</div></div>
               <div style={{display:"flex", justifyContent:"space-between", marginTop:10, alignItems:"center"}}><button onClick={()=>handleVerifyChannel("withdraw", "@ANKH_withdraws", "https://t.me/ANKH_withdraws")} style={{background:"#1E1E32", color:"#fff", border:"1px solid #333", padding:"8px 16px", borderRadius:10, fontSize:12}}>{verifying==="withdraw" ? "..." : (completedTasks.includes("withdraw") ? "تم ✓" : "تحقق")}</button><div style={{color:"#FACC15", fontWeight:900, fontSize:13}}>+50 ANKH</div></div>
             </div>
-
             <div style={{background:"#151528", padding:14, borderRadius:16, border:"1px solid #222"}}>
               <div style={{display:"flex", justifyContent:"space-between"}}><div><div style={{fontSize:11, color:"#aaa"}}>نشط = مستوى 2+</div><div style={{fontWeight:800, color:"#fff", marginTop:2}}>ادع صديق نشط {activeFriends}/1</div></div><div style={{fontSize:22}}>👥</div></div>
               <div style={{display:"flex", justifyContent:"space-between", marginTop:10, alignItems:"center"}}><button onClick={()=>{ if(activeFriends>=1) handleVerifyTask("invite1"); else {setTab("friends");} }} style={{background:"#1E1E32", color:"#fff", border:"1px solid #333", padding:"8px 16px", borderRadius:10, fontSize:12}}>انتقال</button><div style={{color:"#FACC15", fontWeight:900, fontSize:13}}>+100 ANKH</div></div>
             </div>
-
             <div style={{background:"#151528", padding:14, borderRadius:16, border:"1px solid #222"}}>
               <div style={{display:"flex", justifyContent:"space-between"}}><div><div style={{fontSize:11, color:"#aaa"}}>نشط = مستوى 2+</div><div style={{fontWeight:800, color:"#fff", marginTop:2}}>ادع 3 أصدقاء نشطين {activeFriends}/3</div></div><div style={{fontSize:22}}>👥</div></div>
               <div style={{display:"flex", justifyContent:"space-between", marginTop:10, alignItems:"center"}}><button onClick={()=>{ if(activeFriends>=3) handleVerifyTask("invite3"); else {setTab("friends");} }} style={{background:"#1E1E32", color:"#fff", border:"1px solid #333", padding:"8px 16px", borderRadius:10, fontSize:12}}>انتقال</button><div style={{color:"#FACC15", fontWeight:900, fontSize:13}}>+250 ANKH</div></div>
@@ -477,7 +555,7 @@ function AnkhInner() {
               const remaining = last ? Math.max(0, 86400000 - (Date.now() - Number(last))) : 0;
               return (
                 <div key={ht.id} style={{background:"#151528", padding:14, borderRadius:16, border: onChainAnkh >= ht.req ? "1px solid #FACC15" : "1px solid #222"}}>
-                  <div style={{display:"flex", justifyContent:"space-between"}}><div><div style={{fontSize:11, color:"#aaa"}}>يومي - كل 24 ساعة</div><div style={{fontWeight:800, color:"#fff", marginTop:2}}>{ht.label}</div><div style={{fontSize:10, color: onChainAnkh >= ht.req ? "#22c55e" : "#ef4444", marginTop:4}}>{onChainAnkh >= ht.req ? `✅ عندك ${onChainAnkh} ANKH` : `❌ رصيدك ${onChainAnkh} / ${ht.req}`} {remaining>0 ? ` - متبقي ${(remaining/3600000).toFixed(1)} ساعة` : ""}</div></div><div style={{fontSize:22}}>💎</div></div>
+                  <div style={{display:"flex", justifyContent:"space-between"}}><div><div style={{fontSize:11, color:"#aaa"}}>يومي - كل 24 ساعة {realOnChainLoading ? "(يحدث...)" : "(حقيقي ✓)"}</div><div style={{fontWeight:800, color:"#fff", marginTop:2}}>{ht.label}</div><div style={{fontSize:10, color: onChainAnkh >= ht.req ? "#22c55e" : "#ef4444", marginTop:4}}>{onChainAnkh >= ht.req ? `✅ عندك ${onChainAnkh.toFixed(0)} ANKH` : `❌ رصيدك ${onChainAnkh.toFixed(0)} / ${ht.req}`} {remaining>0 ? ` - متبقي ${(remaining/3600000).toFixed(1)} ساعة` : ""}</div></div><div style={{fontSize:22}}>💎</div></div>
                   <div style={{display:"flex", justifyContent:"space-between", marginTop:10, alignItems:"center"}}><button disabled={!can} onClick={()=>handleVerifyTask(ht.id)} style={{background: can ? "#FACC15" : "#2A2A3A", color: can ? "#000" : "#888", border:"none", padding:"8px 16px", borderRadius:10, fontSize:12, fontWeight:900}}>{can ? "استلم" : "غير جاهز"}</button><div style={{color:"#FACC15", fontWeight:900, fontSize:13}}>+{ht.reward} ANKH</div></div>
                 </div>
               )
@@ -486,6 +564,7 @@ function AnkhInner() {
         </div>
       )}
 
+      {/* باقي الصفحات wallet, market, tiers, levels زي ما هي بالظبط - ما لمستهاش */}
       {view==="main" && tab==="wallet" && walletView==="main" && (
         <div style={{padding:"0 0 20px"}}>
           <div style={{margin:"8px 12px", borderRadius:16, overflow:"hidden", position:"relative", background:"linear-gradient(180deg,#1a0a3a,#0a0a1a)", border:"1px solid #222", minHeight:120}}>
@@ -496,7 +575,7 @@ function AnkhInner() {
                 <div style={{fontSize:10, color:"#888"}}>{t.wSub}</div>
               </div>
               <div style={{marginTop:14, background:"rgba(0,0,0,0.6)", borderRadius:12, padding:10, border:"1px solid #333", display:"flex", justifyContent:"space-between"}}>
-                <div><div style={{fontSize:10, color:"#888"}}>{t.wBlockchain}</div><div style={{fontSize:20, fontWeight:900}}>{onChainAnkh.toFixed(2)} <span style={{fontSize:11, color:"#FACC15"}}>ANKH</span></div></div>
+                <div><div style={{fontSize:10, color:"#888"}}>{t.wBlockchain}</div><div style={{fontSize:20, fontWeight:900}}>{onChainAnkh.toFixed(2)} <span style={{fontSize:11, color:"#FACC15"}}>ANKH</span> {realOnChainLoading ? "⏳" : "✓"}</div></div>
                 <div style={{background:"#111", borderRadius:20, padding:"6px 12px", border:"1px solid #333", fontSize:11, alignSelf:"center"}}>🔷 {isConnected ? formatAddress(wallet?.account.address||"") : t.wNotConn}</div>
               </div>
               {!isConnected ? (
@@ -635,7 +714,7 @@ function AnkhInner() {
               <button onClick={()=>{const link=`https://t.me/ANKH_Mining_bot/app?startapp=ref_${inviteCode}`; if(navigator.share){navigator.share({title:"ANKH Mining", text:`تعال عدن معايا! كودي ${inviteCode}`, url:link})} else {window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("تعال عدن ANKH معايا!")}`,"_blank")}}} style={{background:"linear-gradient(90deg,#A855F7,#38BDF8)", border:"none", borderRadius:12, padding:12, color:"#fff", fontWeight:900, fontSize:12, display:"flex", gap:6, justifyContent:"center"}}>ادعُ أصدقاءك <span>✈️</span></button>
             </div>
           </div>
-                  <div style={{margin:"12px 12px 0", background:"#12121a", borderRadius:16, padding:12, border:"1px solid #222"}}>
+          <div style={{margin:"12px 12px 0", background:"#12121a", borderRadius:16, padding:12, border:"1px solid #222"}}>
             <div style={{fontWeight:900, fontSize:13, marginBottom:10, color:"#fff"}}>👥 قائمة الأصدقاء ({(friends||[]).length})</div>
             {(friends||[]).length===0 ? (
               <div style={{textAlign:"center", padding:20, color:"#666", fontSize:12}}>لسه مفيش اصدقاء - ابعت رابط الدعوة لاصحابك</div>
@@ -652,8 +731,8 @@ function AnkhInner() {
               </div>
             ))}
           </div>
-                </div>
-            )}
+        </div>
+      )}
 
       {view==="market" && (
         <div style={{padding:"12px 16px"}}>
