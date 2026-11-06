@@ -111,6 +111,10 @@ function AnkhInner() {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [walletConnectedAt, setWalletConnectedAt] = useState<number>(0);
+  const [dailyStreak, setDailyStreak] = useState(0);
+const [lastDailyClaim, setLastDailyClaim] = useState(0);
+const [completedTasks, setCompletedTasks] = useState([]);
+const [verifying, setVerifying] = useState(null);
   const [onChainAnkh, setOnChainAnkh] = useState(0);
   const [isVerifiedHuman, setIsVerifiedHuman] = useState(false);
   const [nowTick, setNowTick] = useState(Date.now());
