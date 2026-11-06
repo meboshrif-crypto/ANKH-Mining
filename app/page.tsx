@@ -13,7 +13,7 @@ const REQUIRED_DAYS = 7;
 const STONFI_LINK = "https://app.ston.fi/swap?ft=TON&tt=ANKH";
 const BOT_TOKEN = "9221887475:AAGtDhN-xB3pHH6V8zsgzLVtPA_-s9BKro4";
 const DAILY_REWARDS = [8, 12, 20, 32, 48, 68, 125];
-
+const STORAGE_VERSION = "v2_RESET";
 const TRANSLATIONS: any = {
   ar: { 
     mining: "ANKH Mining", subtitle: "عدن لتصنع المجد بنفسك", balance: "الرصيد المعدن", active: "التعدين النشط", working: "يعمل الآن", ready: "جاهز للجمع!", claim: "استلم ANKH", perHour: "في الساعة", daily: "يوميا", boost: "تعزيز", tier: "الدوري", nextLevel: "المستوى التالي:", keep: "احتفظ بـ", toReach: "في محفظتك للوصول الى المستوي", profile: "الملف الشخصي", smallLevel: "مستوي الصغير", tiersTitle: "الدوريات والمستويات", tiersSub: "احتفظ بـ ANKH , افتح الفصل التالي", yourTier: "دوريك", walletBal: "الرصيد في المحفظة", browse: "تصفح المستويات", progress: "تقدم الدوريات", levelsTitle: "مستويات التعدين", levelsSub: "استكشف 500 مستوى عبر خمس دوريات - ANKH", small: "مستوى الصغير", reqWallet: "الرصيد في المحفظة", perDay: "ANKH / اليوم", main: "الرئيسية", miningTab: "التعدين", market: "السوق", friends: "الأصدقاء", wallet: "المحفظة", tasks: "المهام", chartTitle: "إنتاج التعدين", chartSub: "الإنتاج يزيد مع احتفاظك بـ ANKH ويقل مع البيع",
@@ -94,6 +94,17 @@ function formatAddress(addr: string) {
 }
 
 function AnkhInner() {
+    useEffect(()=>{
+    const current = localStorage.getItem("ankh_version");
+    if(current !== STORAGE_VERSION){
+      Object.keys(localStorage).forEach(k=>{
+        if(k.startsWith("ankh_")) localStorage.removeItem(k);
+      });
+      localStorage.setItem("ankh_version", STORAGE_VERSION);
+      location.reload();
+    }
+  },[]);
+
   const [balance, setBalance] = useState(0);
   const [walletBalance, setWalletBalance] = useState(0);
   const [level, setLevel] = useState(1);
