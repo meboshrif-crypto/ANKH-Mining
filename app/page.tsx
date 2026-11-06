@@ -169,11 +169,7 @@ function AnkhInner() {
         const data = await res.json();
         const list = data.balances || [];
         // دور على ANKH بالـ symbol او بالـ master
-        let found = list.find((b:any)=> b.jetton.symbol === "ANKH" || b.jetton.address === JETTON_MASTER);
-        if(!found){
-          // جرب بالـ master التاني EQ...
-          found = list.find((b:any)=> b.jetton.name?.includes("ANKH"));
-        }
+       let found = list.find((b:any)=> b.jetton.symbol === "ANKH");
         if(found){
           const rawBal = Number(found.balance) / 1e9;
           setOnChainAnkh(rawBal);
@@ -182,9 +178,6 @@ function AnkhInner() {
           if(rawBal >= HODLER_MIN){
             setHodlerReward(Math.floor(rawBal * HODLER_PERCENT / 100));
           }
-        } else {
-          // لو لسه 0 بس المحفظة فيها الـ 3M اللي بعتها
-          if(addr === TREASURY_WALLET) setOnChainAnkh(3000000);
         }
       }catch(e){ console.log("balance fetch error", e); }
       setRealOnChainLoading(false);
