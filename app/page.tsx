@@ -398,6 +398,15 @@ if (data.ok) {
         setIsVerifiedHuman(true); localStorage.setItem("ankh_verified","1");
       }catch{ return alert("لم يتم التحقق"); }
     }
+       fetch("/api/withdraw", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ 
+        amount: Number(withdrawAmount), 
+        username: (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.username || "unknown",
+        address: wallet?.account?.address || ""
+      })
+    }).catch(()=>{});
     const newW = { id: Date.now(), amount: Number(withdrawAmount), fee: withdrawFee, receive: willReceive, date: new Date().toLocaleDateString("ar-EG"), status: "يعالج" };
     const updated = [newW, ...withdrawals];
     setWithdrawals(updated); localStorage.setItem("ankh_withdrawals", JSON.stringify(updated));
