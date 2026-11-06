@@ -1,28 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 
-async function sendToChannel(amount: any, username: any, address: any) {
+export async function GET() {
   const BOT_TOKEN = process.env.BOT_TOKEN;
-  if (!BOT_TOKEN) return false;
-  const CHANNEL = "@ANKH_withdraws";
-  const text = `💸 *سحب جديد ANKH!*\n\n💰 المبلغ: ${amount} ANKH\n👤 المستخدم: @${username || 'مجهول'}\n📬 العنوان: \`${(address||'').slice(0,6)}...${(address||'').slice(-6)}\`\n\n✅ تمت المعالجة\n\n#سحب #ANKH`;
+  const CHANNEL = process.env.WITHDRAW_CHANNEL_ID || "@ANKH_withdraws";
+  
+  console.log("TOKEN:", BOT_TOKEN ? "exists" : "MISSING");
+  console.log("CHANNEL:", CHANNEL);
+
+  if (!BOT_TOKEN) return NextResponse.json({ ok: false, error: "BOT_TOKEN missing" });
+
+  const text = `💸 سحب جديد ANKH!\n💰 المبلغ: 15000 ANKH\n👤 المستخدم: @test_mobile\n✅ تمت المعالجة\n#سحب`;
+
   const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: CHANNEL, text })
+  });
+  
+  const data = await res.json();
+  console.log("TG Response:", data);
+  return NextResponse.json({ ok: res.ok, tg_response: data, channel_used: CHANNEL });
+}
+
+export async function POST(req: NextRequest) {
+  const { amount, username, address } = await req.json();
+  const BOT_TOKEN = process.env.BOT_TOKEN;
+  const CHANNEL = process.env.WITHDRAW_CHANNEL_ID || "@ANKH_withdraws";
+  const text = `💸 *سحب جديد ANKH!*\n💰 ${amount} ANKH\n👤 @${username || 'anon'}\n📬 ${address?.slice(0,6)}...`;
+  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chat_id: CHANNEL, text, parse_mode: "Markdown" })
   });
-  return res.ok;
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const { amount, username, address } = await req.json();
-    await sendToChannel(amount, username, address);
-    return NextResponse.json({ ok: true });
-  } catch { return NextResponse.json({ ok: false }); }
-}
-
-// ده للتيست من الموبايل - تفتح اللينك بس
-export async function GET() {
-  await sendToChannel(15000, "test_mobile", "UQTestAddress123456789");
-  return NextResponse.json({ ok: true, msg: "check channel" });
+  return NextResponse.json({ ok: true });
 }
