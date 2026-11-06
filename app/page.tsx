@@ -368,7 +368,8 @@ function AnkhInner() {
     }catch{ alert("فشل الشراء"); }
   };
 
-
+  const activeFriends = (friends||[]).length;
+  
   return (
     <div style={{minHeight:"100vh", background:"#08080C", color:"#fff", paddingBottom:90, direction: lang==="ar" ? "rtl" : "ltr", fontFamily:"sans-serif"}}>
       <div style={{padding:"12px 16px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#0F0F14"}}>
@@ -651,6 +652,8 @@ function AnkhInner() {
               </div>
             ))}
           </div>
+                </div>
+            )}
 
       {view==="market" && (
         <div style={{padding:"12px 16px"}}>
