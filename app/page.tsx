@@ -336,44 +336,97 @@ function AnkhInner() {
         </>
       )}
 
-      {/* === صفحة المهام الكاملة - بدون ايرور === */}
       {view==="tasks" && (
-  <div style={{padding:"12px 12px 20px"}}>
+  <div style={{padding:"12px 12px 90px", background:"#0B0B14", minHeight:"100vh"}}>
+    {/* هيدر */}
     <div style={{display:"flex", gap:10, alignItems:"center", marginBottom:14}}>
-      <button onClick={()=>{setView("main"); setTab("home")}} style={{background:"#1A1A1A", width:36, height:36, borderRadius:20, border:"1px solid #333", color:"#fff"}}>‹</button>
-      <div><div style={{fontWeight:900, fontSize:18}}>مركز المهام 🎯</div><div style={{fontSize:11, color:"#888"}}>الرصيد بيروح للمعدن فورا</div></div>
+      <button onClick={()=>{setView("main"); setTab("home")}} style={{background:"#1A1A2E", width:36, height:36, borderRadius:12, border:"1px solid #333", color:"#fff"}}>‹</button>
+      <div style={{flex:1}}>
+        <div style={{fontWeight:900, fontSize:18, color:"#fff"}}>المهام والمكافآت 🎯</div>
+        <div style={{fontSize:11, color:"#888"}}>استكشف، اكمل، اجمع ANKH</div>
+      </div>
     </div>
 
+    {/* احصائيات فوق */}
+    <div style={{display:"flex", gap:8, marginBottom:12}}>
+      <div style={{flex:1, background:"#151528", padding:12, borderRadius:16, border:"1px solid #222", textAlign:"center"}}>
+        <div style={{fontWeight:900, color:"#fff"}}>{(completedTasks||[]).length} / 6</div>
+        <div style={{fontSize:10, color:"#888"}}>المكافآت المستلمة</div>
+      </div>
+      <div style={{flex:1, background:"#151528", padding:12, borderRadius:16, border:"1px solid #222", textAlign:"center"}}>
+        <div style={{fontWeight:900, color:"#fff"}}>{canClaimDaily ? 1 : 0}</div>
+        <div style={{fontSize:10, color:"#888"}}>جاهزة للاستلام</div>
+      </div>
+    </div>
+
+    {/* السلسلة اليومية - زي Rifty */}
+    <div style={{background:"linear-gradient(180deg,#1C103A,#10101E)", padding:16, borderRadius:20, border:"1px solid #3A2A6A", marginBottom:16, textAlign:"center"}}>
+      <div style={{fontSize:11, color:"#aaa"}}>السلسلة اليومية</div>
+      <div style={{fontWeight:900, fontSize:28, color:"#fff", marginTop:4}}>اليوم {dailyStreak || 1} / 30</div>
+      <div style={{color:"#FACC15", fontWeight:900, marginTop:2}}>+1000 ANKH</div>
+      <div style={{fontSize:10, color:"#777", marginTop:4}}>عد كل يوم وافتح المكافأة التالية</div>
+      
+      <button onClick={handleDailyClaim} disabled={!canClaimDaily} style={{marginTop:14, background: canClaimDaily ? "linear-gradient(90deg,#8B5CF6,#FACC15)" : "#2A2A3A", color: canClaimDaily ? "#000" : "#888", border:"none", padding:"12px 24px", borderRadius:14, fontWeight:900, width:"100%"}}>
+        {canClaimDaily ? "⚡ استلام المكافأة" : `تم اليوم ✓ - تعال بعد 24 ساعة`}
+      </button>
+
+      {/* الـ 7 ايام زي الصورة */}
+      <div style={{display:"flex", gap:6, marginTop:14, overflowX:"auto"}}>
+        {[1000,1200,1500,2000,2500,3000,5000].map((r,i)=>(
+          <div key={i} style={{flex:1, minWidth:42, background: (dailyStreak||0) > i ? "#FACC15" : "#1E1E32", padding:"8px 4px", borderRadius:10, border:"1px solid #333"}}>
+            <div style={{fontSize:8, color: (dailyStreak||0) > i ? "#000" : "#aaa"}}>اليوم {i+1}</div>
+            <div style={{fontSize:12, marginTop:2}}>💎</div>
+            <div style={{fontSize:10, fontWeight:900, color: (dailyStreak||0) > i ? "#000" : "#fff"}}>{r}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div style={{fontWeight:900, color:"#fff", marginBottom:10}}>اختر مهمتك</div>
+
+    {/* المهام - كلها مرة واحدة ومش هتقع */}
     <div style={{display:"flex", flexDirection:"column", gap:10}}>
-      {/* تسجيل يومي */}
-      <div style={{background:"linear-gradient(180deg,#1A1500,#12121A)", padding:14, borderRadius:16, border:"1px solid #FACC15", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-        <div><div style={{fontWeight:900, fontSize:14}}>تسجيل يومي 🔥 {dailyStreak}</div><div style={{fontSize:11, color:"#aaa"}}>+1000 ANKH - كل 24 ساعة</div></div>
-        <button onClick={handleDailyClaim} disabled={!canClaimDaily} style={{background: canClaimDaily ? "#FACC15" : "#333", color:"#000", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900}}>{canClaimDaily ? "استلم" : "تم ✓"}</button>
+
+      {/* مهمة قناة الاخبار */}
+      <div style={{background:"#151528", padding:14, borderRadius:16, border:"1px solid #222"}}>
+        <div style={{display:"flex", justifyContent:"space-between"}}>
+          <div><div style={{fontSize:11, color:"#aaa"}}>مرة واحدة</div><div style={{fontWeight:800, color:"#fff", marginTop:2}}>انضم إلى قناة الأخبار</div><div style={{fontSize:11, color:"#777", marginTop:2}}>انضم إلى القناة الرسمية وسيتحقق البوت</div></div>
+          <div style={{fontSize:22}}>📢</div>
+        </div>
+        <div style={{marginTop:10}}><div style={{display:"flex", justifyContent:"space-between", fontSize:11, color:"#888"}}><span>{(completedTasks||[]).includes("news") ? "1/1" : "0/1"}</span><span>التقدم</span></div><div style={{height:4, background:"#222", borderRadius:10, marginTop:4}}><div style={{height:4, width: (completedTasks||[]).includes("news") ? "100%" : "0%", background:"#8B5CF6", borderRadius:10}}></div></div></div>
+        <div style={{display:"flex", justifyContent:"space-between", marginTop:10, alignItems:"center"}}><button onClick={()=>handleVerifyTask("news", "https://t.me/ANKH_News")} style={{background:"#1E1E32", color:"#fff", border:"1px solid #333", padding:"8px 16px", borderRadius:10, fontSize:12}}>{(completedTasks||[]).includes("news") ? "تم" : "تحقق"}</button><div style={{color:"#FACC15", fontWeight:900, fontSize:13}}>+500 ANKH 💎</div></div>
       </div>
 
-      {/* قناة الاخبار - الرابط بتاعك */}
-      <div style={{background:"#12121A", padding:14, borderRadius:16, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-        <div><div style={{fontWeight:900, fontSize:14}}>قناة الأخبار 📢</div><div style={{fontSize:11, color:"#888"}}>+500 ANKH</div></div>
-        <button onClick={()=>handleVerifyTask("news", CHANNELS.news.link)} style={{background: isTaskDone("news") ? "#22c55e" : "#fff", color: isTaskDone("news") ? "#fff" : "#000", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900}}>{isTaskDone("news") ? "تم ✓" : verifying==="news" ? "..." : "اذهب"}</button>
+      {/* قناة السحب */}
+      <div style={{background:"#151528", padding:14, borderRadius:16, border:"1px solid #222"}}>
+        <div style={{display:"flex", justifyContent:"space-between"}}>
+          <div><div style={{fontSize:11, color:"#aaa"}}>مرة واحدة</div><div style={{fontWeight:800, color:"#fff", marginTop:2}}>انضم إلى قناة السحب</div><div style={{fontSize:11, color:"#777", marginTop:2}}>شوف اثباتات السحب الحقيقية</div></div>
+          <div style={{fontSize:22}}>💸</div>
+        </div>
+        <div style={{marginTop:10}}><div style={{display:"flex", justifyContent:"space-between", fontSize:11, color:"#888"}}><span>{(completedTasks||[]).includes("withdraw") ? "1/1" : "0/1"}</span><span>التقدم</span></div><div style={{height:4, background:"#222", borderRadius:10, marginTop:4}}><div style={{height:4, width: (completedTasks||[]).includes("withdraw") ? "100%" : "0%", background:"#8B5CF6", borderRadius:10}}></div></div></div>
+        <div style={{display:"flex", justifyContent:"space-between", marginTop:10, alignItems:"center"}}><button onClick={()=>handleVerifyTask("withdraw", "https://t.me/ANKH_withdraws")} style={{background:"#1E1E32", color:"#fff", border:"1px solid #333", padding:"8px 16px", borderRadius:10, fontSize:12}}>{(completedTasks||[]).includes("withdraw") ? "تم" : "تحقق"}</button><div style={{color:"#FACC15", fontWeight:900, fontSize:13}}>+500 ANKH 💎</div></div>
       </div>
 
-      {/* قناة السحب - الرابط بتاعك */}
-      <div style={{background:"#12121A", padding:14, borderRadius:16, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-        <div><div style={{fontWeight:900, fontSize:14}}>قناة السحب 💸</div><div style={{fontSize:11, color:"#888"}}>+500 ANKH</div></div>
-        <button onClick={()=>handleVerifyTask("withdraw", CHANNELS.withdraw.link)} style={{background: isTaskDone("withdraw") ? "#22c55e" : "#fff", color: isTaskDone("withdraw") ? "#fff" : "#000", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900}}>{isTaskDone("withdraw") ? "تم ✓" : verifying==="withdraw" ? "..." : "اذهب"}</button>
+      {/* دعوة 3 اصدقاء */}
+      <div style={{background:"#151528", padding:14, borderRadius:16, border:"1px solid #222"}}>
+        <div style={{display:"flex", justifyContent:"space-between"}}>
+          <div><div style={{fontSize:11, color:"#aaa"}}>مرة واحدة</div><div style={{fontWeight:800, color:"#fff", marginTop:2}}>ادع 3 أصدقاء نشطين</div><div style={{fontSize:11, color:"#777", marginTop:2}}>ادع اصدقاء نشطين يحققوا شروط التعدين</div></div>
+          <div style={{fontSize:22}}>👥</div>
+        </div>
+        <div style={{marginTop:10}}><div style={{display:"flex", justifyContent:"space-between", fontSize:11, color:"#888"}}><span>{Math.min(friends.length,3)}/3</span><span>التقدم</span></div><div style={{height:4, background:"#222", borderRadius:10, marginTop:4}}><div style={{height:4, width: `${Math.min(friends.length/3*100,100)}%`, background:"#8B5CF6", borderRadius:10}}></div></div></div>
+        <div style={{display:"flex", justifyContent:"space-between", marginTop:10, alignItems:"center"}}><button onClick={()=>{ if(friends.length>=3) handleVerifyTask("invite3"); else {setView("main"); setTab("friends");} }} style={{background:"#1E1E32", color:"#fff", border:"1px solid #333", padding:"8px 16px", borderRadius:10, fontSize:12}}>انتقال</button><div style={{color:"#FACC15", fontWeight:900, fontSize:13}}>+50 ANKH 💎</div></div>
       </div>
 
-      {/* دعوة صديقين - مستوى 2 */}
-      <div style={{background:"#12121A", padding:14, borderRadius:16, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-        <div><div style={{fontWeight:900, fontSize:14}}>ادع 2 أصدقاء 👥</div><div style={{fontSize:11, color:"#888"}}>+5000 ANKH - عندك {friends.length}/2</div></div>
-        <button onClick={()=>{ if(friends.length>=2) handleVerifyTask("invite2"); else {setView("main"); setTab("friends");} }} style={{background: isTaskDone("invite2") ? "#22c55e" : friends.length>=2 ? "#FACC15" : "#fff", color:"#000", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900}}>{isTaskDone("invite2") ? "تم ✓" : friends.length>=2 ? "استلم" : "اذهب"}</button>
+      {/* بلوغ مستوى 2 */}
+      <div style={{background:"#151528", padding:14, borderRadius:16, border:"1px solid #FACC15"}}>
+        <div style={{display:"flex", justifyContent:"space-between"}}>
+          <div><div style={{fontSize:11, color:"#aaa"}}>مرة واحدة</div><div style={{fontWeight:800, color:"#fff", marginTop:2}}>بلوغ مستوى الاحتفاظ 2</div><div style={{fontSize:11, color:"#777", marginTop:2}}>احتفظ بما لا يقل عن 50k في محفظتك للوصول للمستوى 2</div></div>
+          <div style={{fontSize:22}}>⭐</div>
+        </div>
+        <div style={{marginTop:10}}><div style={{display:"flex", justifyContent:"space-between", fontSize:11, color:"#888"}}><span>{dailyStreak >=2 ? "2/2" : `${Math.min(dailyStreak,2)}/2`}</span><span>التقدم</span></div><div style={{height:4, background:"#222", borderRadius:10, marginTop:4}}><div style={{height:4, width: `${Math.min(dailyStreak/2*100,100)}%`, background:"#FACC15", borderRadius:10}}></div></div></div>
+        <div style={{display:"flex", justifyContent:"space-between", marginTop:10, alignItems:"center"}}><button onClick={()=>{ if(dailyStreak>=2) handleVerifyTask("level2"); else {setView("main"); setTab("home");} }} style={{background:"#1E1E32", color:"#fff", border:"1px solid #333", padding:"8px 16px", borderRadius:10, fontSize:12}}>انتقال</button><div style={{color:"#FACC15", fontWeight:900, fontSize:13}}>+100 ANKH 💎</div></div>
       </div>
 
-      {/* تويتر */}
-      <div style={{background:"#12121A", padding:14, borderRadius:16, border:"1px solid #222", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-        <div><div style={{fontWeight:900, fontSize:14}}>تابعنا على X</div><div style={{fontSize:11, color:"#888"}}>+5000 ANKH</div></div>
-        <button onClick={()=>handleVerifyTask("twitter", "https://x.com/")} style={{background: isTaskDone("twitter") ? "#22c55e" : "#fff", color: isTaskDone("twitter") ? "#fff" : "#000", border:"none", padding:"10px 18px", borderRadius:12, fontWeight:900}}>{isTaskDone("twitter") ? "تم ✓" : "اذهب"}</button>
-      </div>
     </div>
   </div>
 )}
