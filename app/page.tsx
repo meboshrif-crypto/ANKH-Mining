@@ -11,7 +11,7 @@ const MIN_WITHDRAW = 10000;
 const MIN_RESERVE = 2500;
 const REQUIRED_DAYS = 7;
 const STONFI_LINK = "https://app.ston.fi/swap?ft=TON&tt=ANKH";
-const BOT_TOKEN = "9221887475:AAGtDhN-xB3pHH6V8zsgzLVtPA_-s9BKro4";
+const BOT_TOKEN = process.env.NEXT_PUBLIC_BOT_TOKEN || "";
 const DAILY_REWARDS = [8, 12, 20, 32, 48, 68, 125];
 const STORAGE_VERSION = "v2_RESET";
 
