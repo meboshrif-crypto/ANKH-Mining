@@ -331,10 +331,21 @@ if (data.ok) {
       const code = localStorage.getItem("ankh_invite_code");
       if(code){ setInviteCode(code); } else { const newCode = Math.floor(1000000000 + Math.random()*9000000000).toString(); localStorage.setItem("ankh_invite_code", newCode); setInviteCode(newCode); }
     }
-    const savedFriends = localStorage.getItem("ankh_friends");
-    if(savedFriends){ try{ setFriends(JSON.parse(savedFriends)); }catch{} }
-    const refEarn = localStorage.getItem("ankh_ref_earn");
-    if(refEarn) setReferralEarnings(Number(refEarn));
+        // هات الاصدقاء من مونجو بدل localStorage
+    const fetchFriends = async () => {
+      const tg = (window as any).Telegram?.WebApp;
+      const tgUserId = tg?.initDataUnsafe?.user?.id?.toString();
+      if(!tgUserId) return;
+      try {
+        const res = await fetch(`/api/friends?userId=${tgUserId}`);
+        const data = await res.json();
+        if(data.ok){
+          setFriends(data.friends || []);
+          setReferralEarnings(data.totalEarnings || 0);
+        }
+      } catch {}
+    };
+    fetchFriends();
     const wca = localStorage.getItem("ankh_wallet_connected_at");
     if(wca) setWalletConnectedAt(Number(wca));
     const wds = localStorage.getItem("ankh_withdrawals"); if(wds){ try{ setWithdrawals(JSON.parse(wds)); }catch{} }
