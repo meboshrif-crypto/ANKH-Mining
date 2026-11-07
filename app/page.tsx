@@ -313,6 +313,15 @@ if (data.ok) {
       const existing = localStorage.getItem("ankh_referred");
       if (!existing && refCode !== tgUserId) {
         localStorage.setItem("ankh_referred", refCode);
+              fetch("/api/referral", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          newUserId: tgUserId, 
+          newUsername: tg?.initDataUnsafe?.user?.username || "",
+          referrerId: refCode 
+        })
+      }).catch(()=>{});
       }
     }
     if (tgUserId) {
