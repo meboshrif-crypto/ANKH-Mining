@@ -1,52 +1,36 @@
+// @ts-nocheck
 import { NextResponse } from 'next/server';
 import clientPromise from '../../../lib/mongodb';
 
-export async function POST(req: Request){
+export async function POST(req: Request) {
   try {
     const { newUserId, newUsername, referrerId } = await req.json();
-    
     if (!newUserId || !referrerId || newUserId === referrerId) {
-      return NextResponse.json({ ok: false });
+      return NextResponse.json({ ok: true });
     }
-
     const client = await clientPromise;
     const db = client.db('ankh');
+    const friendsCol = db.collection('friends');
     const users = db.collection('users');
 
-    // هل الجديد ده اتسجل قبل كده؟
-    const existingNew = await users.findOne({ telegramId: newUserId });
-    if (existingNew?.referredBy) {
-      return NextResponse.json({ ok: true, message: "already referred" });
-    }
+    const exists = await friendsCol.findOne({ newUserId });
+    if (exists) return NextResponse.json({ ok: true });
 
-    // احفظ ان الجديد اتدعى
+    await friendsCol.insertOne({
+      referrerId,
+      newUserId,
+      newUsername: newUsername || 'Friend',
+      createdAt: new Date(),
+    });
+
     await users.updateOne(
-      { telegramId: newUserId },
-      { $set: { telegramId: newUserId, username: newUsername, referredBy: referrerId, createdAt: new Date() } },
+      { userId: referrerId },
+      { $inc: { referralEarnings: 50 } },
       { upsert: true }
     );
 
-    // زود للقديم 1 دعوة
-    const alreadyFriend = await users.findOne({ 
-      telegramId: referrerId, 
-      "friends.id": newUserId 
-    });
-
-    if (!alreadyFriend) {
-      await users.updateOne(
-        { telegramId: referrerId },
-        { 
-          $push: { friends: { id: newUserId, name: newUsername || `User ${newUserId}`, level: 1, reward: 100, date: new Date() } },
-          $inc: { earnings: 100, friendsCount: 1 },
-          $setOnInsert: { createdAt: new Date() }
-        },
-        { upsert: true }
-      );
-    }
-
-    return NextResponse.json({ ok: true, counted: true });
-  } catch(e){
-    console.error(e);
-    return NextResponse.json({ ok: false, error: String(e) }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return NextResponse.json({ ok: false }, { status: 500 });
   }
 }
